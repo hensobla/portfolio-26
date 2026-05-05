@@ -16,4 +16,17 @@ export default defineConfig({
   schema: {
     types: schemaTypes,
   },
+  document: {
+    productionUrl: async (prev, { document }) => {
+      const origin =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : "http://localhost:3000";
+      const slug = (document?.slug as { current?: string } | undefined)
+        ?.current;
+      if (!slug) return prev;
+      if (document._type === "page") return `${origin}/p/${slug}`;
+      return prev;
+    },
+  },
 });

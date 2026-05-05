@@ -1,0 +1,43 @@
+/* =============================================================================
+ * Library chrome tokens
+ *
+ * Scoped to .libraryChrome (applied via src/app/library/layout.tsx). Defines
+ * a neutral, project-agnostic token set used by the library's surrounding UI:
+ * page background, header, controls panel, breadcrumbs, footer.
+ *
+ * The library is a TOOL. It does not consume the project's design tokens
+ * (colors.md, typography.md). The pieces it previews do — those render in
+ * their actual project theme. The chrome around them stays neutral so this
+ * library can be lifted into other projects without dragging Vignelli with it.
+ *
+ * The canvas (where pieces render) does NOT use these tokens for the surface
+ * swap — it uses the project's --paper / --panel / --ink because the canvas
+ * is the testbed for those surfaces.
+ * ========================================================================== */
+
+.libraryChrome {
+  /* Surfaces */
+  --lib-page-bg: #fafafa;
+  --lib-surface-bg: #ffffff;
+
+  /* Text */
+  --lib-text: #0a0a0a;
+  --lib-text-muted: #71717a;
+
+  /* Borders */
+  --lib-border: #e4e4e7;
+  --lib-border-strong: #18181b;
+
+  /* Accent (for active button states, etc.) */
+  --lib-accent-bg: #18181b;
+  --lib-accent-fg: #fafafa;
+  --lib-accent-hover: rgba(24, 24, 27, 0.08);
+
+  /* Fonts (system stacks — no external font dependency) */
+  --lib-font-sans:
+    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+  --lib-font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
+}

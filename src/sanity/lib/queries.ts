@@ -24,3 +24,12 @@ export const projectBySlugQuery = defineQuery(`
     body,
   }
 `);
+
+export const pageBySlugQuery = defineQuery(`
+  *[_type == "page" && slug.current == $slug][0] {
+    _id,
+    title,
+    slug,
+    modules,
+  }
+`);

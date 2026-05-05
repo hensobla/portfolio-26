@@ -1,0 +1,259 @@
+/* =============================================================================
+ * Library index — uses neutral library chrome tokens (--lib-*), not the
+ * project's design tokens. The library is a TOOL; this file ships with it
+ * across projects. See library-chrome.css for the token definitions.
+ * ========================================================================== */
+
+.container {
+  min-height: 100vh;
+  background: var(--lib-page-bg);
+  color: var(--lib-text);
+  font-family: var(--lib-font-sans);
+  padding-block: 56px;
+  padding-inline: 24px;
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-block: 72px;
+    padding-inline: 40px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .container {
+    padding-block: 80px;
+    padding-inline: 48px;
+    max-width: 1200px;
+    margin-inline: auto;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Header
+ * ------------------------------------------------------------------------ */
+
+.header {
+  border-block-end: 1px solid var(--lib-border-strong);
+  padding-block-end: 24px;
+  margin-block-end: 56px;
+}
+
+.eyebrow {
+  font-family: var(--lib-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  color: var(--lib-text-muted);
+  text-transform: uppercase;
+  margin: 0 0 16px 0;
+}
+
+.title {
+  font-family: var(--lib-font-sans);
+  font-size: 36px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.subtitle {
+  font-family: var(--lib-font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--lib-text-muted);
+  max-width: 60ch;
+  margin: 16px 0 0 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Section (one per category, plus Sandbox at top)
+ * ------------------------------------------------------------------------ */
+
+.section {
+  margin-block-end: 48px;
+}
+
+.section:last-of-type {
+  margin-block-end: 0;
+}
+
+.sandboxSection {
+  margin-block-end: 56px;
+  padding-block-end: 24px;
+  border-block-end: 1px dashed var(--lib-border);
+}
+
+.sandboxNote {
+  font-family: var(--lib-font-sans);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--lib-text-muted);
+  max-width: 70ch;
+  margin: 0 0 16px 0;
+}
+
+.sandboxNote code {
+  font-family: var(--lib-font-mono);
+  font-size: 12px;
+  letter-spacing: 0;
+  color: var(--lib-text);
+  padding-inline: 4px;
+  padding-block: 1px;
+  background: rgba(24, 24, 27, 0.06);
+  border-radius: 2px;
+}
+
+.pieceCategoryHint {
+  font-family: var(--lib-font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--lib-text-muted);
+  text-transform: lowercase;
+  margin-inline-start: 4px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 24px;
+  border-block-end: 1px solid var(--lib-border);
+  padding-block-end: 12px;
+  margin-block-end: 8px;
+}
+
+.sectionTitle {
+  font-family: var(--lib-font-sans);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.sectionCount {
+  font-family: var(--lib-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  color: var(--lib-text-muted);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+ * Piece list
+ * ------------------------------------------------------------------------ */
+
+.pieceList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pieceRow {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: 16px;
+  padding-block: 16px;
+  border-block-end: 1px solid var(--lib-border);
+}
+
+@media (min-width: 768px) {
+  .pieceRow {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+    gap: 24px;
+  }
+}
+
+.pieceLink {
+  font-family: var(--lib-font-sans);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0;
+  color: var(--lib-text);
+  text-decoration: none;
+  min-width: 0;
+}
+
+.pieceLink:hover,
+.pieceLink:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+
+.pieceLink:focus-visible {
+  outline: 2px solid var(--lib-text);
+  outline-offset: 4px;
+}
+
+.piecePath {
+  display: none;
+  font-family: var(--lib-font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--lib-text-muted);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .piecePath {
+    display: block;
+  }
+}
+
+.pieceStatus {
+  font-family: var(--lib-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  padding-inline: 8px;
+  padding-block: 5px;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+
+.pieceStatusApproved {
+  color: var(--lib-text);
+}
+
+.pieceStatusDraft {
+  color: var(--lib-text-muted);
+}
+
+/* ---------------------------------------------------------------------------
+ * Empty state
+ * ------------------------------------------------------------------------ */
+
+.emptyState {
+  font-family: var(--lib-font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--lib-text-muted);
+  text-align: center;
+  padding-block: 32px;
+  padding-inline: 24px;
+  border: 1px dashed var(--lib-border);
+}
+
+.emptyState code {
+  font-family: var(--lib-font-mono);
+  font-size: 12px;
+  letter-spacing: 0;
+  color: var(--lib-text);
+}

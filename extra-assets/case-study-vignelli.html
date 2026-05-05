@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configurator v3 — Case Study / [Your Name]</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600;700&family=Archivo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* =================================================================
+   TOKENS — colors and fonts as variables, swapped via data attributes
+================================================================= */
+:root {
+  /* default = Classic Vignelli */
+  --paper: #F5F0E8;
+  --paper-2: #FFFEFA;
+  --ink: #0D0D0D;
+  --primary: #C8102E;       /* "red" role: identity */
+  --data: #F4C430;          /* "yellow" role: data/metrics */
+  --primary-fg: #FFFEFA;    /* text on primary */
+  --data-fg: #0D0D0D;       /* text on data */
+  --muted: #4A4A4A;
+  --line-soft: rgba(13, 13, 13, 0.18);
+
+  --font-display: 'Archivo', sans-serif;
+  --font-display-weight: 800;
+  --font-display-tracking: -0.04em;
+  --font-display-tracking-tight: -0.025em;
+  --font-body: 'IBM Plex Sans', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  --measure: 1280px;
+}
+
+/* =================================================================
+   BASE
+================================================================= */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background-color .25s, color .25s;
+}
+::selection { background: var(--data); color: var(--data-fg); }
+a { color: inherit; }
+
+/* =================================================================
+   PAGE NAV (sticky at top)
+================================================================= */
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--paper);
+  border-bottom: 2px solid var(--ink);
+  padding: 14px 32px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 32px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.nav-back {
+  display: inline-flex; align-items: center; gap: 8px;
+  text-decoration: none; color: var(--ink);
+  font-weight: 500;
+  transition: color .15s;
+}
+.nav-back:hover { color: var(--primary); }
+.nav-back .arrow { font-size: 14px; }
+.nav-section { text-align: center; color: var(--muted); }
+.nav-section strong { color: var(--ink); font-weight: 600; }
+.nav-toc {
+  display: flex; gap: 4px;
+  list-style: none;
+}
+.nav-toc a {
+  display: inline-block; padding: 4px 8px;
+  text-decoration: none; color: var(--muted);
+  border: 1px solid transparent;
+  transition: color .15s, border-color .15s;
+}
+.nav-toc a:hover, .nav-toc a.is-active {
+  color: var(--ink); border-color: var(--ink);
+}
+@media (max-width: 820px) {
+  .nav { grid-template-columns: 1fr; gap: 10px; padding: 12px 16px; }
+  .nav-section { display: none; }
+  .nav-toc { overflow-x: auto; padding-bottom: 4px; }
+}
+
+/* =================================================================
+   HERO
+================================================================= */
+.hero {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  grid-template-rows: auto auto;
+}
+@media (max-width: 980px) {
+  .hero { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto auto; }
+}
+@media (max-width: 580px) {
+  .hero { grid-template-columns: 1fr; grid-template-rows: auto auto auto auto; }
+}
+.hero-block {
+  padding: 40px 36px 36px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  min-height: 280px;
+  transition: background-color .25s, color .25s;
+}
+.hero-num {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 500;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+.hero-name {
+  background: var(--primary); color: var(--primary-fg);
+  grid-column: 1 / 2; grid-row: 1 / 3;
+  min-height: 460px;
+}
+.hero-name .hero-num { opacity: 0.7; }
+.hero-name .meta {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.18em;
+  text-transform: uppercase; margin-bottom: 6px;
+  opacity: 0.85;
+}
+.hero-name h1 {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(54px, 7vw, 116px);
+  line-height: 0.88;
+  letter-spacing: var(--font-display-tracking);
+  text-transform: uppercase;
+  margin-top: auto;
+}
+.hero-name .lede {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(15px, 1.4vw, 19px);
+  line-height: 1.35;
+  margin-top: 24px;
+  max-width: 32ch;
+  opacity: 0.92;
+  letter-spacing: 0;
+}
+
+.hero-role {
+  background: var(--ink); color: var(--paper-2);
+  grid-column: 2 / 3; grid-row: 1 / 2;
+}
+.hero-role .hero-num { opacity: 0.5; }
+.hero-role h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(22px, 2vw, 30px);
+  line-height: 1.05;
+  letter-spacing: var(--font-display-tracking-tight);
+  margin-top: auto;
+}
+.hero-role h2 strong { color: var(--data); font-weight: 700; }
+.hero-role .role-meta {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 14px;
+  opacity: 0.7;
+  line-height: 1.7;
+}
+
+.hero-metric {
+  background: var(--data); color: var(--data-fg);
+  grid-column: 3 / 4; grid-row: 1 / 2;
+  text-align: right;
+}
+.hero-metric .label {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: auto;
+}
+.hero-metric .number {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(64px, 7vw, 110px);
+  line-height: 0.85;
+  letter-spacing: var(--font-display-tracking);
+  font-feature-settings: "tnum";
+  margin-top: 8px;
+}
+.hero-metric .number .pct {
+  font-size: 0.55em;
+  vertical-align: top;
+  margin-left: 4px;
+  font-weight: 700;
+}
+.hero-metric .sub {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.06em;
+  text-transform: uppercase; margin-top: 8px;
+  font-weight: 500;
+}
+
+.hero-context {
+  background: var(--paper-2); color: var(--ink);
+  grid-column: 2 / 4; grid-row: 2 / 3;
+  border-top: 2px solid var(--ink);
+  padding: 28px 36px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32px;
+}
+@media (max-width: 580px) {
+  .hero-context { grid-template-columns: 1fr 1fr; gap: 20px; padding: 24px 20px; }
+}
+.hero-context .ctx-label {
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 6px;
+}
+.hero-context .ctx-val {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: -0.005em;
+  text-transform: none;
+}
+
+@media (max-width: 980px) {
+  .hero-name { grid-column: 1 / 3; grid-row: auto; min-height: 380px; }
+  .hero-role { grid-column: 1 / 2; grid-row: auto; }
+  .hero-metric { grid-column: 2 / 3; grid-row: auto; }
+  .hero-context { grid-column: 1 / 3; grid-row: auto; }
+}
+@media (max-width: 580px) {
+  .hero-name, .hero-role, .hero-metric, .hero-context { grid-column: 1 / 2; }
+}
+
+/* =================================================================
+   SECTION FRAME
+================================================================= */
+.section {
+  border-top: 2px solid var(--ink);
+  padding: 56px 32px 64px;
+  position: relative;
+}
+.section-inner { max-width: var(--measure); margin: 0 auto; }
+.section-head {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+  align-items: baseline;
+}
+@media (max-width: 580px) {
+  .section { padding: 40px 20px 48px; }
+  .section-head { grid-template-columns: 1fr; gap: 8px; margin-bottom: 28px; }
+}
+.section-num {
+  font-family: var(--font-mono);
+  font-size: 14px; font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--primary);
+}
+.section-title {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(28px, 4vw, 56px);
+  line-height: 0.95;
+  letter-spacing: var(--font-display-tracking-tight);
+  text-transform: uppercase;
+  color: var(--ink);
+  max-width: 22ch;
+}
+
+.section p {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 17px;
+  line-height: 1.55;
+  color: var(--ink);
+  max-width: 64ch;
+}
+.section p + p { margin-top: 14px; }
+.section .lede {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(20px, 1.7vw, 24px);
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  max-width: 52ch;
+  color: var(--ink);
+  text-transform: none;
+}
+
+/* =================================================================
+   01 — REFRAME
+================================================================= */
+.reframe {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-top: 32px;
+  border: 2px solid var(--ink);
+}
+@media (max-width: 720px) { .reframe { grid-template-columns: 1fr; } }
+.reframe > div {
+  padding: 28px 32px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.reframe > div + div { border-left: 2px solid var(--ink); }
+@media (max-width: 720px) {
+  .reframe > div + div { border-left: none; border-top: 2px solid var(--ink); }
+}
+.reframe .ask { background: var(--paper); }
+.reframe .arg { background: var(--ink); color: var(--paper-2); }
+.reframe .label {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.reframe .arg .label { color: rgba(255,255,255,0.55); }
+.reframe .text {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 21px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+
+/* =================================================================
+   02 — HYPOTHESIS / TEST DESIGN
+================================================================= */
+.test-design {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: 2px solid var(--ink);
+}
+@media (max-width: 720px) { .test-design { grid-template-columns: 1fr; } }
+.test-design .hypothesis { padding: 32px; background: var(--paper); }
+.test-design .params { padding: 32px; background: var(--paper-2); border-left: 2px solid var(--ink); }
+@media (max-width: 720px) {
+  .test-design .params { border-left: none; border-top: 2px solid var(--ink); }
+}
+.test-design .label {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--primary);
+  margin-bottom: 14px;
+}
+.test-design .hypothesis-text {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-transform: none;
+}
+.test-design dl {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 12px 16px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.test-design dt {
+  color: var(--muted); text-transform: uppercase;
+  font-size: 10px; letter-spacing: 0.1em;
+  border-bottom: 1px dotted var(--line-soft);
+  padding-bottom: 8px;
+}
+.test-design dd {
+  color: var(--ink); font-weight: 500;
+  border-bottom: 1px dotted var(--line-soft);
+  padding-bottom: 8px;
+}
+.test-design dd .accent { color: var(--primary); }
+
+/* =================================================================
+   03 — METRICS DASHBOARD
+================================================================= */
+.metrics {
+  background: var(--data);
+  margin: 0 -32px;
+  padding: 56px 32px;
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+  color: var(--data-fg);
+  transition: background-color .25s, color .25s;
+}
+@media (max-width: 580px) { .metrics { margin: 0 -20px; padding: 40px 20px; } }
+.metrics-inner { max-width: var(--measure); margin: 0 auto; }
+.metrics-head {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 24px;
+  align-items: baseline;
+  margin-bottom: 40px;
+}
+@media (max-width: 580px) { .metrics-head { grid-template-columns: 1fr; gap: 8px; } }
+.metrics-head .num {
+  font-family: var(--font-mono);
+  font-size: 14px; font-weight: 600; letter-spacing: 0.06em;
+  color: var(--primary);
+}
+.metrics-head h3 {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(28px, 4vw, 56px); line-height: 0.95;
+  letter-spacing: var(--font-display-tracking-tight); text-transform: uppercase;
+}
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  border: 2px solid var(--ink);
+}
+@media (max-width: 720px) { .metrics-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 420px) { .metrics-grid { grid-template-columns: 1fr; } }
+.metrics-grid > div {
+  padding: 28px 24px;
+  border-right: 2px solid var(--ink);
+  background: var(--data);
+  display: flex; flex-direction: column; justify-content: space-between;
+  min-height: 200px;
+  position: relative;
+  color: var(--data-fg);
+}
+.metrics-grid > div:last-child { border-right: none; }
+@media (max-width: 720px) {
+  .metrics-grid > div { border-right: 2px solid var(--ink); border-bottom: 2px solid var(--ink); }
+  .metrics-grid > div:nth-child(2n) { border-right: none; }
+  .metrics-grid > div:nth-last-child(-n+2) { border-bottom: none; }
+}
+@media (max-width: 420px) {
+  .metrics-grid > div { border-right: none; border-bottom: 2px solid var(--ink); }
+  .metrics-grid > div:last-child { border-bottom: none; }
+}
+.metric-label {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.metric-num {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(48px, 5vw, 72px);
+  line-height: 0.85;
+  letter-spacing: var(--font-display-tracking);
+  font-feature-settings: "tnum";
+  margin: 18px 0 6px;
+}
+.metric-num .pct, .metric-num .small {
+  font-size: 0.45em; vertical-align: top; margin-left: 2px;
+  font-weight: 700;
+}
+.metric-target {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.04em;
+  border-top: 1px solid currentColor;
+  padding-top: 8px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+.metric-target.over { color: var(--primary); }
+
+/* =================================================================
+   04 — VARIANTS
+================================================================= */
+.variants {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border: 2px solid var(--ink);
+}
+@media (max-width: 980px) { .variants { grid-template-columns: 1fr; } }
+.variant {
+  padding: 0;
+  display: flex; flex-direction: column;
+  background: var(--paper-2);
+  border-right: 2px solid var(--ink);
+}
+.variant:last-child { border-right: none; }
+@media (max-width: 980px) {
+  .variant { border-right: none; border-bottom: 2px solid var(--ink); }
+  .variant:last-child { border-bottom: none; }
+}
+.variant.winner { background: var(--data); color: var(--data-fg); }
+
+.variant-head {
+  display: grid; grid-template-columns: auto 1fr auto;
+  align-items: center; gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--paper-2);
+}
+.variant.winner .variant-head { background: var(--primary); color: var(--primary-fg); }
+.variant-head .v-label {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: 22px;
+  letter-spacing: var(--font-display-tracking);
+  text-transform: uppercase;
+}
+.variant-head .v-name {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.variant-head .v-tag {
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.4);
+  padding: 3px 8px;
+}
+.variant.winner .variant-head .v-tag {
+  background: var(--data); color: var(--data-fg);
+  border-color: var(--data);
+}
+
+.variant-figure {
+  background: var(--paper);
+  padding: 24px;
+  border-bottom: 2px solid var(--ink);
+}
+.variant.winner .variant-figure { background: var(--paper-2); }
+.variant-figure svg { display: block; width: 100%; height: auto; }
+.variant-body {
+  padding: 20px 20px 24px;
+  flex: 1;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.variant-body .v-desc {
+  font-family: var(--font-body);
+  font-size: 14px; line-height: 1.5;
+}
+.variant-body .v-result {
+  margin-top: auto;
+  padding-top: 14px;
+  border-top: 1px solid currentColor;
+  font-family: var(--font-mono);
+  font-size: 11px; line-height: 1.5;
+  letter-spacing: 0.04em;
+}
+.variant-body .v-result .lab {
+  display: block; opacity: 0.6;
+  font-size: 9px; letter-spacing: 0.14em;
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.variant-body .v-result .val { font-weight: 600; font-size: 13px; }
+.variant-body .v-result .val.up { color: var(--primary); }
+.variant.winner .variant-body .v-result .val.up { color: var(--ink); font-weight: 700; }
+.variant-body .v-result .val.down { opacity: 0.6; text-decoration: line-through; text-decoration-thickness: 1px; }
+
+/* =================================================================
+   05 — ROADS NOT TAKEN
+================================================================= */
+.roads {
+  background: var(--ink); color: var(--paper-2);
+  margin: 0 -32px;
+  padding: 64px 32px 72px;
+  border-top: 2px solid var(--ink);
+  border-bottom: 2px solid var(--ink);
+}
+@media (max-width: 580px) { .roads { margin: 0 -20px; padding: 48px 20px; } }
+.roads-inner { max-width: var(--measure); margin: 0 auto; }
+.roads-head {
+  display: grid; grid-template-columns: 80px 1fr;
+  gap: 24px; align-items: baseline; margin-bottom: 40px;
+}
+@media (max-width: 580px) { .roads-head { grid-template-columns: 1fr; gap: 8px; } }
+.roads-head .num {
+  font-family: var(--font-mono);
+  font-size: 14px; font-weight: 600; letter-spacing: 0.06em;
+  color: var(--data);
+}
+.roads-head h3 {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(28px, 4vw, 56px); line-height: 0.95;
+  letter-spacing: var(--font-display-tracking-tight); text-transform: uppercase;
+}
+.roads-list {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border-top: 2px solid var(--paper-2);
+}
+@media (max-width: 820px) { .roads-list { grid-template-columns: 1fr; } }
+.road {
+  padding: 28px 24px 28px 0;
+  border-right: 1px solid rgba(255,255,255,0.3);
+}
+.road:last-child { border-right: none; padding-right: 0; }
+.road:not(:first-child) { padding-left: 24px; }
+@media (max-width: 820px) {
+  .road { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.3); padding: 24px 0; }
+  .road:not(:first-child) { padding-left: 0; }
+  .road:last-child { border-bottom: none; }
+}
+.road-num {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.14em;
+  color: var(--data); margin-bottom: 10px;
+  text-transform: uppercase;
+}
+.road h4 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px; line-height: 1.15;
+  letter-spacing: var(--font-display-tracking-tight); margin-bottom: 12px;
+  text-transform: none;
+}
+.road .killed {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--data-fg); background: var(--data);
+  padding: 3px 8px;
+  margin-bottom: 14px;
+}
+.road .killed.tabled { background: var(--paper-2); color: var(--ink); }
+.road p {
+  font-family: var(--font-body);
+  font-size: 14px; line-height: 1.55;
+  color: rgba(255,255,255,0.85);
+}
+
+/* =================================================================
+   06 — CROSS-FUNCTIONAL
+================================================================= */
+.xfn {
+  margin-top: 28px;
+  border: 2px solid var(--ink);
+}
+.xfn-row {
+  display: grid;
+  grid-template-columns: 130px 1fr 2fr;
+  border-bottom: 1px solid var(--ink);
+  background: var(--paper-2);
+}
+.xfn-row:last-child { border-bottom: none; }
+.xfn-row.head {
+  background: var(--ink); color: var(--paper-2);
+  border-bottom: 2px solid var(--ink);
+}
+.xfn-row > div {
+  padding: 16px 20px;
+  border-right: 1px solid var(--line-soft);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.xfn-row > div:last-child { border-right: none; }
+.xfn-row.head > div {
+  font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; font-weight: 600;
+  border-right-color: rgba(255,255,255,0.2);
+}
+.xfn-fn {
+  font-family: var(--font-display) !important;
+  font-weight: 700; font-size: 15px !important;
+  text-transform: uppercase; letter-spacing: 0.02em;
+}
+.xfn-who { font-weight: 500; color: var(--ink); letter-spacing: 0.04em; }
+.xfn-what {
+  font-family: var(--font-body) !important;
+  font-size: 14px !important; line-height: 1.5;
+  color: var(--ink);
+}
+@media (max-width: 720px) {
+  .xfn-row { grid-template-columns: 1fr; }
+  .xfn-row > div { border-right: none; border-bottom: 1px solid var(--line-soft); }
+  .xfn-row > div:last-child { border-bottom: none; }
+  .xfn-row.head { display: none; }
+  .xfn-fn { background: var(--ink); color: var(--paper-2); padding: 10px 20px !important; }
+}
+
+/* =================================================================
+   07 — OUTCOMES
+================================================================= */
+.outcomes {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 2px solid var(--ink);
+}
+@media (max-width: 720px) { .outcomes { grid-template-columns: 1fr; } }
+.outcome {
+  padding: 32px;
+  background: var(--paper-2);
+  border-right: 2px solid var(--ink);
+}
+.outcome:last-child { border-right: none; }
+@media (max-width: 720px) {
+  .outcome { border-right: none; border-bottom: 2px solid var(--ink); }
+  .outcome:last-child { border-bottom: none; }
+}
+.outcome .when {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(24px, 2.5vw, 36px);
+  letter-spacing: var(--font-display-tracking-tight);
+  text-transform: uppercase;
+  display: inline-block;
+  background: var(--primary); color: var(--primary-fg);
+  padding: 6px 14px;
+  margin-bottom: 24px;
+}
+.outcome ul { list-style: none; display: flex; flex-direction: column; gap: 14px; }
+.outcome li {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 18px; align-items: baseline;
+  padding-bottom: 12px;
+  border-bottom: 1px dotted var(--line-soft);
+}
+.outcome li:last-child { border-bottom: none; }
+.outcome .val {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 26px;
+  line-height: 1;
+  letter-spacing: var(--font-display-tracking-tight);
+  color: var(--primary);
+  font-feature-settings: "tnum";
+}
+.outcome .val .pct, .outcome .val .small { font-size: 0.55em; vertical-align: top; }
+.outcome .val.neutral { color: var(--ink); }
+.outcome .desc {
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink);
+}
+.outcome .desc .lab {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+  margin-bottom: 2px;
+}
+.outcome .surprise {
+  margin-top: 18px;
+  background: var(--data); color: var(--data-fg);
+  padding: 14px 16px;
+  border: 1px solid var(--ink);
+}
+.outcome .surprise .lab {
+  font-family: var(--font-mono);
+  font-size: 9px; letter-spacing: 0.16em;
+  text-transform: uppercase; font-weight: 600;
+  margin-bottom: 6px;
+}
+.outcome .surprise p {
+  font-family: var(--font-body);
+  font-size: 14px; line-height: 1.45;
+}
+
+/* =================================================================
+   08 — WHAT I'D DO NEXT
+================================================================= */
+.next {
+  background: var(--primary); color: var(--primary-fg);
+  margin: 0 -32px;
+  padding: 80px 32px 88px;
+}
+@media (max-width: 580px) { .next { margin: 0 -20px; padding: 56px 20px 64px; } }
+.next-inner { max-width: var(--measure); margin: 0 auto; }
+.next-num {
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.16em;
+  text-transform: uppercase; margin-bottom: 24px;
+  opacity: 0.7;
+}
+.next-num strong { opacity: 1; }
+.next blockquote {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(28px, 3.4vw, 48px);
+  line-height: 1.05;
+  letter-spacing: var(--font-display-tracking-tight);
+  max-width: 22ch;
+  text-transform: none;
+}
+.next blockquote em {
+  background: var(--data); color: var(--data-fg);
+  padding: 0 8px; font-style: normal;
+}
+.next .body {
+  margin-top: 32px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 48px; max-width: 880px;
+}
+@media (max-width: 720px) { .next .body { grid-template-columns: 1fr; gap: 28px; } }
+.next .body p {
+  font-family: var(--font-body);
+  font-size: 16px; line-height: 1.55;
+  opacity: 0.92;
+}
+.next .body p + p { margin-top: 12px; }
+
+/* =================================================================
+   09 — AI / COUNTERFACTUAL
+================================================================= */
+.ai-section {
+  border-top: 2px solid var(--ink);
+  background: var(--paper);
+  padding: 56px 32px 64px;
+}
+@media (max-width: 580px) { .ai-section { padding: 40px 20px; } }
+.ai-inner { max-width: var(--measure); margin: 0 auto; }
+.ai-head {
+  display: grid; grid-template-columns: 80px 1fr;
+  gap: 24px; align-items: baseline; margin-bottom: 32px;
+}
+@media (max-width: 580px) { .ai-head { grid-template-columns: 1fr; gap: 8px; } }
+.ai-head .num {
+  font-family: var(--font-mono);
+  font-size: 14px; font-weight: 600; letter-spacing: 0.06em;
+  color: var(--primary);
+}
+.ai-head h3 {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(24px, 3vw, 40px); line-height: 0.95;
+  letter-spacing: var(--font-display-tracking-tight); text-transform: uppercase;
+}
+.ai-grid {
+  display: grid; grid-template-columns: 1.4fr 1fr;
+  gap: 0;
+  border: 2px solid var(--ink);
+}
+@media (max-width: 820px) { .ai-grid { grid-template-columns: 1fr; } }
+.ai-narrative {
+  padding: 28px 32px;
+  background: var(--paper-2);
+}
+.ai-narrative .label {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--primary);
+  margin-bottom: 12px;
+}
+.ai-narrative p {
+  font-size: 15px; line-height: 1.55; max-width: 56ch;
+}
+.ai-narrative p + p { margin-top: 10px; }
+.ai-counter {
+  background: var(--data); color: var(--data-fg);
+  padding: 28px 32px;
+  border-left: 2px solid var(--ink);
+}
+@media (max-width: 820px) { .ai-counter { border-left: none; border-top: 2px solid var(--ink); } }
+.ai-counter .label {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; margin-bottom: 14px;
+  font-weight: 600;
+}
+.ai-counter .ratio {
+  font-family: var(--font-display);
+  font-weight: var(--font-display-weight);
+  font-size: clamp(32px, 4vw, 56px);
+  line-height: 0.92;
+  letter-spacing: var(--font-display-tracking-tight);
+  margin-bottom: 14px;
+}
+.ai-counter .ratio strong { color: var(--primary); }
+.ai-counter .ratio .strike { text-decoration: line-through; text-decoration-thickness: 3px; opacity: 0.6; font-size: 0.65em; display: block; }
+.ai-counter p {
+  font-family: var(--font-body);
+  font-size: 14px; line-height: 1.45;
+}
+
+/* =================================================================
+   FOOTER
+================================================================= */
+.footer {
+  background: var(--ink); color: var(--paper-2);
+  padding: 64px 32px 32px;
+}
+.footer-inner { max-width: var(--measure); margin: 0 auto; }
+.footer-nav {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0; border-top: 2px solid var(--paper-2);
+  border-bottom: 1px solid rgba(255,255,255,0.3);
+}
+@media (max-width: 720px) { .footer-nav { grid-template-columns: 1fr; } }
+.footer-nav a {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 28px 0;
+  text-decoration: none; color: var(--paper-2);
+  border-right: 1px solid rgba(255,255,255,0.3);
+  transition: color .15s;
+}
+.footer-nav a:last-child { border-right: none; padding-left: 32px; align-items: flex-end; text-align: right; }
+.footer-nav a:first-child { padding-right: 32px; }
+@media (max-width: 720px) {
+  .footer-nav a:last-child { padding-left: 0; align-items: flex-start; text-align: left; border-top: 1px solid rgba(255,255,255,0.3); }
+  .footer-nav a:first-child { padding-right: 0; border-right: none; }
+}
+.footer-nav a:hover { color: var(--data); }
+.footer-nav .label {
+  font-family: var(--font-mono);
+  font-size: 10px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: rgba(255,255,255,0.6);
+}
+.footer-nav .ttl {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(24px, 2.5vw, 36px); line-height: 1;
+  letter-spacing: var(--font-display-tracking); text-transform: uppercase;
+}
+.footer-meta {
+  margin-top: 32px;
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.7);
+}
+.footer-meta .right { text-align: right; }
+.footer-meta a { color: var(--paper-2); text-decoration: none; margin-left: 16px; }
+.footer-meta a:hover { color: var(--data); }
+
+/* =================================================================
+   ANIMATIONS
+================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ TOP NAV ============================ -->
+<nav class="nav">
+  <a class="nav-back" href="#">
+    <span class="arrow">←</span> [ Your Name ] / Index
+  </a>
+  <div class="nav-section">
+    Case Study <strong>02 / 12</strong> · 2026.04
+  </div>
+  <ul class="nav-toc">
+    <li><a href="#sec-01">01 Reframe</a></li>
+    <li><a href="#sec-02">02 Test</a></li>
+    <li><a href="#sec-04">04 Variants</a></li>
+    <li><a href="#sec-07">07 Outcomes</a></li>
+  </ul>
+</nav>
+
+<!-- ============================ HERO ============================ -->
+<section class="hero">
+  <div class="hero-block hero-name">
+    <div class="hero-num">01 — Project</div>
+    <div>
+      <div class="meta">2026.02 · Case Study 02 / 12</div>
+      <h1>Configurator<br>v3</h1>
+      <p class="lede">A 40-minute buying ritual, restructured around the decision instead of the variant grid.</p>
+    </div>
+  </div>
+
+  <div class="hero-block hero-role">
+    <div class="hero-num">02 — Role</div>
+    <div>
+      <h2>Solo design lead. <strong>Owned reframe → ship.</strong></h2>
+      <div class="role-meta">
+        Senior IC<br>
+        Hardware co. · ~400 ppl<br>
+        Q4 2025 — Q1 2026
+      </div>
+    </div>
+  </div>
+
+  <div class="hero-block hero-metric">
+    <div class="label">Primary outcome</div>
+    <div class="number">+18<span class="pct">%</span></div>
+    <div class="sub">CVR · target was +12%</div>
+  </div>
+
+  <div class="hero-context">
+    <div>
+      <div class="ctx-label">Surface</div>
+      <div class="ctx-val">Configurator (PDP → cart)</div>
+    </div>
+    <div>
+      <div class="ctx-label">Avg. session</div>
+      <div class="ctx-val">~40 min · high-stakes</div>
+    </div>
+    <div>
+      <div class="ctx-label">SKU complexity</div>
+      <div class="ctx-val">3 product lines × 14 variants</div>
+    </div>
+    <div>
+      <div class="ctx-label">Test population</div>
+      <div class="ctx-val">~88K sessions / 4 weeks</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 01 — REFRAME ============================ -->
+<section class="section" id="sec-01">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-num">01</div>
+      <h2 class="section-title">The brief, then the reframe</h2>
+    </div>
+
+    <p class="lede">Most case studies open with what they were asked to do. The interesting part of this one is what I argued they should do instead.</p>
+
+    <div class="reframe">
+      <div class="ask">
+        <div class="label">What I was asked</div>
+        <div class="text">Update the configurator UI to match the 2025 brand refresh. Same flow, new look.</div>
+      </div>
+      <div class="arg">
+        <div class="label">What I argued for</div>
+        <div class="text">The configurator wasn't a UI problem. It was a decision problem. We were forcing a variant choice before the buyer had earned the context for it.</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 32px; max-width: 64ch;">
+      <p>The trigger was a 90-minute working session with PM and the eng lead, where I showed three different cohort cuts of the funnel data. In every cut, the drop-off cliff was at the variant grid, not at price, not at shipping, not at sign-in. The brand refresh was the surface deliverable. The underlying intervention had to be a restructure of the decision flow itself: explore use cases first, then narrow.</p>
+      <p>By the end of that session, PM had reframed the OKR mid-quarter from "configurator refresh" to "configurator conversion rate." Scope expanded. Timeline did too. The brand refresh shipped inside the new flow rather than dictating it.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 02 — HYPOTHESIS ============================ -->
+<section class="section" id="sec-02">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-num">02</div>
+      <h2 class="section-title">Hypothesis &amp; test design</h2>
+    </div>
+
+    <div class="test-design">
+      <div class="hypothesis">
+        <div class="label">Hypothesis</div>
+        <p class="hypothesis-text">Buyers who explore use cases <em>before</em> variants will convert at higher rates because they will have constructed their own justification for the purchase by the time they reach the variant grid.</p>
+        <p style="margin-top: 18px; font-size: 14px; color: var(--muted);">Mechanism: <strong>self-persuasion</strong> (Aronson) compounded with <strong>commitment-consistency</strong> (Cialdini). The use-case selector functions as a small, low-cost commitment that the variant grid then collects on.</p>
+      </div>
+      <div class="params">
+        <div class="label">Test parameters</div>
+        <dl>
+          <dt>Test type</dt><dd>A/B/n, 50/25/25 split</dd>
+          <dt>Primary metric</dt><dd>CVR (configurator → cart) <span class="accent">+5% MDE</span></dd>
+          <dt>Secondary</dt><dd>AOV, time-to-cart, return rate</dd>
+          <dt>Sample / arm</dt><dd>~22K sessions</dd>
+          <dt>Confidence</dt><dd>95% on primary</dd>
+          <dt>Duration</dt><dd>4 weeks min, 6 actual</dd>
+          <dt>Guardrails</dt><dd>Page-load TTI, support volume</dd>
+        </dl>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 03 — METRICS ============================ -->
+<div class="metrics" id="sec-03">
+  <div class="metrics-inner">
+    <div class="metrics-head">
+      <div class="num">03</div>
+      <h3>Headline numbers</h3>
+    </div>
+    <div class="metrics-grid">
+      <div>
+        <div class="metric-label">CVR lift</div>
+        <div class="metric-num">+18<span class="pct">%</span></div>
+        <div class="metric-target over">↑ Target +12%</div>
+      </div>
+      <div>
+        <div class="metric-label">AOV lift</div>
+        <div class="metric-num">+6<span class="pct">%</span></div>
+        <div class="metric-target">No target — surprise</div>
+      </div>
+      <div>
+        <div class="metric-label">Time on configurator</div>
+        <div class="metric-num">+47<span class="pct">%</span></div>
+        <div class="metric-target">Buyers engaging more</div>
+      </div>
+      <div>
+        <div class="metric-label">Support tickets</div>
+        <div class="metric-num">−22<span class="pct">%</span></div>
+        <div class="metric-target">Self-serve worked</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ 04 — VARIANTS ============================ -->
+<section class="section" id="sec-04">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-num">04</div>
+      <h2 class="section-title">What we tested. What won. What lost.</h2>
+    </div>
+    <p class="lede" style="margin-bottom: 28px;">Three arms. V2 is the cautionary tale; it lifted CVR but tanked AOV. V3 won because it added a guided narrative that anchored on a higher-value use case before showing variants.</p>
+
+    <div class="variants">
+
+      <article class="variant">
+        <div class="variant-head">
+          <div class="v-label">V1</div>
+          <div class="v-name">Control</div>
+          <div class="v-tag">Baseline</div>
+        </div>
+        <div class="variant-figure">
+          <svg viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="280" height="200" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="0" y1="28" x2="280" y2="28" stroke="currentColor" stroke-width="1"/>
+            <text x="14" y="20" font-family="IBM Plex Mono" font-size="9" fill="currentColor" font-weight="600">CONFIGURATOR · V1 (CONTROL)</text>
+            <g transform="translate(20, 44)">
+              <g transform="translate(0, 0)"><rect width="70" height="48" fill="none" stroke="currentColor" stroke-width="1"/><line x1="0" y1="36" x2="70" y2="36" stroke="currentColor" stroke-width="0.5"/><text x="6" y="46" font-family="IBM Plex Mono" font-size="6" fill="currentColor">VARIANT 01</text></g>
+              <g transform="translate(80, 0)"><rect width="70" height="48" fill="none" stroke="currentColor" stroke-width="1"/><line x1="0" y1="36" x2="70" y2="36" stroke="currentColor" stroke-width="0.5"/><text x="6" y="46" font-family="IBM Plex Mono" font-size="6" fill="currentColor">VARIANT 02</text></g>
+              <g transform="translate(160, 0)"><rect width="70" height="48" fill="none" stroke="currentColor" stroke-width="1"/><line x1="0" y1="36" x2="70" y2="36" stroke="currentColor" stroke-width="0.5"/><text x="6" y="46" font-family="IBM Plex Mono" font-size="6" fill="currentColor">VARIANT 03</text></g>
+              <g transform="translate(0, 56)"><rect width="70" height="48" fill="none" stroke="currentColor" stroke-width="1"/><line x1="0" y1="36" x2="70" y2="36" stroke="currentColor" stroke-width="0.5"/><text x="6" y="46" font-family="IBM Plex Mono" font-size="6" fill="currentColor">VARIANT 04</text></g>
+              <g transform="translate(80, 56)"><rect width="70" height="48" fill="none" stroke="currentColor" stroke-width="1"/><line x1="0" y1="36" x2="70" y2="36" stroke="currentColor" stroke-width="0.5"/><text x="6" y="46" font-family="IBM Plex Mono" font-size="6" fill="currentColor">VARIANT 05</text></g>
+              <g transform="translate(160, 56)"><rect width="70" height="48" fill="none" stroke="currentColor" stroke-width="1"/><line x1="0" y1="36" x2="70" y2="36" stroke="currentColor" stroke-width="0.5"/><text x="6" y="46" font-family="IBM Plex Mono" font-size="6" fill="currentColor">VARIANT 06</text></g>
+            </g>
+            <text x="14" y="180" font-family="IBM Plex Mono" font-size="8" fill="currentColor" opacity="0.6">→ VARIANT GRID FIRST. NO CONTEXT.</text>
+          </svg>
+        </div>
+        <div class="variant-body">
+          <p class="v-desc">Existing flow: buyer lands on a 14-tile variant grid, sorted by SKU. No context, no narrative, no use-case framing. The brand refresh was applied here cosmetically.</p>
+          <div class="v-result">
+            <span class="lab">Result</span>
+            <span class="val">CVR baseline · AOV baseline</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="variant">
+        <div class="variant-head">
+          <div class="v-label">V2</div>
+          <div class="v-name">Use-case selector</div>
+          <div class="v-tag">Lost</div>
+        </div>
+        <div class="variant-figure">
+          <svg viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="280" height="200" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="0" y1="28" x2="280" y2="28" stroke="currentColor" stroke-width="1"/>
+            <text x="14" y="20" font-family="IBM Plex Mono" font-size="9" fill="currentColor" font-weight="600">CONFIGURATOR · V2</text>
+            <g transform="translate(20, 44)">
+              <rect width="74" height="80" fill="none" stroke="currentColor" stroke-width="1"/>
+              <text x="6" y="14" font-family="IBM Plex Mono" font-size="6" fill="currentColor" opacity="0.7">USE CASE A</text>
+              <line x1="6" y1="22" x2="50" y2="22" stroke="currentColor" stroke-width="0.5"/>
+              <line x1="6" y1="30" x2="60" y2="30" stroke="currentColor" stroke-width="0.5" opacity="0.5"/>
+              <line x1="6" y1="38" x2="40" y2="38" stroke="currentColor" stroke-width="0.5" opacity="0.5"/>
+            </g>
+            <g transform="translate(102, 44)">
+              <rect width="74" height="80" fill="none" stroke="currentColor" stroke-width="1"/>
+              <text x="6" y="14" font-family="IBM Plex Mono" font-size="6" fill="currentColor" opacity="0.7">USE CASE B</text>
+              <line x1="6" y1="22" x2="50" y2="22" stroke="currentColor" stroke-width="0.5"/>
+              <line x1="6" y1="30" x2="60" y2="30" stroke="currentColor" stroke-width="0.5" opacity="0.5"/>
+              <line x1="6" y1="38" x2="40" y2="38" stroke="currentColor" stroke-width="0.5" opacity="0.5"/>
+            </g>
+            <g transform="translate(184, 44)">
+              <rect width="74" height="80" fill="none" stroke="currentColor" stroke-width="1"/>
+              <text x="6" y="14" font-family="IBM Plex Mono" font-size="6" fill="currentColor" opacity="0.7">USE CASE C</text>
+              <line x1="6" y1="22" x2="50" y2="22" stroke="currentColor" stroke-width="0.5"/>
+              <line x1="6" y1="30" x2="60" y2="30" stroke="currentColor" stroke-width="0.5" opacity="0.5"/>
+              <line x1="6" y1="38" x2="40" y2="38" stroke="currentColor" stroke-width="0.5" opacity="0.5"/>
+            </g>
+            <text x="138" y="138" font-family="IBM Plex Mono" font-size="8" fill="currentColor" opacity="0.6" text-anchor="middle">→</text>
+            <g transform="translate(50, 146)">
+              <rect width="36" height="20" fill="none" stroke="currentColor" stroke-width="1"/>
+              <rect width="36" height="20" x="42" fill="none" stroke="currentColor" stroke-width="1"/>
+              <rect width="36" height="20" x="84" fill="none" stroke="currentColor" stroke-width="1"/>
+              <rect width="36" height="20" x="126" fill="none" stroke="currentColor" stroke-width="1"/>
+            </g>
+            <text x="14" y="184" font-family="IBM Plex Mono" font-size="8" fill="currentColor" opacity="0.6">→ SELECTOR THEN GRID. SIMPLIFIED.</text>
+          </svg>
+        </div>
+        <div class="variant-body">
+          <p class="v-desc">Use-case selector first, then a simplified variant grid. We thought the framing alone would do the work.</p>
+          <div class="v-result">
+            <span class="lab">Result</span>
+            <span class="val up">CVR +14%</span><br>
+            <span class="val down">AOV −9%</span>
+          </div>
+        </div>
+      </article>
+
+      <article class="variant winner">
+        <div class="variant-head">
+          <div class="v-label">V3</div>
+          <div class="v-name">Use case → narrative → grid</div>
+          <div class="v-tag">Winner</div>
+        </div>
+        <div class="variant-figure">
+          <svg viewBox="0 0 280 200" xmlns="http://www.w3.org/2000/svg">
+            <rect x="0" y="0" width="280" height="200" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <line x1="0" y1="28" x2="280" y2="28" stroke="currentColor" stroke-width="1"/>
+            <text x="14" y="20" font-family="IBM Plex Mono" font-size="9" fill="currentColor" font-weight="600">CONFIGURATOR · V3 (WINNER)</text>
+            <g transform="translate(14, 40)">
+              <rect width="50" height="56" fill="currentColor" opacity="0.15"/>
+              <rect width="50" height="56" fill="none" stroke="currentColor" stroke-width="1"/>
+              <text x="4" y="12" font-family="IBM Plex Mono" font-size="5" fill="currentColor">USE CASE</text>
+              <line x1="4" y1="20" x2="36" y2="20" stroke="currentColor" stroke-width="0.5"/>
+              <line x1="4" y1="26" x2="42" y2="26" stroke="currentColor" stroke-width="0.5" opacity="0.6"/>
+              <line x1="4" y1="32" x2="30" y2="32" stroke="currentColor" stroke-width="0.5" opacity="0.6"/>
+              <line x1="4" y1="38" x2="40" y2="38" stroke="currentColor" stroke-width="0.5" opacity="0.6"/>
+            </g>
+            <text x="74" y="74" font-family="IBM Plex Mono" font-size="9" fill="currentColor" font-weight="700">→</text>
+            <g transform="translate(88, 40)">
+              <rect width="100" height="56" fill="none" stroke="currentColor" stroke-width="1"/>
+              <text x="4" y="12" font-family="IBM Plex Mono" font-size="5" fill="currentColor">GUIDED NARRATIVE</text>
+              <line x1="4" y1="20" x2="92" y2="20" stroke="currentColor" stroke-width="0.5"/>
+              <line x1="4" y1="26" x2="80" y2="26" stroke="currentColor" stroke-width="0.5" opacity="0.5"/>
+              <line x1="4" y1="32" x2="92" y2="32" stroke="currentColor" stroke-width="0.5" opacity="0.5"/>
+              <line x1="4" y1="38" x2="70" y2="38" stroke="currentColor" stroke-width="0.5" opacity="0.5"/>
+              <line x1="4" y1="44" x2="86" y2="44" stroke="currentColor" stroke-width="0.5" opacity="0.5"/>
+            </g>
+            <text x="198" y="74" font-family="IBM Plex Mono" font-size="9" fill="currentColor" font-weight="700">→</text>
+            <g transform="translate(212, 40)">
+              <rect width="50" height="56" fill="none" stroke="currentColor" stroke-width="1"/>
+              <text x="4" y="12" font-family="IBM Plex Mono" font-size="5" fill="currentColor">VARIANTS</text>
+              <rect x="4" y="18" width="20" height="14" fill="currentColor" opacity="0.3"/>
+              <rect x="4" y="18" width="20" height="14" fill="none" stroke="currentColor" stroke-width="0.5"/>
+              <rect x="26" y="18" width="20" height="14" fill="none" stroke="currentColor" stroke-width="0.5"/>
+              <rect x="4" y="34" width="20" height="14" fill="none" stroke="currentColor" stroke-width="0.5"/>
+              <rect x="26" y="34" width="20" height="14" fill="none" stroke="currentColor" stroke-width="0.5"/>
+            </g>
+            <g transform="translate(14, 110)">
+              <rect width="248" height="22" fill="none" stroke="currentColor" stroke-width="0.5"/>
+              <text x="6" y="14" font-family="IBM Plex Mono" font-size="6" fill="currentColor" font-weight="600">CONTEXTUAL RECOMMENDATION ANCHORED ON USE CASE A</text>
+            </g>
+            <g transform="translate(14, 138)">
+              <rect width="248" height="14" fill="currentColor"/>
+              <text x="124" y="10" font-family="IBM Plex Mono" font-size="6" fill="white" font-weight="600" text-anchor="middle" style="mix-blend-mode: difference;">ADD TO CART · $1,498</text>
+            </g>
+            <text x="14" y="180" font-family="IBM Plex Mono" font-size="8" fill="currentColor" font-weight="700">→ NARRATIVE ANCHORS HIGHER-VALUE VARIANT.</text>
+          </svg>
+        </div>
+        <div class="variant-body">
+          <p class="v-desc">Use case → guided narrative paragraph (we wrote 8 of these, one per use case) → variant grid with the recommended variant pre-selected based on use case. Buyers could change it. Most didn't.</p>
+          <div class="v-result">
+            <span class="lab">Result</span>
+            <span class="val up">CVR +18%</span><br>
+            <span class="val up">AOV +6%</span>
+          </div>
+        </div>
+      </article>
+
+    </div>
+
+    <p style="margin-top: 28px; max-width: 64ch;">
+      The lesson from V2: removing friction without adding context just makes the cheapest option easier to find. The lesson from V3: the guided narrative isn't decoration, it's the part of the experience that does the persuasion work. The variant grid is just where the transaction completes.
+    </p>
+  </div>
+</section>
+
+<!-- ============================ 05 — ROADS NOT TAKEN ============================ -->
+<div class="roads" id="sec-05">
+  <div class="roads-inner">
+    <div class="roads-head">
+      <div class="num">05</div>
+      <h3>Roads we didn't take</h3>
+    </div>
+
+    <div class="roads-list">
+      <div class="road">
+        <div class="road-num">Alt. A</div>
+        <h4>Quiz format</h4>
+        <span class="killed">Killed</span>
+        <p>Five-step quiz to recommend a variant. Killed because quiz fatigue is real and our session data showed cohorts who quizzed elsewhere on the site disengaged 12% faster on subsequent sessions. Asking buyers to "earn" a recommendation through interrogation is the wrong energy for a $1,500 purchase.</p>
+      </div>
+      <div class="road">
+        <div class="road-num">Alt. B</div>
+        <h4>Live chat assist at variant step</h4>
+        <span class="killed">Killed</span>
+        <p>A "talk to a specialist" CTA at the moment of variant indecision. Killed because CX headcount couldn't support real-time response, and an async fallback would make latency the problem rather than the solution. Bad CX worse than no CX here.</p>
+      </div>
+      <div class="road">
+        <div class="road-num">Alt. C</div>
+        <h4>AI-generated personal recs</h4>
+        <span class="killed tabled">Tabled for v4</span>
+        <p>LLM reading session signals and generating a personalized variant recommendation paragraph. The personalization data infrastructure wasn't there yet, and rushing it would have meant generic recs that erode trust on a high-stakes purchase. v4, once the infra ships.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ 06 — CROSS-FUNCTIONAL ============================ -->
+<section class="section" id="sec-06">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-num">06</div>
+      <h2 class="section-title">Cross-functional partners</h2>
+    </div>
+
+    <div class="xfn">
+      <div class="xfn-row head">
+        <div>Function</div><div>Who</div><div>What they did</div>
+      </div>
+      <div class="xfn-row">
+        <div class="xfn-fn">Engineering</div>
+        <div class="xfn-who">2 ICs · 1 EM</div>
+        <div class="xfn-what">Rebuilt the configurator state machine. Replaced the variant-grid rendering pipeline. Owned the experimentation tooling integration.</div>
+      </div>
+      <div class="xfn-row">
+        <div class="xfn-fn">Product</div>
+        <div class="xfn-who">1 PM</div>
+        <div class="xfn-what">Reframed the OKR mid-quarter from "configurator refresh" to "configurator CVR." Held the line on scope expansion with leadership.</div>
+      </div>
+      <div class="xfn-row">
+        <div class="xfn-fn">Merch</div>
+        <div class="xfn-who">1 Lead · 2 contributors</div>
+        <div class="xfn-what">Reorganized the product taxonomy to support use-case browsing. Authored the 8 use-case definitions; mapped each to a recommended variant with rationale.</div>
+      </div>
+      <div class="xfn-row">
+        <div class="xfn-fn">Customer Exp.</div>
+        <div class="xfn-who">1 Lead</div>
+        <div class="xfn-what">Updated post-purchase confirmation flows to align with the use-case framing. Updated 14 help-center articles tied to the configurator.</div>
+      </div>
+      <div class="xfn-row">
+        <div class="xfn-fn">Brand</div>
+        <div class="xfn-who">1 ACD</div>
+        <div class="xfn-what">Approved exception to brand guidelines for the use-case selector visuals. Co-wrote final copy on the 8 narrative blocks.</div>
+      </div>
+      <div class="xfn-row">
+        <div class="xfn-fn">Data</div>
+        <div class="xfn-who">1 Analyst</div>
+        <div class="xfn-what">Designed the experiment with me. Owned readouts and confidence intervals. Caught the AOV regression in V2 four days into the test.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 07 — OUTCOMES ============================ -->
+<section class="section" id="sec-07">
+  <div class="section-inner">
+    <div class="section-head">
+      <div class="section-num">07</div>
+      <h2 class="section-title">Outcomes at 3 months &amp; 6 months</h2>
+    </div>
+
+    <p class="lede" style="margin-bottom: 24px;">The interesting result wasn't the headline lift. It was what the use-case framing did to the surfaces it touched downstream.</p>
+
+    <div class="outcomes">
+
+      <div class="outcome">
+        <div class="when">+ 3 mo.</div>
+        <ul>
+          <li>
+            <span class="val">+18<span class="pct">%</span></span>
+            <div class="desc"><span class="lab">CVR · primary</span>Target was +12. Held confidence interval throughout.</div>
+          </li>
+          <li>
+            <span class="val">+6<span class="pct">%</span></span>
+            <div class="desc"><span class="lab">AOV · secondary</span>No target. The use-case framing anchored buyers on higher-value variants.</div>
+          </li>
+          <li>
+            <span class="val">+47<span class="pct">%</span></span>
+            <div class="desc"><span class="lab">Time on configurator</span>Engagement up because the narrative was readable, not friction.</div>
+          </li>
+          <li>
+            <span class="val">−22<span class="pct">%</span></span>
+            <div class="desc"><span class="lab">Configurator support tickets</span>Buyers self-served on the questions the use-case framing answered upfront.</div>
+          </li>
+        </ul>
+      </div>
+
+      <div class="outcome">
+        <div class="when">+ 6 mo.</div>
+        <ul>
+          <li>
+            <span class="val">+17<span class="pct">%</span></span>
+            <div class="desc"><span class="lab">CVR sustained</span>Within 1pt of the 3-month figure. No novelty-effect collapse.</div>
+          </li>
+          <li>
+            <span class="val">+4<span class="pct">%</span></span>
+            <div class="desc"><span class="lab">AOV compressed</span>Settled at +4 from +6 as buyers learned the recommendation patterns. Held positive.</div>
+          </li>
+          <li>
+            <span class="val neutral">−2.4<span class="small">pt</span></span>
+            <div class="desc"><span class="lab">Return rate (good)</span>Returns dropped slightly. Buyers were getting variants more aligned with their actual use.</div>
+          </li>
+        </ul>
+
+        <div class="surprise">
+          <div class="lab">Second-order surprise</div>
+          <p>PDP pages connected to the configurator outflow saw <strong>+8% CVR independently</strong>, even though we hadn't touched them. Updating PDP copy to mirror the use-case framing carried the persuasion structure backward into the funnel. Merch is now applying the use-case framing across the catalog.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ============================ 08 — WHAT I'D DO NEXT ============================ -->
+<div class="next" id="sec-08">
+  <div class="next-inner">
+    <div class="next-num">08 — <strong>What I'd do next</strong></div>
+    <blockquote>The use-case selector is the real product. The variant grid is just <em>where the transaction completes.</em></blockquote>
+    <div class="body">
+      <p>v4 should rebuild the experience around use case as the navigation primitive across the entire site, with the variant grid demoted to a final-mile step. PDP, search, even category navigation should organize around use case before SKU. The 6-month data already suggests this is where the leverage is.</p>
+      <p>v5 should layer in the AI-generated personal recommendation paragraph that we tabled in V3 alternatives. The personalization data infrastructure is shipping in Q3. The work is to make that recommendation feel earned, not generated, with explicit citations to the buyer's session signals.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ============================ 09 — AI / COUNTERFACTUAL ============================ -->
+<section class="ai-section" id="sec-09">
+  <div class="ai-inner">
+    <div class="ai-head">
+      <div class="num">09</div>
+      <h3>How I worked with AI on this</h3>
+    </div>
+
+    <div class="ai-grid">
+      <div class="ai-narrative">
+        <div class="label">Workflow</div>
+        <p>Cursor for the front-end prototype of the use-case selector and the narrative-block component. Claude for the eight use-case narrative drafts, with a brand-voice reference doc and three rounds of human edit per draft. Figma Make for the early-stage layout exploration before the prototype branched into Cursor.</p>
+        <p>The AI never wrote final copy. It produced the first draft of each narrative against the use-case definition merch had authored, and I (and brand, and merch) edited toward our voice from there. The pattern that worked: AI does the cold start; human does the taste.</p>
+        <p>What AI couldn't do: the working session that produced the reframe. The conversations with CX about ticket patterns. The judgment call to kill V2 four days early when AOV started bleeding. None of those are prompt-shaped.</p>
+      </div>
+      <div class="ai-counter">
+        <div class="label">Counterfactual</div>
+        <div class="ratio">
+          <span class="strike">5 weeks · 3 ppl</span>
+          <strong>~3 wks · solo</strong>
+        </div>
+        <p>Pre-AI estimate: 1 designer + 1 front-end engineer + 1 copywriter, ~5 weeks. Actual: solo, AI-amplified, ~3 weeks.</p>
+        <p style="margin-top: 12px;">Compression came from prototyping in real code (eng didn't have to translate Figma) and from drafting all 8 narrative blocks in one afternoon instead of one per week.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-nav">
+      <a href="#">
+        <span class="label">← Previous · 01</span>
+        <span class="ttl">Buyer<br>Onboarding</span>
+      </a>
+      <a href="#">
+        <span class="label">Next · 03 →</span>
+        <span class="ttl">PDP Content<br>Engine</span>
+      </a>
+    </div>
+    <div class="footer-meta">
+      <div>[ Your Name ] · 2026 · Senior IC</div>
+      <div class="right">
+        <a href="#">Index</a>
+        <a href="#">Process</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

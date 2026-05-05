@@ -1,0 +1,433 @@
+/* =============================================================================
+ * Per-piece preview route
+ *
+ * Library chrome (header, controls, footer) uses neutral --lib-* tokens.
+ * The CANVAS uses the project's --paper / --panel / --ink because the canvas
+ * is the testbed for those project surfaces. The piece itself uses whatever
+ * project tokens it references — that's the whole point of previewing it.
+ *
+ * If this directory is lifted into another project, the chrome works as-is;
+ * the canvas's `data-surface` block will need to point at that project's
+ * surface tokens.
+ * ========================================================================== */
+
+.page {
+  min-height: 100vh;
+  background: var(--lib-page-bg);
+  color: var(--lib-text);
+  font-family: var(--lib-font-sans);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------------------------------------------------------------------------
+ * Header — breadcrumb + piece name
+ * ------------------------------------------------------------------------ */
+
+.header {
+  border-block-end: 1px solid var(--lib-border-strong);
+  padding-block: 20px;
+  padding-inline: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .header {
+    padding-inline: 40px;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .header {
+    padding-inline: 48px;
+  }
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-family: var(--lib-font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--lib-text-muted);
+}
+
+.breadcrumbLink {
+  color: var(--lib-text-muted);
+  text-decoration: none;
+  border-block-end: 1px solid transparent;
+  padding-block-end: 2px;
+}
+
+.breadcrumbLink:hover,
+.breadcrumbLink:focus-visible {
+  color: var(--lib-text);
+  border-block-end-color: var(--lib-text);
+}
+
+.breadcrumbLink:focus-visible {
+  outline: 2px solid var(--lib-text);
+  outline-offset: 4px;
+}
+
+.breadcrumbDivider {
+  color: var(--lib-border);
+}
+
+.breadcrumbCategory {
+  color: var(--lib-text-muted);
+}
+
+.breadcrumbName {
+  color: var(--lib-text);
+  font-weight: 600;
+}
+
+.titleBlock {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title {
+  font-family: var(--lib-font-sans);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Copy URL button — icon-only. Hidden by default on hover-capable devices,
+ * appears when hovering near the title block or when focused. On touch
+ * devices (no `hover` capability), stays visible at all times.
+ * ------------------------------------------------------------------------ */
+
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--lib-text-muted);
+  cursor: pointer;
+  transition:
+    opacity 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.copyButton:hover {
+  color: var(--lib-text);
+  border-color: var(--lib-border);
+}
+
+.copyButton:focus-visible {
+  outline: 2px solid var(--lib-text);
+  outline-offset: 2px;
+  color: var(--lib-text);
+}
+
+@media (hover: hover) {
+  .copyButton {
+    opacity: 0;
+  }
+
+  .titleBlock:hover .copyButton,
+  .titleBlock:focus-within .copyButton,
+  .copyButton:focus-visible {
+    opacity: 1;
+  }
+}
+
+.statusPill {
+  display: inline-block;
+  font-family: var(--lib-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  padding-inline: 8px;
+  padding-block: 5px;
+  border: 1px solid currentColor;
+}
+
+.statusPillApproved {
+  color: var(--lib-text);
+}
+
+.statusPillDraft {
+  color: var(--lib-text-muted);
+}
+
+/* ---------------------------------------------------------------------------
+ * Controls strip
+ * ------------------------------------------------------------------------ */
+
+.controls {
+  border-block-end: 1px solid var(--lib-border);
+  padding-block: 20px;
+  padding-inline: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px 40px;
+  background: var(--lib-surface-bg);
+}
+
+@media (min-width: 768px) {
+  .controls {
+    padding-inline: 40px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .controls {
+    padding-inline: 48px;
+  }
+}
+
+.controlGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.controlLabel {
+  font-family: var(--lib-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--lib-text-muted);
+}
+
+.select {
+  appearance: none;
+  font-family: var(--lib-font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+  color: var(--lib-text);
+  background: var(--lib-surface-bg);
+  border: 1px solid var(--lib-border-strong);
+  padding-inline: 12px 32px;
+  padding-block: 8px;
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--lib-text) 50%),
+    linear-gradient(135deg, var(--lib-text) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) 50%,
+    calc(100% - 12px) 50%;
+  background-size:
+    4px 4px,
+    4px 4px;
+  background-repeat: no-repeat;
+}
+
+.select:focus-visible {
+  outline: 2px solid var(--lib-text);
+  outline-offset: 2px;
+}
+
+.buttonGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0;
+  border: 1px solid var(--lib-border-strong);
+}
+
+.buttonGroupItem {
+  font-family: var(--lib-font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--lib-text);
+  background: var(--lib-surface-bg);
+  border: none;
+  border-inline-end: 1px solid var(--lib-border-strong);
+  padding-inline: 12px;
+  padding-block: 9px;
+  cursor: pointer;
+}
+
+.buttonGroupItem:last-child {
+  border-inline-end: none;
+}
+
+.buttonGroupItem:hover {
+  background: var(--lib-accent-hover);
+}
+
+.buttonGroupItem:focus-visible {
+  outline: 2px solid var(--lib-text);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+.buttonGroupItemActive {
+  background: var(--lib-accent-bg);
+  color: var(--lib-accent-fg);
+}
+
+.buttonGroupItemActive:hover {
+  background: var(--lib-accent-bg);
+}
+
+/* ---------------------------------------------------------------------------
+ * Canvas — where the piece renders
+ *
+ * Surface backgrounds set via data-surface attribute — these MUST stay as
+ * project tokens (--paper / --panel / --ink), since the whole point is to
+ * test the piece against the project's surfaces. When this library is moved
+ * to another project, this is the block to update with that project's
+ * surface tokens.
+ * ------------------------------------------------------------------------ */
+
+.canvas {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-block: 56px;
+  padding-inline: 24px;
+  background: var(--paper);
+  color: var(--ink);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    var(--separator) 1px,
+    transparent 1.5px
+  );
+  background-size: 16px 16px;
+  background-position: 8px 8px;
+}
+
+@media (min-width: 768px) {
+  .canvas {
+    padding-block: 80px;
+    padding-inline: 40px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .canvas {
+    padding-inline: 48px;
+  }
+}
+
+.canvas[data-surface="paper"] {
+  background-color: var(--paper);
+  color: var(--ink);
+}
+
+.canvas[data-surface="panel"] {
+  background-color: var(--panel);
+  color: var(--ink);
+}
+
+.canvas[data-surface="ink"] {
+  background-color: var(--ink);
+  color: var(--panel);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    var(--separator-inverse) 1px,
+    transparent 1.5px
+  );
+}
+
+.canvasInner {
+  width: var(--preview-width, 100%);
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  outline: 1px dashed var(--separator);
+  outline-offset: 16px;
+}
+
+.canvas[data-surface="ink"] .canvasInner {
+  outline-color: var(--separator-inverse);
+}
+
+.previewSlot {
+  display: block;
+  min-width: 0;
+}
+
+/* ---------------------------------------------------------------------------
+ * Footer — file path metadata (chrome, neutral)
+ * ------------------------------------------------------------------------ */
+
+.footer {
+  border-block-start: 1px solid var(--lib-border);
+  padding-block: 16px;
+  padding-inline: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  align-items: baseline;
+  background: var(--lib-surface-bg);
+}
+
+@media (min-width: 768px) {
+  .footer {
+    padding-inline: 40px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .footer {
+    padding-inline: 48px;
+  }
+}
+
+.footerLabel {
+  font-family: var(--lib-font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--lib-text-muted);
+}
+
+.footerValue {
+  font-family: var(--lib-font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.5;
+  color: var(--lib-text);
+}
+
+.footerValue code {
+  font-family: var(--lib-font-mono);
+  font-size: 12px;
+  letter-spacing: 0;
+  color: var(--lib-text);
+  padding-inline: 4px;
+  padding-block: 1px;
+  background: rgba(24, 24, 27, 0.06);
+  border-radius: 2px;
+}

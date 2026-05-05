@@ -1,0 +1,16 @@
+.sectionNumber {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-mono-lg);
+  font-weight: var(--weight-mono-bold);
+  letter-spacing: var(--tracking-mono-base);
+  line-height: var(--leading-flat);
+}
+
+.toneDefault {
+  color: var(--primary);
+}
+
+.toneInverse {
+  color: var(--data);
+}

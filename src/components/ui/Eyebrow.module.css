@@ -1,0 +1,10 @@
+.eyebrow {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--text-mono-xs);
+  font-weight: var(--weight-mono-medium);
+  letter-spacing: var(--tracking-mono-wide);
+  line-height: var(--leading-flat);
+  text-transform: uppercase;
+  color: currentColor;
+}
