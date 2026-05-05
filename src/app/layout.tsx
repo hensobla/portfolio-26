@@ -1,29 +1,45 @@
 import type { Metadata } from "next";
-import { Manrope, Inter } from "next/font/google";
-import { Geist_Mono } from "next/font/google";
+import { Archivo, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 
-const manrope = Manrope({
-  variable: "--font-manrope",
+/* =============================================================================
+ * Font loading
+ *
+ * Three families per typography.md:
+ *   - Archivo — display (headlines, hero, section titles, large numbers)
+ *   - IBM Plex Sans — body (paragraphs, descriptions, ledes)
+ *   - IBM Plex Mono — labels, metadata, navigation, table cells
+ *
+ * Each font's `variable` config writes the CSS custom property the system
+ * tokens reference. globals.css does not redeclare these three variables —
+ * next/font is the canonical source. fallback adjustments are computed by
+ * next/font from Adobe font metrics.
+ * ========================================================================== */
+
+const archivo = Archivo({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: ["500", "700", "800"],
+  display: "swap",
+});
+
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-body",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-mono",
   subsets: ["latin"],
-  weight: ["400", "500"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "Teamollo — Strategic Design Agency",
-  description:
-    "Award-winning strategic design company that provides extraordinary solutions to our clients.",
+  title: "Portfolio",
+  description: "Strategic design portfolio.",
 };
 
 export default function RootLayout({
@@ -34,7 +50,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} ${inter.variable} ${geistMono.variable} antialiased`}
+      className={`${archivo.variable} ${plexSans.variable} ${plexMono.variable}`}
     >
       <body>{children}</body>
     </html>

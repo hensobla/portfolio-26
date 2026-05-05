@@ -1,31 +1,319 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #000000;
-  --accent: #b5ed3d;
-  --muted: #a4a4a4;
-  --card-bg: #f1f4f8;
-  --border: #e5e5e5;
-  --brand-red: #ee1f1f;
-  --dark-navy: #0b132e;
+/* =============================================================================
+ * Design system tokens — Classic Vignelli (default theme).
+ *
+ * Source of truth:
+ *   - colors.md     (color primitives + semantics + audit)
+ *   - typography.md (families, sizes, weights, tracking, line-heights)
+ *   - grid.md       (breakpoints, columns, margins, gutters, container)
+ *
+ * Components and modules in src/components/ reference these via `var(--name)`.
+ * Tailwind utility classes generated from these tokens are permitted in glue
+ * code (src/app/page.tsx, layouts) but FORBIDDEN inside library pieces. See
+ * decisions.md D21.
+ * ========================================================================== */
+
+@theme {
+  /* ---------------------------------------------------------------------------
+   * Color primitives — neutral
+   * ------------------------------------------------------------------------ */
+  --color-neutral-50: #fffefa;
+  --color-neutral-100: #f5f0e8;
+  --color-neutral-200: #e5dcc8;
+  --color-neutral-300: #cfc2a6;
+  --color-neutral-400: #a89b82;
+  --color-neutral-500: #7b7160;
+  --color-neutral-600: #574f42;
+  --color-neutral-700: #3d372e;
+  --color-neutral-800: #26221c;
+  --color-neutral-900: #161310;
+  --color-neutral-950: #0d0d0d;
+
+  /* ---------------------------------------------------------------------------
+   * Color primitives — red (brand anchor at 500)
+   * ------------------------------------------------------------------------ */
+  --color-red-50: #fce9ec;
+  --color-red-100: #f7c7cd;
+  --color-red-200: #ee9aa6;
+  --color-red-300: #e1697a;
+  --color-red-400: #d43a53;
+  --color-red-500: #c8102e;
+  --color-red-600: #a50c26;
+  --color-red-700: #82081e;
+  --color-red-800: #5f0617;
+  --color-red-900: #3d040e;
+  --color-red-950: #1f0207;
+
+  /* ---------------------------------------------------------------------------
+   * Color primitives — yellow (brand anchor at 400, per decisions.md D5)
+   * ------------------------------------------------------------------------ */
+  --color-yellow-50: #fef6da;
+  --color-yellow-100: #fceaa0;
+  --color-yellow-200: #fadc68;
+  --color-yellow-300: #f8d14c;
+  --color-yellow-400: #f4c430;
+  --color-yellow-500: #dcab1f;
+  --color-yellow-600: #b5871a;
+  --color-yellow-700: #8e6814;
+  --color-yellow-800: #674a0e;
+  --color-yellow-900: #402e08;
+  --color-yellow-950: #211803;
+
+  /* ---------------------------------------------------------------------------
+   * Color semantics — components reference these, never the primitives above.
+   * ------------------------------------------------------------------------ */
+
+  /* Surface */
+  --paper: var(--color-neutral-100);
+  --panel: var(--color-neutral-50);
+  --ink: var(--color-neutral-950);
+
+  /* Identity */
+  --primary: var(--color-red-500);
+  --primary-fg: var(--color-neutral-50);
+
+  /* Data */
+  --data: var(--color-yellow-400);
+  --data-fg: var(--color-neutral-950);
+
+  /* Muted text */
+  --muted: var(--color-neutral-700);
+  --muted-inverse: var(--color-neutral-300);
+
+  /* Separators */
+  --separator: var(--color-neutral-300);
+  --separator-inverse: var(--color-neutral-700);
+
+  /* ---------------------------------------------------------------------------
+   * Font families
+   *
+   * --font-display, --font-body, --font-mono are set by next/font in
+   * src/app/layout.tsx and applied to <html>. They resolve to the loaded
+   * Archivo / IBM Plex Sans / IBM Plex Mono families with next/font's
+   * fallback metrics. Not redeclared here — see typography.md.
+   * ------------------------------------------------------------------------ */
+
+  /* ---------------------------------------------------------------------------
+   * Display sizes — stepped (default xs values; reassigned at breakpoints below)
+   * ------------------------------------------------------------------------ */
+  --text-display-hero: 56px;
+  --text-display-metric: 64px;
+  --text-display-2xl: 48px;
+  --text-display-xl: 32px;
+  --text-display-lg: 30px;
+  --text-display-md: 26px;
+  --text-display-sm: 26px;
+  --text-display-xs: 22px;
+
+  /* ---------------------------------------------------------------------------
+   * Display sizes — fluid (do not respond to breakpoints)
+   * ------------------------------------------------------------------------ */
+  --text-display-2xs: 26px;
+  --text-display-quote: clamp(20px, 1.7vw, 22px);
+  --text-display-lede: clamp(18px, 1.5vw, 24px);
+  --text-display-lede-sm: clamp(15px, 1.2vw, 19px);
+
+  /* ---------------------------------------------------------------------------
+   * Body sizes (fixed)
+   * ------------------------------------------------------------------------ */
+  --text-body-lg: 17px;
+  --text-body-md: 16px;
+  --text-body-sm: 15px;
+  --text-body-xs: 14px;
+  --text-body-2xs: 13px;
+
+  /* ---------------------------------------------------------------------------
+   * Mono sizes (fixed)
+   * ------------------------------------------------------------------------ */
+  --text-mono-lg: 14px;
+  --text-mono-md: 13px;
+  --text-mono-base: 12px;
+  --text-mono-sm: 11px;
+  --text-mono-xs: 10px;
+  --text-mono-2xs: 9px;
+
+  /* ---------------------------------------------------------------------------
+   * Weights
+   * ------------------------------------------------------------------------ */
+  --weight-display-heavy: 800;
+  --weight-display-bold: 700;
+  --weight-display-medium: 500;
+  --weight-mono-bold: 600;
+  --weight-mono-medium: 500;
+  --weight-body-bold: 700;
+  --weight-body-medium: 500;
+  --weight-body-regular: 400;
+
+  /* ---------------------------------------------------------------------------
+   * Tracking (letter-spacing)
+   * ------------------------------------------------------------------------ */
+  --tracking-display-tightest: -0.04em;
+  --tracking-display-tight: -0.025em;
+  --tracking-display-snug: -0.01em;
+  --tracking-display-flat: -0.005em;
+  --tracking-body: 0;
+  --tracking-mono-snug: 0.04em;
+  --tracking-mono-base: 0.06em;
+  --tracking-mono-wide: 0.1em;
+  --tracking-mono-wider: 0.14em;
+  --tracking-mono-widest: 0.18em;
+
+  /* ---------------------------------------------------------------------------
+   * Line-heights
+   * ------------------------------------------------------------------------ */
+  --leading-display-tightest: 0.85;
+  --leading-display-tight: 0.88;
+  --leading-display-snug: 0.92;
+  --leading-display: 0.95;
+  --leading-display-loose: 1.05;
+  --leading-display-readable: 1.15;
+  --leading-display-lede: 1.3;
+  --leading-display-lede-loose: 1.35;
+  --leading-body-tight: 1.45;
+  --leading-body: 1.55;
+  --leading-mono: 1.5;
+  --leading-mono-loose: 1.7;
+  --leading-flat: 1;
+
+  /* ---------------------------------------------------------------------------
+   * Breakpoints
+   * Reference values. Tailwind v4 doesn't expand these in @media queries — the
+   * media queries below hard-code the same px values. If a future build step
+   * makes these variables resolvable inside @media, replace the literals.
+   * ------------------------------------------------------------------------ */
+  --bp-xs: 0px;
+  --bp-sm: 480px;
+  --bp-md: 768px;
+  --bp-lg: 1024px;
+  --bp-xl: 1280px;
+  --bp-2xl: 1536px;
+
+  /* ---------------------------------------------------------------------------
+   * Grid — column counts per breakpoint
+   * ------------------------------------------------------------------------ */
+  --grid-cols-xs: 4;
+  --grid-cols-sm: 4;
+  --grid-cols-md: 8;
+  --grid-cols-lg: 12;
+  --grid-cols-xl: 12;
+  --grid-cols-2xl: 12;
+
+  /* ---------------------------------------------------------------------------
+   * Grid — page margins (viewport edge to first column)
+   * ------------------------------------------------------------------------ */
+  --grid-margin-xs: 16px;
+  --grid-margin-sm: 20px;
+  --grid-margin-md: 32px;
+  --grid-margin-lg: 32px;
+  --grid-margin-xl: 48px;
+  --grid-margin-2xl: auto;
+
+  /* ---------------------------------------------------------------------------
+   * Grid — gutters (between columns)
+   * ------------------------------------------------------------------------ */
+  --grid-gutter-xs: 16px;
+  --grid-gutter-sm: 20px;
+  --grid-gutter-md: 24px;
+  --grid-gutter-lg: 24px;
+  --grid-gutter-xl: 32px;
+  --grid-gutter-2xl: 32px;
+
+  /* ---------------------------------------------------------------------------
+   * Container
+   * ------------------------------------------------------------------------ */
+  --container-max: 1280px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-accent: var(--accent);
-  --color-muted: var(--muted);
-  --color-card-bg: var(--card-bg);
-  --color-border: var(--border);
-  --color-brand-red: var(--brand-red);
-  --color-dark-navy: var(--dark-navy);
-  --font-sans: var(--font-manrope);
-  --font-mono: var(--font-geist-mono);
+/* =============================================================================
+ * Stepped display size reassignments per breakpoint.
+ *
+ * Tailwind v4's @theme directive does not support @media-scoped reassignments,
+ * so these target bare :root. The custom properties registered in @theme above
+ * are reassigned here at each breakpoint. Pixel values mirror --bp-* tokens.
+ * ========================================================================== */
+
+@media (min-width: 480px) {
+  /* sm */
+  :root {
+    --text-display-hero: 64px;
+    --text-display-metric: 72px;
+    --text-display-2xl: 52px;
+    --text-display-xl: 36px;
+    --text-display-lg: 32px;
+    --text-display-md: 28px;
+    --text-display-sm: 28px;
+    --text-display-xs: 22px;
+  }
 }
+
+@media (min-width: 768px) {
+  /* md */
+  :root {
+    --text-display-hero: 80px;
+    --text-display-metric: 84px;
+    --text-display-2xl: 60px;
+    --text-display-xl: 44px;
+    --text-display-lg: 38px;
+    --text-display-md: 32px;
+    --text-display-sm: 30px;
+    --text-display-xs: 24px;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* lg */
+  :root {
+    --text-display-hero: 96px;
+    --text-display-metric: 96px;
+    --text-display-2xl: 64px;
+    --text-display-xl: 48px;
+    --text-display-lg: 42px;
+    --text-display-md: 36px;
+    --text-display-sm: 32px;
+    --text-display-xs: 26px;
+  }
+}
+
+@media (min-width: 1280px) {
+  /* xl */
+  :root {
+    --text-display-hero: 108px;
+    --text-display-metric: 104px;
+    --text-display-2xl: 68px;
+    --text-display-xl: 52px;
+    --text-display-lg: 44px;
+    --text-display-md: 38px;
+    --text-display-sm: 34px;
+    --text-display-xs: 28px;
+  }
+}
+
+@media (min-width: 1536px) {
+  /* 2xl */
+  :root {
+    --text-display-hero: 116px;
+    --text-display-metric: 110px;
+    --text-display-2xl: 72px;
+    --text-display-xl: 56px;
+    --text-display-lg: 48px;
+    --text-display-md: 40px;
+    --text-display-sm: 36px;
+    --text-display-xs: 30px;
+  }
+}
+
+/* =============================================================================
+ * Page baseline — paper surface, ink text, body family.
+ * Modules and components override these as needed via their own CSS Modules.
+ * ========================================================================== */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--text-body-lg);
+  font-weight: var(--weight-body-regular);
+  letter-spacing: var(--tracking-body);
+  line-height: var(--leading-body);
 }
