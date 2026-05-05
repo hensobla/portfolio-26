@@ -1,0 +1,97 @@
+/* =============================================================================
+ * BasicHero — Vignelli-blocky frame around a primary headline.
+ *
+ * The block owns its surface (paper) and its border (2px ink). Inner spacing
+ * scales with viewport per grid.md's loose patterns (32px mobile → 88px desktop).
+ *
+ * Per decisions.md D21, semantic CSS only. Every value references a token.
+ * ========================================================================== */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px 24px;
+  border: 2px solid var(--ink);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+@media (min-width: 480px) {
+  .block {
+    gap: 28px;
+    padding: 40px 28px;
+  }
+}
+
+@media (min-width: 768px) {
+  .block {
+    gap: 32px;
+    padding: 56px 40px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .block {
+    gap: 40px;
+    padding: 72px 48px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .block {
+    gap: 48px;
+    padding: 88px 56px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Eyebrow — wrapper sets --primary; Eyebrow component reads currentColor.
+ * Pairs with the headline accent for a single coordinated red accent moment.
+ * ------------------------------------------------------------------------ */
+
+.eyebrowRow {
+  color: var(--primary);
+}
+
+/* ---------------------------------------------------------------------------
+ * Headline — the primary focus. Massive display-heavy uppercase, tightest
+ * tracking, capped width so multi-line headlines stack visually.
+ * ------------------------------------------------------------------------ */
+
+.headline {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-display-hero);
+  font-weight: var(--weight-display-heavy);
+  letter-spacing: var(--tracking-display-tightest);
+  line-height: var(--leading-display-tight);
+  text-transform: uppercase;
+  color: var(--ink);
+  max-width: 18ch;
+  /* Allow the headline to break across lines on long words rather than
+     overflow the block at small viewports. */
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.headlineAccent {
+  color: var(--primary);
+}
+
+/* ---------------------------------------------------------------------------
+ * Chips — secondary focus. A handful of bordered tags, wrapping freely.
+ * ------------------------------------------------------------------------ */
+
+.chips {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chipItem {
+  display: inline-flex;
+}

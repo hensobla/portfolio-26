@@ -1,0 +1,66 @@
+/* The row inherits its text color from the parent surface (currentColor)
+ * so it pairs correctly on --paper, --panel, and --ink surfaces. Dividers
+ * are derived from currentColor at low alpha — adapts to surface without
+ * needing a per-surface color token.
+ */
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr;
+  border-block-end: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  color: currentColor;
+}
+
+.row > * {
+  padding: 16px 20px;
+  border-block-end: 1px solid
+    color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.row > *:last-child {
+  border-block-end: none;
+}
+
+@media (min-width: 768px) {
+  .row {
+    grid-template-columns: 130px 1fr 2fr;
+  }
+
+  .row > * {
+    border-block-end: none;
+    border-inline-end: 1px solid
+      color-mix(in srgb, currentColor 20%, transparent);
+  }
+
+  .row > *:last-child {
+    border-inline-end: none;
+  }
+}
+
+.functionCell {
+  font-family: var(--font-display);
+  font-size: var(--text-display-xs);
+  font-weight: var(--weight-display-bold);
+  letter-spacing: var(--tracking-display-snug);
+  line-height: var(--leading-display);
+  text-transform: uppercase;
+  color: currentColor;
+}
+
+.whoCell {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono-base);
+  font-weight: var(--weight-mono-medium);
+  letter-spacing: var(--tracking-mono-snug);
+  line-height: var(--leading-mono);
+  color: currentColor;
+}
+
+.whatCell {
+  font-family: var(--font-body);
+  font-size: var(--text-body-xs);
+  font-weight: var(--weight-body-regular);
+  letter-spacing: var(--tracking-body);
+  line-height: var(--leading-body);
+  color: currentColor;
+}

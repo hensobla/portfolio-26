@@ -2,8 +2,24 @@ import { NextRequest, NextResponse } from "next/server";
 
 const PUBLIC_PATHS = ["/enter", "/api/auth"];
 
+// Routes that exist for local development only. Any request to these in a
+// non-development environment (Vercel preview / production / anywhere else)
+// returns 404 — as if the route doesn't exist.
+const DEV_ONLY_PATHS = ["/library"];
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Block dev-only routes outside `npm run dev`.
+  // NODE_ENV is "development" only in `next dev`; both Vercel preview and
+  // production set "production". This means /library is local-only and never
+  // reachable from a deployed URL.
+  if (
+    DEV_ONLY_PATHS.some((p) => pathname.startsWith(p)) &&
+    process.env.NODE_ENV !== "development"
+  ) {
+    return new NextResponse("Not Found", { status: 404 });
+  }
 
   // Always allow the password page, auth API, and Next.js internals
   if (
