@@ -115,10 +115,12 @@ export default async function SelectedWork() {
     sanityProjects = await client.fetch<SanityProject[]>(
       `*[_type == "project"] | order(order asc, _createdAt desc) {
         _id, title, slug, description, thumbnail, projectUrl, tags
-      }`
+      }`,
+      {},
+      { next: { revalidate: 30 } }
     );
-  } catch {
-    // Sanity not yet configured or network unavailable — use fallback
+  } catch (err) {
+    console.error("[SelectedWork] Sanity fetch failed:", err);
   }
 
   const projects: DisplayProject[] =
