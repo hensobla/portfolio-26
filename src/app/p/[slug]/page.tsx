@@ -23,6 +23,10 @@ export default async function DynamicPage({
 }) {
   const { slug } = await params;
 
+  // Sanity is required for this route — no fallback content. If env vars
+  // are missing (unconfigured environment), the route 404s.
+  if (!client) notFound();
+
   const pageDoc = await client.fetch<PageDoc | null>(
     pageBySlugQuery,
     { slug },

@@ -109,18 +109,22 @@ export default async function SelectedWork() {
     thumbnail: object | null;
   };
 
-  // Fetch from Sanity — falls back to static data on error or empty
+  // Fetch from Sanity — falls back to static data when the client is
+  // unavailable (no env vars) or the fetch fails.
   let sanityProjects: SanityProject[] = [];
-  try {
-    sanityProjects = await client.fetch<SanityProject[]>(
-      `*[_type == "project"] | order(order asc, _createdAt desc) {
+  if (client) {
+    try {
+      sanityProjects =
+        (await client.fetch<SanityProject[]>(
+          `*[_type == "project"] | order(order asc, _createdAt desc) {
         _id, title, slug, description, thumbnail, projectUrl, tags
       }`,
-      {},
-      { next: { revalidate: 30 } }
-    );
-  } catch (err) {
-    console.error("[SelectedWork] Sanity fetch failed:", err);
+          {},
+          { next: { revalidate: 30 } }
+        )) ?? [];
+    } catch (err) {
+      console.error("[SelectedWork] Sanity fetch failed:", err);
+    }
   }
 
   const projects: DisplayProject[] =
