@@ -93,6 +93,30 @@ function PreviewView({ entry }: { entry: SandboxEntry }) {
   return (
     <div className={styles.page} data-theme={theme}>
       <header className={styles.header}>
+        <div className={styles.headerTop}>
+          <Link href="/library" className={styles.backLink}>
+            <BackArrowIcon />
+            <span>Library</span>
+          </Link>
+          <nav className={styles.breadcrumb} aria-label="Breadcrumb">
+            <Link href="/library" className={styles.breadcrumbLink}>
+              Library
+            </Link>
+            <span className={styles.breadcrumbDivider} aria-hidden="true">
+              /
+            </span>
+            <Link
+              href={`/library#section-${entry.category}`}
+              className={`${styles.breadcrumbLink} ${styles.breadcrumbCategory}`}
+            >
+              {categoryLabel}
+            </Link>
+            <span className={styles.breadcrumbDivider} aria-hidden="true">
+              /
+            </span>
+            <span className={styles.breadcrumbName}>{entry.name}</span>
+          </nav>
+        </div>
         <div className={styles.titleBlock}>
           <h1 className={styles.title}>{entry.name}</h1>
           <span
@@ -106,24 +130,6 @@ function PreviewView({ entry }: { entry: SandboxEntry }) {
           </span>
           <CopyUrlButton />
         </div>
-        <nav className={styles.breadcrumb} aria-label="Breadcrumb">
-          <Link href="/library" className={styles.breadcrumbLink}>
-            Library
-          </Link>
-          <span className={styles.breadcrumbDivider} aria-hidden="true">
-            /
-          </span>
-          <Link
-            href="/library"
-            className={`${styles.breadcrumbLink} ${styles.breadcrumbCategory}`}
-          >
-            {categoryLabel}
-          </Link>
-          <span className={styles.breadcrumbDivider} aria-hidden="true">
-            /
-          </span>
-          <span className={styles.breadcrumbName}>{entry.name}</span>
-        </nav>
       </header>
 
       <section className={styles.controls} aria-label="Preview controls">
@@ -294,6 +300,25 @@ function CopyUrlButton() {
     >
       {copied ? <CheckIcon /> : <LinkIcon />}
     </button>
+  );
+}
+
+function BackArrowIcon() {
+  return (
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <line x1="19" y1="12" x2="5" y2="12" />
+      <polyline points="12 19 5 12 12 5" />
+    </svg>
   );
 }
 

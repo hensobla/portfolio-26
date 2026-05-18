@@ -30,16 +30,12 @@
   padding-inline: 24px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 @media (min-width: 768px) {
   .header {
     padding-inline: 40px;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    gap: 32px;
   }
 }
 
@@ -47,6 +43,45 @@
   .header {
     padding-inline: 48px;
   }
+}
+
+.headerTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--lib-font-sans);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+  color: var(--lib-text);
+  text-decoration: none;
+  padding-block: 6px;
+  padding-inline: 10px 12px;
+  border: 1px solid var(--lib-border);
+  background: var(--lib-surface-bg);
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.backLink:hover {
+  border-color: var(--lib-border-strong);
+  background: var(--lib-accent-hover);
+}
+
+.backLink:focus-visible {
+  outline: 2px solid var(--lib-text);
+  outline-offset: 2px;
 }
 
 .breadcrumb {
@@ -60,6 +95,7 @@
   line-height: 1;
   text-transform: uppercase;
   color: var(--lib-text-muted);
+  flex-wrap: wrap;
 }
 
 .breadcrumbLink {
