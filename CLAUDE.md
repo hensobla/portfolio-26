@@ -1,5 +1,9 @@
 @AGENTS.md
 
+## Session continuity
+
+If `HANDOFF.md` exists in the project root, read it first before doing anything else. It contains the state of the previous session and immediate next steps.
+
 # Portfolio Design System — Read Before Building
 
 This project is a portfolio site built as a strict design system. Guardrails live in `/system/` as MD files. Code lives under `src/`. The MDs describe rules and intent; they do not contain implementations.

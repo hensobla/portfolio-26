@@ -350,13 +350,16 @@
   padding-inline: 24px;
   background: var(--paper);
   color: var(--ink);
+  /* Faint dot pattern marks the canvas as a testbed without competing with
+     the piece being previewed. Sub-pixel dot at ~12% opacity, 24px spacing —
+     visible at flat zoom, disappears against any active piece content. */
   background-image: radial-gradient(
     circle at 1px 1px,
-    var(--separator) 1px,
-    transparent 1.5px
+    color-mix(in srgb, var(--ink) 12%, transparent) 0.5px,
+    transparent 1px
   );
-  background-size: 16px 16px;
-  background-position: 8px 8px;
+  background-size: 24px 24px;
+  background-position: 12px 12px;
 }
 
 @media (min-width: 768px) {
@@ -387,8 +390,8 @@
   color: var(--panel);
   background-image: radial-gradient(
     circle at 1px 1px,
-    var(--separator-inverse) 1px,
-    transparent 1.5px
+    color-mix(in srgb, var(--panel) 12%, transparent) 0.5px,
+    transparent 1px
   );
 }
 
