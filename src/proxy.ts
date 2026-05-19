@@ -7,7 +7,7 @@ const PUBLIC_PATHS = ["/enter", "/api/auth"];
 // returns 404 — as if the route doesn't exist.
 const DEV_ONLY_PATHS = ["/library"];
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Block dev-only routes outside `npm run dev`.
