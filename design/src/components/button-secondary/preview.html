@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Button — Secondary — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="button-secondary.css">
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+    .preview-frame {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-5);
+    }
+  </style>
+</head>
+<body>
+  <div class="preview-frame" id="preview-frame"></div>
+  <script>
+    (function () {
+      const STATES = {
+        default:  { label: "Learn more", state: null       },
+        hover:    { label: "Learn more", state: "hover"    },
+        disabled: { label: "Learn more", state: "disabled" },
+        loading:  { label: "Loading…",   state: "loading"  }
+      };
+
+      const params = new URLSearchParams(location.search);
+      const stateId = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+
+      let overrides = {};
+
+      function render() {
+        const props = { ...baseState, ...overrides };
+        const stateAttr = props.state ? ` data-state="${escapeAttr(props.state)}"` : "";
+        document.getElementById("preview-frame").innerHTML =
+          `<button type="button" data-loom="button-secondary"${stateAttr}>` +
+            `<span data-loom-slot="label">${escapeText(props.label || "")}</span>` +
+          `</button>`;
+      }
+
+      function escapeAttr(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]);
+      }
+      function escapeText(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"})[c]);
+      }
+
+      window.addEventListener("message", (e) => {
+        if (!e.data || e.data.type !== "loom:content") return;
+        overrides = e.data.values || {};
+        render();
+      });
+
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "button-secondary" }, "*"); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

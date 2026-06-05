@@ -1,0 +1,30 @@
+[data-loom="progress"] {
+  display: inline-block;
+  width: 14rem;
+}
+
+[data-loom="progress"] .progress__track {
+  display: block;
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+[data-loom="progress"] .progress__fill {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  border-radius: 999px;
+}
+
+[data-loom="progress"][data-variant="indeterminate"] .progress__track { position: relative; }
+[data-loom="progress"][data-variant="indeterminate"] .progress__fill {
+  width: 35%;
+  animation: loom-progress-roll 1.5s ease-in-out infinite;
+}
+
+@keyframes loom-progress-roll {
+  0%   { margin-left: -35%; }
+  100% { margin-left: 100%; }
+}

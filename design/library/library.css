@@ -1,0 +1,5298 @@
+/* ============================================================
+   library.css — chrome for the Loomling Library
+   ------------------------------------------------------------
+   This file is intentionally NOT styled with project tokens.
+   The Library is a neutral browser; the pieces it shows are
+   what should reflect project tokens. Library chrome stays
+   constant across every Loomling project.
+   ============================================================ */
+
+:root {
+  --lib-bg:        #ffffff;
+  --lib-paper:     #f8f8f7;
+  --lib-panel:     #f0eeea;
+  --lib-ink:       #1a1a1a;
+  --lib-ink-soft:  #4b4b48;
+  --lib-muted:     #8a8a85;
+  --lib-line:      #e2e0db;
+  --lib-accent:    #2554f7;
+  --lib-warn:      #b85a00;
+  /* Loomling wordmark color. Independent of the user's design system
+     tokens (src/tokens.css) and locked across light/dark themes —
+     brand consistency over theme-aware contrast. */
+  --lib-brand:     #2554f7;
+  /* "Awaiting approval" treatment — edited-from-approved elements need
+     stronger visual weight than the system accent (which doubles as the
+     focus ring). Red signals "needs attention" without being the same
+     hue as ordinary errors. */
+  --lib-awaiting:  #dc2626;
+  --lib-radius:    10px;
+  --lib-shadow:    0 1px 0 rgba(0,0,0,0.04), 0 8px 24px -16px rgba(0,0,0,0.18);
+
+  --lib-fs-1:  2rem;
+  --lib-fs-2:  1.25rem;
+  --lib-fs-3:  1rem;
+  --lib-fs-4:  0.875rem;
+  --lib-fs-5:  0.75rem;
+
+  --lib-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --lib-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --lib-side-w: 240px;
+  --lib-header-h: 56px;
+  --lib-content-max: 1200px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  font-family: var(--lib-font);
+  font-size: var(--lib-fs-3);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Smooth anchor scrolling — clicking any #section link in the sidebar
+   nav glides to the target instead of jumping. Browsers honor this for
+   in-page anchor activation and JS scrollIntoView(). */
+html { scroll-behavior: smooth; }
+
+/* ---------- Top-nav transition (View Transitions API) ----------
+   loom-router.js wraps each top-nav swap in document.startViewTransition,
+   tagging <html> with data-loom-nav-direction (forward / back). The
+   browser snapshots the document before + after the swap; these keyframes
+   define how the snapshots animate. Header is given its own group below
+   so it stays anchored while the rest (sidebar + content) slides.
+
+   Animations are short (180ms) and subtle (8% translate) so they read as
+   "this happened" rather than "I'm waiting for a transition". Reduced-
+   motion preference collapses to a 1ms swap. */
+
+.lib-header { view-transition-name: lib-header; }
+
+::view-transition-old(lib-header),
+::view-transition-new(lib-header) {
+  /* Header doesn't move — its content (active-tab class) crossfades
+     instantly. Keeps the brand strip anchored visually during the
+     content-area slide. */
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+@keyframes loom-enter-right { from { transform: translateX(8%);  opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes loom-enter-left  { from { transform: translateX(-8%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes loom-exit-left   { from { transform: translateX(0); opacity: 1; } to { transform: translateX(-8%); opacity: 0; } }
+@keyframes loom-exit-right  { from { transform: translateX(0); opacity: 1; } to { transform: translateX(8%);  opacity: 0; } }
+
+/* Click a tab to the RIGHT → forward → old exits LEFT, new enters from RIGHT.
+   Click a tab to the LEFT  → back    → old exits RIGHT, new enters from LEFT. */
+html[data-loom-nav-direction="forward"]::view-transition-old(root) {
+  animation: loom-exit-left 180ms ease-out forwards;
+}
+html[data-loom-nav-direction="forward"]::view-transition-new(root) {
+  animation: loom-enter-right 180ms ease-out forwards;
+}
+html[data-loom-nav-direction="back"]::view-transition-old(root) {
+  animation: loom-exit-right 180ms ease-out forwards;
+}
+html[data-loom-nav-direction="back"]::view-transition-new(root) {
+  animation: loom-enter-left 180ms ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-loom-nav-direction] ::view-transition-old(root),
+  html[data-loom-nav-direction] ::view-transition-new(root) {
+    animation-duration: 1ms;
+  }
+}
+
+/* Headroom under the sticky chrome so the scrolled-to section heading
+   doesn't end up flush against the page top. */
+.ds-section,
+.lib-section {
+  scroll-margin-top: 24px;
+}
+
+/* Users who've opted out of motion get an instant jump — respect the
+   system preference. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+a { color: inherit; text-decoration: none; }
+code, pre { font-family: var(--lib-mono); font-size: 0.9em; }
+code {
+  background: var(--lib-panel);
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+}
+
+/* ---------- Header ---------- */
+
+.lib-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--lib-bg);
+  border-bottom: 1px solid var(--lib-line);
+  height: var(--lib-header-h);
+}
+
+.lib-header__inner {
+  max-width: var(--lib-content-max);
+  margin: 0 auto;
+  height: 100%;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+
+.lib-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: var(--lib-fs-3);
+}
+
+.lib-brand__mark {
+  width: 94px;
+  height: 23px;
+  display: inline-block;
+  background-color: var(--lib-brand);
+  -webkit-mask: url("loomling-logo.svg") no-repeat center / contain;
+          mask: url("loomling-logo.svg") no-repeat center / contain;
+}
+
+/* User logo + separator — rendered when localStorage or project.json.logo
+   has a value. brand.js toggles the `hidden` attribute on both. */
+.lib-brand__user-logo {
+  height: 24px;
+  max-width: 120px;
+  width: auto;
+  object-fit: contain;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.lib-brand__user-logo[hidden] { display: none; }
+
+.lib-brand__sep {
+  color: var(--lib-line);
+  font-weight: 300;
+  font-size: 1.25em;
+  user-select: none;
+  margin: 0 2px;
+}
+
+.lib-brand__sep[hidden] { display: none; }
+
+.lib-brand__project {
+  color: var(--lib-muted);
+  font-weight: 400;
+  font-size: var(--lib-fs-4);
+  padding-left: 10px;
+  margin-left: 2px;
+  border-left: 1px solid var(--lib-line);
+}
+
+.lib-tabs {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.lib-tab {
+  padding: 6px 12px;
+  border-radius: 8px;
+  color: var(--lib-ink-soft);
+  font-size: var(--lib-fs-4);
+  font-weight: 500;
+}
+
+.lib-tab:hover { background: var(--lib-paper); color: var(--lib-ink); }
+.lib-tab.is-active { background: var(--lib-ink); color: white; }
+.lib-tab:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+
+/* ---------- Main layout ---------- */
+
+.lib-main {
+  max-width: var(--lib-content-max);
+  margin: 0 auto;
+  padding: 32px 20px 64px;
+  display: grid;
+  grid-template-columns: var(--lib-side-w) 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+.lib-side {
+  position: sticky;
+  top: calc(var(--lib-header-h) + 24px);
+  /* Sticky + z-index makes the sidebar's stacking context sit above the
+     content column (which is a later sibling in the grid and would otherwise
+     paint on top). Needed so collapsed-state tooltips on nav links aren't
+     hidden behind swatches and other content. */
+  z-index: 10;
+}
+
+/* The toggle button is the mobile entry point for the side nav. It's
+   hidden on desktop and only appears at narrow widths where the full
+   sidebar would crowd the content column. */
+.lib-side__toggle {
+  display: none;
+}
+
+.lib-side__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--lib-fs-4);
+}
+
+.lib-side__group-title {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  color: var(--lib-muted);
+  font-weight: 600;
+  padding: 20px 8px 8px;
+  margin-top: 12px;
+  border-top: 1px solid var(--lib-line);
+}
+
+.lib-side__group-title:first-child {
+  padding-top: 0;
+  margin-top: 0;
+  border-top: 0;
+}
+
+.lib-side__link {
+  padding: 6px 8px;
+  border-radius: 6px;
+  color: var(--lib-ink-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.lib-side__link:hover { background: var(--lib-paper); color: var(--lib-ink); }
+.lib-side__link.is-active { background: var(--lib-panel); color: var(--lib-ink); }
+
+.lib-side__count {
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Sidebar: mobile collapse ----------
+   At narrow widths the sidebar becomes a sticky bar tucked immediately
+   under the primary nav — same visual weight, no gap, full-bleed,
+   bottom-border only. Tapping the caret opens .lib-side__nav as a
+   dropdown panel. This block lives AFTER the base side-nav rules so
+   its display toggles win over the desktop `.lib-side__nav { display:
+   flex }` declared above.
+*/
+@media (max-width: 800px) {
+  /* Zero the main grid's padding so the sidebar can stretch edge-to-
+     edge. Content area below gets its own padding restored. */
+  .lib-main {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 0;
+  }
+
+  .lib-content {
+    padding: 24px 20px 64px;
+  }
+
+  .lib-side {
+    position: sticky;
+    top: var(--lib-header-h);
+    z-index: 5;
+    /* Subtle warm grey background so the secondary nav reads as a
+       continuation of the primary nav (which is white) — a quiet
+       step-down, not a separate surface. */
+    background: var(--lib-paper);
+    border: 0;
+    border-bottom: 1px solid var(--lib-line);
+    border-radius: 0;
+    box-shadow: none;
+    overflow: hidden;
+  }
+
+  .lib-side__toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    /* Horizontal padding matches .lib-content so the current-section
+       label sits in the same column as the section heading below. */
+    padding: 10px 20px;
+    background: transparent;
+    border: 0;
+    font-family: inherit;
+    font-size: var(--lib-fs-3);
+    font-weight: 500;
+    color: var(--lib-ink);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .lib-side__toggle:hover {
+    /* Bumped to --lib-panel (a step darker than the bar's --lib-paper)
+       so the hover stays readable against the new background. */
+    background: var(--lib-panel);
+  }
+
+  .lib-side__toggle:focus-visible {
+    outline: 2px solid var(--lib-accent);
+    outline-offset: -2px;
+  }
+
+  .lib-side__toggle-caret {
+    color: var(--lib-muted);
+    /* Bigger glyph without enlarging the bar — line-height: 1 keeps
+       the caret from pushing the button's content-box height. */
+    font-size: 1.4em;
+    line-height: 1;
+    transition: transform 160ms ease;
+  }
+
+  .lib-side__toggle[aria-expanded="true"] .lib-side__toggle-caret {
+    transform: rotate(180deg);
+  }
+
+  .lib-side__nav {
+    display: none;
+    /* The nav wrapper holds an 8px inset; items inside add another
+       12px so their text lands at 20px from the bar edge (matching
+       the toggle and content gutter) while the active/hover pill
+       around each item still has visible padding around the text. */
+    padding: 6px 8px 10px;
+    border-top: 1px solid var(--lib-line);
+  }
+
+  .lib-side[data-open="true"] .lib-side__nav {
+    display: flex;
+  }
+
+  .lib-side__group-title:first-child {
+    padding-top: 4px;
+  }
+
+  .lib-side__nav .lib-side__group-title {
+    padding-inline: 12px;
+  }
+
+  .lib-side__nav .lib-side__link {
+    padding-inline: 12px;
+  }
+
+  /* Hover/active need a darker step against the new --lib-paper bar
+     bg or they vanish. --lib-panel sits between paper and ink-soft
+     and keeps the active item visibly distinct. */
+  .lib-side__nav .lib-side__link:hover {
+    background: var(--lib-panel);
+  }
+
+  .lib-side__nav .lib-side__link.is-active {
+    background: var(--lib-panel);
+    color: var(--lib-ink);
+  }
+}
+
+/* ---------- Sidebar: desktop collapse ----------
+   A small icon button at the top of .lib-side toggles a global collapsed
+   state (persisted in localStorage). When `html[data-sidebar-collapsed]`
+   is set, the grid column narrows, group titles hide, and each .lib-side__link
+   becomes an icon-only square with a hover tooltip showing the section name.
+   The mobile dropdown collapse pattern (above) is untouched — the desktop
+   collapse button is hidden under 800px. */
+
+.lib-side__collapse {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 12px;
+  padding: 0;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--lib-muted);
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.lib-side__collapse:hover {
+  background: var(--lib-paper);
+  color: var(--lib-ink);
+}
+
+.lib-side__collapse:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+
+html[data-sidebar-collapsed="true"] .lib-side__collapse i {
+  /* Flip the sidebar glyph so its line "switches sides" — a clear
+     visual signal of state without needing two icons. */
+  transform: rotate(180deg);
+}
+
+/* Each link carries an icon and a label. Icons hide when expanded, labels
+   hide when collapsed. Counts hide when collapsed too. */
+.lib-side__icon {
+  display: none;
+  font-size: 18px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.lib-side__label {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (min-width: 801px) {
+  html[data-sidebar-collapsed="true"] {
+    --lib-side-w: 52px;
+  }
+
+  /* Scope the collapsed-state overrides to elements INSIDE the sidebar.
+     `.lib-side__group-title` and friends are reused as in-content sub-headers
+     on the System page (Semantic, Primitives, per-hue labels, Durations,
+     Easings, etc.) — those must keep rendering when the sidebar collapses.
+
+     In collapsed mode the group-title still occupies space — but instead of
+     showing its text, it becomes a horizontal divider (border-top) that
+     matches the icon column width. This preserves the visual break between
+     Foundations and Components even when the labels are gone. */
+  html[data-sidebar-collapsed="true"] .lib-side .lib-side__group-title {
+    display: block;
+    width: 40px;
+    height: 0;
+    padding: 0;
+    margin: 16px 0;
+    border-top: 1px solid var(--lib-line);
+    font-size: 0;
+    color: transparent;
+    overflow: hidden;
+  }
+
+  /* The collapse toggle becomes a distinct "header" of the sidebar in
+     collapsed mode — slight paper-tone background sets it apart from the
+     icon list, and its 40×40 size matches the link squares so the column
+     reads as a vertical rhythm. The divider between toggle and Foundations
+     comes from the first .lib-side__group-title styled as a horizontal rule
+     (see the rule above). */
+  html[data-sidebar-collapsed="true"] .lib-side__collapse {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0;
+    background: var(--lib-paper);
+    border-color: var(--lib-line);
+    color: var(--lib-ink);
+  }
+
+  html[data-sidebar-collapsed="true"] .lib-side__collapse:hover {
+    background: var(--lib-panel);
+  }
+
+  html[data-sidebar-collapsed="true"] .lib-side .lib-side__label,
+  html[data-sidebar-collapsed="true"] .lib-side .lib-side__count {
+    display: none;
+  }
+
+  html[data-sidebar-collapsed="true"] .lib-side .lib-side__icon {
+    display: inline-flex;
+  }
+
+  html[data-sidebar-collapsed="true"] .lib-side .lib-side__link {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+  }
+}
+
+/* Hide the desktop collapse button on mobile — the existing dropdown
+   pattern (`.lib-side__toggle`) takes over there. */
+@media (max-width: 800px) {
+  .lib-side__collapse {
+    display: none;
+  }
+}
+
+/* ---------- Tooltip (chrome UI) ----------
+   Pure CSS hover/focus tooltip for sidebar items and the collapse button.
+   Anchored to the element's right edge; appears on hover or keyboard focus.
+   Distinct from the Tooltip primitive (src/components/tooltip/) which is
+   for user-authored content. */
+[data-tooltip] {
+  position: relative;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translate(8px, -50%);
+  background: var(--lib-ink);
+  color: var(--lib-bg);
+  font-family: inherit;
+  font-size: var(--lib-fs-5);
+  font-weight: 500;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 100ms ease;
+  z-index: 20;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+[data-tooltip]:hover::after,
+[data-tooltip]:focus-visible::after {
+  opacity: 1;
+  transition-delay: 200ms;
+}
+
+/* On mobile, the sidebar's flat layout puts tooltips off-screen and the
+   nav items already show their full label — so suppress tooltips there. */
+@media (max-width: 800px) {
+  .lib-side [data-tooltip]::after { display: none; }
+}
+
+/* When the sidebar is expanded on desktop, the .lib-side__link tooltips
+   are redundant with the visible label — only show them when collapsed.
+   The collapse button itself always shows its tooltip (no inline label). */
+@media (min-width: 801px) {
+  html:not([data-sidebar-collapsed="true"]) .lib-side__link[data-tooltip]::after {
+    display: none;
+  }
+}
+
+/* ---------- Visually-hidden utility ----------
+   Used for screen-reader-only headings (so the Loom pages also have
+   a proper h1) and skip-to-content links. The `:focus` rules bring
+   the element back into view when it's a focusable link, so keyboard
+   users can use it. See system/seo.md → Skip-to-content link. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sr-only:focus,
+.sr-only:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  clip: auto;
+  margin: 0;
+  padding: 8px 12px;
+  background: var(--lib-accent);
+  color: white;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+/* ---------- Content ---------- */
+
+.lib-content { min-width: 0; }
+
+.lib-section {
+  margin-bottom: 48px;
+  /* Match .ds-section: anchored scroll targets land below the sticky
+     header, not tucked under it. */
+  scroll-margin-top: calc(var(--lib-header-h) + 16px);
+}
+
+.lib-section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--lib-line);
+}
+
+/* Awaiting approval section — title gets a small red bullet + the meta
+   uses the awaiting color. Red signals "this needs attention" more
+   forcefully than the regular accent. See CLAUDE.md §14 for the lifecycle
+   this surfaces. */
+.lib-section[data-variant="awaiting"] .lib-section__head {
+  border-bottom-color: color-mix(in srgb, var(--lib-awaiting) 30%, var(--lib-line));
+}
+
+.lib-section[data-variant="awaiting"] .lib-section__title::before {
+  content: "●";
+  color: var(--lib-awaiting);
+  font-size: 0.75em;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+.lib-section[data-variant="awaiting"] .lib-section__meta {
+  color: var(--lib-awaiting);
+}
+
+.lib-section__title {
+  font-size: var(--lib-fs-2);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.lib-section__meta {
+  color: var(--lib-muted);
+  font-size: var(--lib-fs-5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.lib-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+/* ---------- Card ---------- */
+
+.lib-card {
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  overflow: hidden;
+  background: var(--lib-bg);
+  transition: border-color 120ms, box-shadow 120ms;
+  display: flex;
+  flex-direction: column;
+}
+
+.lib-card:hover { border-color: var(--lib-ink-soft); box-shadow: var(--lib-shadow); }
+.lib-card:focus-within { border-color: var(--lib-accent); }
+
+.lib-card__preview {
+  background: var(--lib-paper);
+  height: 180px;
+  border-bottom: 1px solid var(--lib-line);
+  position: relative;
+  overflow: hidden;
+  /* Flex centers the scaled iframe wrapper both ways so small Elements
+     (buttons, eyebrow) sit in the middle of the tile and don't top-align. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The fit wrapper takes the SCALED dimensions of the iframe so the flex
+   parent can center the scaled visual correctly (CSS transforms don't
+   shrink the layout box; we have to expose the scaled size to layout). */
+.lib-card__preview-fit {
+  overflow: hidden;
+  display: block;
+}
+
+/* The scaler renders the iframe at the piece's "design width" (set by JS
+   per category — 360px for components, 1280px for modules/templates) and
+   transforms it down to fit the tile so even hero/blog-post previews are
+   fully visible instead of cropped. */
+.lib-card__preview-scaler {
+  transform-origin: top left;
+}
+
+.lib-card__preview-scaler iframe {
+  display: block;
+  border: 0;
+  /* width and height set inline by JS after content loads. */
+}
+
+.lib-card__body {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lib-card__title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.lib-card__title {
+  font-size: var(--lib-fs-3);
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+
+.lib-card__slug {
+  color: var(--lib-muted);
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+}
+
+.lib-card__meta {
+  display: flex;
+  gap: 6px;
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+  flex-wrap: wrap;
+}
+
+/* Consumer chip on awaiting-approval cards. Mirrors the Sandbox's snapshot
+   chip aesthetic so the two surfaces feel consistent — same red awaiting
+   treatment. */
+.lib-card__consumer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft);
+  padding: 2px 8px;
+  background: color-mix(in srgb, var(--lib-awaiting) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--lib-awaiting) 30%, transparent);
+  border-radius: 999px;
+  align-self: flex-start;
+}
+
+.lib-card__consumer-chip > span:first-child {
+  color: var(--lib-awaiting);
+  font-size: 0.7em;
+  line-height: 1;
+}
+
+.lib-card--awaiting:focus-within,
+.lib-card--awaiting:hover {
+  border-color: color-mix(in srgb, var(--lib-awaiting) 45%, var(--lib-ink-soft));
+}
+
+.lib-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: var(--lib-fs-5);
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.lib-badge--draft    { background: #fdf3d2; color: #6b4e00; }
+.lib-badge--approved { background: #d6f1e2; color: #0a4d2b; }
+
+.lib-card__states {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.lib-state {
+  background: var(--lib-panel);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft);
+  font-family: var(--lib-mono);
+  cursor: pointer;
+}
+
+.lib-state:hover { border-color: var(--lib-line); }
+.lib-state.is-active {
+  background: var(--lib-ink);
+  color: white;
+}
+
+/* ---------- Empty state ---------- */
+
+.lib-empty {
+  border: 1px dashed var(--lib-line);
+  border-radius: var(--lib-radius);
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--lib-paper);
+}
+
+.lib-empty__title {
+  font-size: var(--lib-fs-2);
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.lib-empty__body {
+  margin: 0;
+  color: var(--lib-ink-soft);
+  max-width: 480px;
+  margin-inline: auto;
+}
+
+/* ---------- Card link affordance ---------- */
+
+.lib-card { cursor: pointer; }
+.lib-card:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+  border-color: var(--lib-accent);
+}
+
+.lib-card__title-link {
+  color: inherit;
+  text-decoration: none;
+}
+.lib-card__title-link::before {
+  /* Click anywhere on the card → navigate (state buttons stop propagation). */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.lib-card { position: relative; }
+.lib-card__states,
+.lib-card__states .lib-state {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---------- Sandbox page ---------- */
+
+.sb-main {
+  max-width: var(--lib-content-max);
+  margin: 0 auto;
+  padding: 24px 20px 96px;
+}
+
+.sb-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--lib-ink-soft);
+  font-size: var(--lib-fs-4);
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  margin-left: -8px;
+}
+.sb-back:hover { background: var(--lib-paper); color: var(--lib-ink); }
+.sb-back:focus-visible { outline: 2px solid var(--lib-accent); outline-offset: 2px; }
+
+.sb-error {
+  border: 1px dashed var(--lib-line);
+  border-radius: var(--lib-radius);
+  padding: 24px;
+  background: var(--lib-paper);
+  color: var(--lib-ink-soft);
+  font-size: var(--lib-fs-4);
+}
+
+.sb-piece__head {
+  padding: 12px 0 20px;
+  margin-bottom: 24px;
+}
+
+.sb-piece__title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.sb-piece__title {
+  font-size: 2.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1;
+}
+
+.sb-copy-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 0;
+  background: transparent;
+  color: var(--lib-muted);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 120ms, background 120ms, color 120ms;
+  padding: 0;
+}
+
+.sb-piece__title-row:hover .sb-copy-link,
+.sb-copy-link:focus-visible,
+.sb-copy-link.is-copied {
+  opacity: 1;
+}
+
+.sb-copy-link:hover { background: var(--lib-panel); color: var(--lib-ink); }
+.sb-copy-link:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+.sb-copy-link.is-copied {
+  background: var(--lib-panel);
+  color: var(--lib-ink);
+}
+
+.sb-copy-link svg { width: 16px; height: 16px; display: block; }
+
+.sb-copy-toast {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft);
+  padding-left: 2px;
+  opacity: 0;
+  transition: opacity 120ms;
+}
+.sb-copy-toast.is-visible { opacity: 1; }
+
+.sb-piece__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  align-items: center;
+  font-size: var(--lib-fs-4);
+  color: var(--lib-muted);
+}
+
+.sb-piece__meta .lib-badge {
+  /* badge sits inline with slug / category */
+  align-self: center;
+}
+
+.sb-piece__slug {
+  font-family: var(--lib-mono);
+  color: var(--lib-ink-soft);
+}
+
+.sb-piece__category {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: var(--lib-fs-5);
+}
+
+.sb-piece__tags { font-style: italic; }
+.sb-piece__tags:not(:empty)::before {
+  content: "·";
+  margin-right: 8px;
+  color: var(--lib-muted);
+}
+
+/* The `hidden` attribute should always win over our display: flex / inline-flex
+   on these elements. Without this, [hidden] is overridden by author display
+   declarations and the chip/toolbar group leak through visually. */
+.sb-snapshot-chip[hidden],
+.sb-toolbar-group[hidden] {
+  display: none !important;
+}
+
+/* Pending-changes note — sits above the preview stage when the element
+   has a _approved/ snapshot. Renders the manifest's `changeSummary` so
+   the user reads what changed before QA'ing. Hidden when no snapshot
+   exists OR when the entry has no changeSummary populated.
+   Tone: quiet contextual note, not a warning. See CLAUDE.md §14 step 2. */
+.sb-pending-alert {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: var(--lib-paper);
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+}
+
+.sb-pending-alert[hidden] { display: none !important; }
+
+.sb-pending-alert__label {
+  font-size: var(--lib-fs-5);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--lib-muted);
+}
+
+.sb-pending-alert__summary {
+  margin: 4px 0 0;
+  font-size: var(--lib-fs-4);
+  color: var(--lib-ink);
+  line-height: 1.5;
+}
+
+/* Snapshot chip — appears in sb-piece__meta when an element has been edited
+   from approved status and a _approved/ snapshot exists. Uses the awaiting
+   color (red) to match the Library's "Awaiting approval" section treatment
+   so the two surfaces feel like one state. */
+.sb-snapshot-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft);
+  padding: 2px 8px;
+  background: color-mix(in srgb, var(--lib-awaiting) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--lib-awaiting) 30%, transparent);
+  border-radius: 999px;
+}
+
+.sb-snapshot-chip > span:first-child {
+  color: var(--lib-awaiting);
+  font-size: 0.7em;
+  line-height: 1;
+}
+
+.sb-snapshot-chip code {
+  font-family: var(--lib-mono);
+  background: transparent;
+  padding: 0;
+  font-size: 0.9em;
+}
+
+/* Action buttons in the Sandbox piece head — sit inline with the title row
+   at the right edge. Two variants: --primary (Approve, dark fill) and
+   --danger (Discard changes, awaiting-red outline). Visibility is
+   controlled by JS based on entry.status + snapshot detection. */
+.sb-piece__head-actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.sb-piece__head-actions[hidden],
+.sb-action[hidden] {
+  display: none !important;
+}
+
+.sb-action {
+  font-family: inherit;
+  font-size: var(--lib-fs-4);
+  padding: 6px 14px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  cursor: pointer;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.sb-action:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+
+.sb-action--primary {
+  background: var(--lib-ink);
+  color: white;
+  border-color: var(--lib-ink);
+}
+
+.sb-action--primary:hover {
+  background: var(--lib-ink-soft);
+  border-color: var(--lib-ink-soft);
+}
+
+.sb-action--danger {
+  color: var(--lib-awaiting);
+  border-color: color-mix(in srgb, var(--lib-awaiting) 30%, var(--lib-line));
+}
+
+.sb-action--danger:hover {
+  background: color-mix(in srgb, var(--lib-awaiting) 8%, transparent);
+  border-color: var(--lib-awaiting);
+}
+
+/* ---- Stage ---- */
+
+.sb-stage {
+  margin-bottom: 32px;
+}
+
+.sb-stage__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  padding: 12px 14px;
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius) var(--lib-radius) 0 0;
+  background: var(--lib-bg);
+}
+
+.sb-toolbar-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sb-toolbar-group__label {
+  font-size: var(--lib-fs-5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--lib-muted);
+  font-weight: 600;
+}
+
+.sb-pills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.sb-pill {
+  background: var(--lib-panel);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: var(--lib-fs-5);
+  font-family: var(--lib-mono);
+  color: var(--lib-ink-soft);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.sb-pill:hover { border-color: var(--lib-line); color: var(--lib-ink); }
+.sb-pill.is-active {
+  background: var(--lib-ink);
+  color: white;
+  border-color: var(--lib-ink);
+}
+.sb-pill:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+
+.sb-stage__frame {
+  border: 1px solid var(--lib-line);
+  border-top: 0;
+  border-radius: 0 0 var(--lib-radius) var(--lib-radius);
+  background: repeating-conic-gradient(
+    var(--lib-paper) 0% 25%,
+    var(--lib-panel) 0% 50%
+  ) 0 0 / 16px 16px;
+  padding: 24px;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.sb-stage__viewport {
+  width: 100%;
+  max-width: 100%;
+  background: var(--lib-bg);
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.05), 0 8px 32px -20px rgba(0,0,0,0.18);
+  overflow: hidden;
+  resize: none;
+  transition: max-width 160ms ease, width 160ms ease;
+}
+
+/* Drag-to-resize is enabled only on the Fluid breakpoint. Fixed breakpoints
+   pin the viewport to their pixel value. A typed value in the measure input
+   also pins the viewport (data-pinned) so the resize handle doesn't fight
+   the typed design width. */
+.sb-stage__viewport[data-mode="fluid"] {
+  resize: horizontal;
+}
+
+.sb-stage__viewport[data-mode="fluid"][data-pinned="true"] {
+  resize: none;
+}
+
+/* The scaler sits between the viewport and the iframe. In Fluid mode it is a
+   transparent pass-through (width: 100%, no transform). In a fixed breakpoint
+   that exceeds the available stage width, JS pins the scaler to the design
+   pixel width and applies `transform: scale(ratio)` so the iframe's content
+   sees the full breakpoint width (media queries fire correctly) while the
+   visual footprint fits the stage. The viewport's width/height are reduced
+   to the scaled visual size so layout below doesn't reserve extra space. */
+.sb-stage__scaler {
+  width: 100%;
+  transform-origin: top left;
+  transition: transform 140ms ease;
+}
+
+.sb-stage__viewport iframe {
+  display: block;
+  width: 100%;
+  /* Height is set by JS to match the iframe's content (no internal scroll).
+     A small min-height keeps tiny pieces from collapsing the viewport. */
+  min-height: 80px;
+  height: 80px;
+  border: 0;
+  transition: height 140ms ease;
+}
+
+.sb-measure__scale {
+  white-space: nowrap;
+  color: var(--lib-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.sb-stage__measure {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+  background: var(--lib-bg);
+  border: 1px solid var(--lib-line);
+  border-radius: 4px;
+  padding: 2px 8px;
+  cursor: text;
+}
+
+.sb-measure__prefix,
+.sb-measure__suffix {
+  white-space: nowrap;
+}
+
+.sb-measure__input {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  padding: 0;
+  margin: 0;
+  width: 4ch;
+  text-align: right;
+  cursor: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.sb-measure__input:disabled {
+  cursor: default;
+}
+
+.sb-measure__input:focus-visible {
+  outline: 1px solid var(--lib-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ---- Content panel ---- */
+
+.sb-content {
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  padding: 20px 24px;
+  background: var(--lib-bg);
+  margin-bottom: 24px;
+}
+
+.sb-content__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+
+.sb-content__title {
+  font-size: var(--lib-fs-3);
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lib-ink-soft);
+}
+
+.sb-content__clear {
+  font-family: inherit;
+  font-size: var(--lib-fs-5);
+  padding: 4px 10px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+  color: var(--lib-ink-soft);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.sb-content__clear:hover:not(:disabled) {
+  background: var(--lib-paper);
+  color: var(--lib-ink);
+}
+
+.sb-content__clear:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+
+.sb-content__clear:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sb-content__hint {
+  margin: 0 0 16px;
+  font-size: var(--lib-fs-4);
+  color: var(--lib-muted);
+}
+
+.sb-content__fields {
+  display: grid;
+  gap: 16px;
+}
+
+.sb-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sb-field__label {
+  font-size: var(--lib-fs-4);
+  font-weight: 600;
+  color: var(--lib-ink);
+}
+
+.sb-field__hint {
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+  font-family: var(--lib-mono);
+}
+
+.sb-field__input {
+  font-family: inherit;
+  font-size: var(--lib-fs-4);
+  padding: 8px 10px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sb-field__input:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 1px;
+  border-color: var(--lib-accent);
+}
+
+.sb-field--image {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.sb-field--image .sb-field__label,
+.sb-field--image .sb-field__hint {
+  grid-column: 1 / -1;
+}
+
+.sb-field__thumb {
+  width: 80px;
+  height: 80px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-paper) repeating-conic-gradient(
+    var(--lib-paper) 0% 25%,
+    var(--lib-panel) 0% 50%
+  ) 0 0 / 12px 12px;
+  background-blend-mode: normal;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.sb-field__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: white;
+}
+
+.sb-field__file-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sb-field__file-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sb-field__file-btn {
+  font-family: inherit;
+  font-size: var(--lib-fs-5);
+  padding: 6px 10px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  cursor: pointer;
+}
+.sb-field__file-btn:hover { background: var(--lib-paper); }
+.sb-field__file-btn:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+
+.sb-field__file-name {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+/* ---- Meta panel ---- */
+
+.sb-meta {
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  padding: 20px 24px;
+  background: var(--lib-bg);
+}
+
+.sb-meta__title {
+  font-size: var(--lib-fs-3);
+  font-weight: 600;
+  margin: 0 0 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lib-ink-soft);
+}
+
+.sb-meta__list {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  gap: 8px 24px;
+  margin: 0;
+}
+
+.sb-meta__list dt {
+  color: var(--lib-muted);
+  font-size: var(--lib-fs-4);
+}
+
+.sb-meta__list dd {
+  margin: 0;
+  font-size: var(--lib-fs-4);
+  color: var(--lib-ink);
+}
+
+.sb-meta__list code {
+  background: var(--lib-panel);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+/* ---------- Tokens page ---------- */
+
+.ds-section {
+  margin-bottom: 40px;
+  /* Push anchored scroll targets below the sticky .lib-header so deep
+     links (tokens.html#navigation) and sidebar clicks both land with the
+     section title visible instead of tucked under the header. Small extra
+     padding for breathing room. */
+  scroll-margin-top: calc(var(--lib-header-h) + 16px);
+}
+
+.ds-section__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--lib-line);
+}
+
+.ds-section__title {
+  font-size: var(--lib-fs-2);
+  font-weight: 600;
+  margin: 0;
+}
+
+.ds-grid-colors {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  /* Slightly larger row gap than column gap — color cards are ~108px tall,
+     so 14px between rows reads as deliberate breathing room while keeping
+     columns tightly packed. */
+  gap: 14px 10px;
+}
+
+/* ----------------------------------------------------------------
+   Primitives palette (System page → Color → Primitives).
+   The neutral ramp is a vertical stepper; every chromatic ramp is a
+   single filled tile carrying a mini ramp strip. The "Main" hue (the
+   one --accent anchors to) and the neutrals card both span two rows
+   so they read as the anchors of the palette. `dense` lets the
+   single-height status tiles backfill the gaps.
+   ---------------------------------------------------------------- */
+.ds-palette {
+  /* #ds-primitives is itself a .ds-grid-colors grid; span all its tracks so
+     this palette gets the section's full width to lay out within. */
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  grid-auto-rows: 150px;
+  grid-auto-flow: row dense;
+  gap: 14px;
+}
+
+/* --- Neutral stepper --- */
+.ds-palette__neutrals {
+  grid-row: span 2;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  overflow: hidden;
+  background: var(--lib-bg);
+}
+
+.ds-palette__neutrals-head {
+  padding: 14px 16px;
+  font-size: var(--lib-fs-4);
+  font-weight: 600;
+  color: var(--lib-ink);
+}
+
+.ds-palette__bands {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.ds-palette__band {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
+  border: 0;
+  cursor: pointer;
+  transition: flex-grow 120ms ease;
+}
+
+.ds-palette__band:hover,
+.ds-palette__band:focus-visible,
+.ds-palette__band.is-copied { flex-grow: 1.8; }
+.ds-palette__band:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: -2px;
+}
+
+.ds-palette__band--ondark  { color: rgba(255, 255, 255, 0.95); }
+.ds-palette__band--onlight { color: rgba(0, 0, 0, 0.78); }
+
+/* Hex + copy icon stay hidden until the band is hovered/focused (or just
+   copied), tone-matched to the band's own color via the --ondark/--onlight
+   modifier so they read on both the light and dark end of the ramp. */
+.ds-palette__band-hex {
+  font-family: var(--lib-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.ds-palette__band-copy {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.ds-palette__band:hover  .ds-palette__band-hex,
+.ds-palette__band:hover  .ds-palette__band-copy,
+.ds-palette__band:focus-visible .ds-palette__band-hex,
+.ds-palette__band:focus-visible .ds-palette__band-copy,
+.ds-palette__band.is-copied .ds-palette__band-hex,
+.ds-palette__band.is-copied .ds-palette__band-copy { opacity: 1; }
+
+/* --- Chromatic tile --- */
+/* The tile is a <div> wrapping two interactive zones: a copy button (the
+   upper name/hex area) and a row of selectable ramp segments. They can't be
+   nested, hence the div shell. The tile's background is the currently-shown
+   step's color and is repainted by tokens.js on selection. */
+.ds-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--lib-radius);
+  overflow: hidden;
+  transition: background-color 120ms ease;
+}
+
+.ds-tile--feature { grid-row: span 2; }
+
+.ds-tile--ondark  { color: rgba(255, 255, 255, 0.95); }
+.ds-tile--onlight { color: rgba(0, 0, 0, 0.82); }
+
+/* Copy zone — fills the area above the ramp; click copies the shown hex. The
+   only hover affordance is the copy icon fading in (.ds-tile__copy); the zone
+   itself stays flat. A hover background read as a "weird" floating block, and
+   an :active scale jittered the absolutely-positioned copy icon — both removed. */
+.ds-tile__main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.ds-tile__main:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+
+.ds-tile__name {
+  font-size: var(--lib-fs-4);
+  font-weight: 600;
+}
+
+.ds-tile__foot {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 24px;
+}
+
+.ds-tile__hex {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-3);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.ds-tile__badge {
+  flex: none;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.ds-tile--ondark  .ds-tile__badge { background: rgba(255, 255, 255, 0.20); color: #fff; }
+.ds-tile--onlight .ds-tile__badge { background: rgba(0, 0, 0, 0.12); color: rgba(0, 0, 0, 0.8); }
+
+/* Ramp strip — one selectable segment per step, light → dark. The dot marks
+   the ramp's primary step; the ring marks the segment currently on display. */
+.ds-tile__ramp {
+  display: flex;
+  gap: 4px;
+  height: 16px;
+}
+
+.ds-tile__seg {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+.ds-tile__seg:hover { transform: scaleY(1.35); }
+.ds-tile__seg:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}
+.ds-tile__seg.is-selected {
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.92), 0 0 0 3.5px rgba(0, 0, 0, 0.3);
+  z-index: 1;
+}
+
+.ds-tile__dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 1.5px rgba(0, 0, 0, 0.35);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+/* Copy icon — appears on hover/focus, contrast-tuned to the fill. */
+.ds-tile__copy {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 120ms ease;
+  pointer-events: none;
+}
+.ds-tile--ondark  .ds-tile__copy { background: rgba(255, 255, 255, 0.20); color: #fff; }
+.ds-tile--onlight .ds-tile__copy { background: rgba(0, 0, 0, 0.12); color: rgba(0, 0, 0, 0.8); }
+
+.ds-tile:hover .ds-tile__copy,
+.ds-tile__main:focus-visible .ds-tile__copy { opacity: 1; }
+.ds-tile__main.is-copied .ds-tile__copy { opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-palette__band,
+  .ds-palette__band-hex,
+  .ds-palette__band-copy,
+  .ds-tile,
+  .ds-tile__main,
+  .ds-tile__seg,
+  .ds-tile__copy { transition: none; }
+  .ds-tile__seg:hover { transform: none; }
+}
+
+/* In-content reuse of .lib-side__group-title (e.g. "Semantic" / "Primitives"
+   / per-hue labels on the System page) — tighten the sidebar's default
+   padding + border-top since the content area doesn't need the same
+   nav-divider treatment. */
+.lib-content .lib-side__group-title {
+  padding: 6px 0 6px;
+  margin-top: 16px;
+  border-top: 0;
+}
+
+.lib-content .lib-side__group-title:first-child {
+  margin-top: 0;
+}
+
+/* Click-to-copy swatch. Card is a real <button> so keyboard users get the
+   same affordance; copy icon appears on hover/focus via the .__copy badge.
+   Flex column so the chip flex-grows to fill any extra height the grid row
+   reserves (when a neighbor card's token name wraps to two lines). Without
+   flex-grow, the chip stays a fixed 76px and the shorter card has empty
+   space above its body. */
+.ds-swatch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0;
+  text-align: left;
+  background: var(--lib-bg);
+  color: inherit;
+  font: inherit;
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 120ms ease, transform 120ms ease;
+}
+
+.ds-swatch:hover { border-color: var(--lib-muted); }
+.ds-swatch:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+.ds-swatch:active { transform: scale(0.99); }
+
+.ds-swatch__chip {
+  position: relative;
+  flex: 1 0 76px;
+}
+
+.ds-swatch__body {
+  padding: 9px 10px 11px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* Token name is the primary identity — what users author with — and the hex
+   sits below as the value. */
+.ds-swatch__token {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  font-weight: 500;
+  color: var(--lib-ink);
+  word-break: break-all;
+  line-height: 1.3;
+}
+
+.ds-swatch__value {
+  font-family: var(--lib-mono);
+  font-size: 10.5px;
+  color: var(--lib-muted);
+  letter-spacing: 0.02em;
+}
+
+.ds-swatch__copy {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 120ms ease, background-color 120ms ease;
+  pointer-events: none;
+}
+
+.ds-swatch:hover .ds-swatch__copy,
+.ds-swatch:focus-visible .ds-swatch__copy {
+  opacity: 1;
+}
+
+/* When hovering the bottom (opposite-mode) zone, the user is targeting the
+   opposite copy — hide the chip's active-copy icon so only one affordance
+   shows at a time. */
+.ds-swatch--dual:has(.ds-swatch__mode-row--opposite:hover) .ds-swatch__copy {
+  opacity: 0;
+}
+
+.ds-swatch.is-copied {
+  border-color: var(--success, var(--lib-accent));
+}
+.ds-swatch.is-copied .ds-swatch__copy {
+  opacity: 1;
+  background: var(--success, var(--lib-accent));
+}
+
+/* Dual-value variant — used by semantic swatches when the user's design
+   system declares a [data-theme="dark"] block. Body shows both LIGHT
+   and DARK hex values. The dual body has 3 short rows (token + Light + Dark)
+   vs the primitive body's wrapped 2-line name + value; that's one extra
+   row-gap, so the chip basis is trimmed 3px to land both card types at the
+   same total height. Text spacing (padding + row gap) stays identical. */
+.ds-swatch--dual .ds-swatch__chip { flex: 1 0 68px; }
+/* The opposite row carries the bottom padding so its hit/hover zone reaches
+   the card's bottom edge; the body's own bottom padding moves onto the row. */
+.ds-swatch--dual .ds-swatch__body { padding-bottom: 0; }
+
+.ds-swatch__mode-row {
+  font-family: var(--lib-mono);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+.ds-swatch__mode-row--active   { color: var(--lib-ink);   font-weight: 600; }
+
+/* Opposite-mode row is a second click zone: clicking it (or anywhere below,
+   to the card edge) copies the opposite hex. Negative side margins let the
+   hit area bleed full-width; the bottom padding extends it down to the card's
+   edge. No hover tint — the copy icon is the affordance. */
+.ds-swatch__mode-row--opposite {
+  color: var(--lib-muted);
+  font-weight: 400;
+  margin: 0 -10px;
+  padding: 0 10px 11px;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+.ds-swatch__mode-row--opposite.is-copied {
+  background: var(--lib-panel);
+}
+.ds-swatch__mode-row--opposite.is-copied .ds-swatch__mode-copy {
+  opacity: 1;
+  color: var(--success, var(--lib-accent));
+}
+
+.ds-swatch__mode-tag {
+  font-family: var(--lib-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.7;
+  min-width: 34px;
+}
+
+/* Per-row copy icon on the opposite-mode value — appears on row hover,
+   copies that row's hex (not the card's active hex). Kept very small so
+   it reads as a secondary affordance next to the muted opposite value. */
+.ds-swatch__mode-copy {
+  margin-left: auto;
+  align-self: center;
+  width: 15px;
+  height: 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  font-size: 10px;
+  color: var(--lib-muted);
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 120ms ease, color 120ms ease;
+}
+.ds-swatch__mode-row--opposite:hover .ds-swatch__mode-copy {
+  opacity: 1;
+}
+.ds-swatch__mode-copy.is-copied {
+  opacity: 1;
+  color: var(--success, var(--lib-accent));
+}
+
+.ds-type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.ds-type-row {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 24px;
+  align-items: baseline;
+  padding: 16px;
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  background: var(--lib-bg);
+}
+
+.ds-type-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ds-type-meta__token {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink);
+}
+
+.ds-type-meta__value {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.ds-type-sample {
+  color: var(--lib-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ds-space-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ds-space-row {
+  display: grid;
+  grid-template-columns: 100px 80px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.ds-space-row__token {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+}
+
+.ds-space-row__value {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.ds-space-row__bar {
+  height: 14px;
+  background: var(--lib-accent);
+  border-radius: 2px;
+}
+
+.ds-bp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-4);
+}
+
+.ds-bp-row {
+  display: grid;
+  grid-template-columns: 80px 80px 1fr;
+  gap: 16px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--lib-line);
+}
+
+.ds-bp-row:last-child { border-bottom: 0; }
+.ds-bp-row__name { color: var(--lib-ink); }
+.ds-bp-row__value { color: var(--lib-muted); }
+.ds-bp-row__use { color: var(--lib-ink-soft); font-family: var(--lib-font); }
+
+/* ============================================================
+   Page Builder
+   ------------------------------------------------------------
+   Three-column app: module palette · canvas · inspector. Nav
+   locked to top of canvas, footer locked to bottom; user
+   modules drag-reorder in between. localStorage drafts.
+   ============================================================ */
+
+.bld-main {
+  /* The builder takes the screen. No max-width / centered gutters like the
+     other Loom pages — every pixel matters to a layout tool. */
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bld-error {
+  margin: 24px auto;
+  max-width: 640px;
+  border: 1px dashed var(--lib-line);
+  border-radius: var(--lib-radius);
+  padding: 24px;
+  background: var(--lib-paper);
+  color: var(--lib-ink-soft);
+  font-size: var(--lib-fs-4);
+}
+
+.bld-layout {
+  display: grid;
+  grid-template-columns: 280px 1fr 340px;
+  height: calc(100vh - var(--lib-header-h));
+  min-height: 0;
+}
+
+/* ---------- Palette ---------- */
+
+.bld-palette {
+  background: var(--lib-paper);
+  border-right: 1px solid var(--lib-line);
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bld-palette__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.bld-palette__title {
+  font-size: var(--lib-fs-3);
+  font-weight: 600;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lib-ink-soft);
+}
+
+.bld-palette__count {
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.bld-palette__hint {
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+  margin: 0 0 4px;
+  line-height: 1.5;
+}
+
+.bld-palette__list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.bld-palette-item {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  background: var(--lib-bg);
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 120ms, box-shadow 120ms;
+  font-family: inherit;
+  color: inherit;
+  position: relative;
+}
+
+.bld-palette-item:hover {
+  border-color: var(--lib-ink-soft);
+  box-shadow: var(--lib-shadow);
+}
+
+.bld-palette-item:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+  border-color: var(--lib-accent);
+}
+
+.bld-palette-item__preview {
+  height: 100px;
+  background: var(--lib-paper);
+  border-bottom: 1px solid var(--lib-line);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bld-palette-item__preview-fit {
+  overflow: hidden;
+  display: block;
+}
+
+.bld-palette-item__preview-scaler {
+  transform-origin: top left;
+}
+
+.bld-palette-item__preview iframe {
+  display: block;
+  border: 0;
+  pointer-events: none;
+}
+
+.bld-palette-item__body {
+  padding: 8px 12px 10px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.bld-palette-item__name {
+  font-size: var(--lib-fs-4);
+  font-weight: 600;
+  color: var(--lib-ink);
+}
+
+.bld-palette-item__slug {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.bld-palette-item__add {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: var(--lib-bg);
+  border: 1px solid var(--lib-line);
+  border-radius: 999px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--lib-ink-soft);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms;
+}
+
+.bld-palette-item:hover .bld-palette-item__add,
+.bld-palette-item:focus-visible .bld-palette-item__add {
+  opacity: 1;
+}
+
+/* ---------- Canvas ---------- */
+
+.bld-canvas {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--lib-bg);
+}
+
+.bld-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--lib-line);
+  background: var(--lib-bg);
+}
+
+.bld-toolbar__title {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.bld-toolbar__label {
+  font-size: var(--lib-fs-5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--lib-muted);
+  font-weight: 600;
+}
+
+.bld-toolbar__name {
+  font-size: var(--lib-fs-3);
+  font-weight: 600;
+  color: var(--lib-ink);
+}
+
+.bld-toolbar__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.bld-btn {
+  font-family: inherit;
+  font-size: var(--lib-fs-4);
+  padding: 6px 14px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  cursor: pointer;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.bld-btn:hover { background: var(--lib-paper); }
+
+.bld-btn:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+
+.bld-btn--ghost {
+  background: transparent;
+  border-color: var(--lib-line);
+  color: var(--lib-ink-soft);
+}
+
+.bld-btn--ghost:hover {
+  background: var(--lib-paper);
+  color: var(--lib-ink);
+}
+
+.bld-btn--primary {
+  background: var(--lib-ink);
+  color: white;
+  border-color: var(--lib-ink);
+}
+
+.bld-btn--primary:hover {
+  background: var(--lib-ink-soft);
+  border-color: var(--lib-ink-soft);
+}
+
+.bld-btn--primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.bld-btn--danger {
+  background: transparent;
+  color: var(--lib-warn);
+  border-color: var(--lib-line);
+}
+
+.bld-btn--danger:hover {
+  background: color-mix(in srgb, var(--lib-warn) 8%, transparent);
+  border-color: var(--lib-warn);
+}
+
+.bld-canvas__scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  background: var(--lib-paper);
+}
+
+.bld-canvas__stack {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.bld-canvas__middle--empty {
+  border: 1px dashed var(--lib-line);
+  border-radius: var(--lib-radius);
+  padding: 24px;
+  text-align: center;
+  color: var(--lib-muted);
+  font-size: var(--lib-fs-4);
+  background: var(--lib-bg);
+}
+
+.bld-canvas__middle {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ---------- Instance card on canvas ---------- */
+
+.bld-instance {
+  position: relative;
+  background: var(--lib-bg);
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  overflow: hidden;
+  transition: border-color 120ms, box-shadow 120ms;
+}
+
+.bld-instance:hover {
+  border-color: var(--lib-ink-soft);
+}
+
+.bld-instance.is-selected {
+  border-color: var(--lib-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--lib-accent) 20%, transparent);
+}
+
+.bld-instance__chrome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  background: var(--lib-paper);
+  border-bottom: 1px solid var(--lib-line);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft);
+}
+
+.bld-instance--locked .bld-instance__chrome {
+  background: color-mix(in srgb, var(--lib-accent) 6%, var(--lib-paper));
+}
+
+.bld-instance__handle {
+  font-family: var(--lib-mono);
+  color: var(--lib-muted);
+  font-size: 1.1em;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 4px;
+  user-select: none;
+  cursor: grab;
+}
+
+.bld-instance__handle:hover {
+  background: var(--lib-panel);
+  color: var(--lib-ink);
+}
+
+.bld-instance--locked .bld-instance__handle {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.bld-instance--locked .bld-instance__handle:hover {
+  background: transparent;
+  color: var(--lib-muted);
+}
+
+.bld-instance__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
+}
+
+.bld-instance__name {
+  font-weight: 600;
+  color: var(--lib-ink);
+  font-size: var(--lib-fs-4);
+}
+
+.bld-instance__slug {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.bld-instance__state {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  background: var(--lib-panel);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: var(--lib-ink-soft);
+}
+
+.bld-instance__lock {
+  font-size: var(--lib-fs-5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--lib-accent);
+  font-weight: 600;
+}
+
+.bld-instance__frame {
+  position: relative;
+  background: var(--lib-bg);
+  /* The iframe is the visual but should not capture clicks — clicks bubble
+     up to the instance for selection. Overlay handles the click. */
+}
+
+.bld-instance__frame iframe {
+  display: block;
+  width: 100%;
+  border: 0;
+  pointer-events: none;
+}
+
+.bld-instance__overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  cursor: pointer;
+}
+
+/* SortableJS visual feedback */
+.bld-ghost {
+  opacity: 0.45;
+}
+
+.bld-drag {
+  box-shadow: 0 12px 40px -8px rgba(0,0,0,0.25);
+}
+
+/* ---------- Inspector ---------- */
+
+.bld-inspector {
+  border-left: 1px solid var(--lib-line);
+  background: var(--lib-bg);
+  overflow-y: auto;
+  padding: 20px;
+}
+
+.bld-inspector__empty {
+  color: var(--lib-muted);
+  font-size: var(--lib-fs-4);
+  margin-top: 80px;
+  text-align: center;
+  padding: 0 20px;
+  line-height: 1.5;
+}
+
+.bld-inspector[data-empty="false"] .bld-inspector__empty {
+  display: none;
+}
+
+.bld-inspector__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.bld-inspector__label {
+  font-size: var(--lib-fs-5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--lib-muted);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.bld-inspector__title {
+  font-size: var(--lib-fs-2);
+  margin: 0 0 2px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.bld-inspector__slug {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.bld-inspector__close {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-size: 1.4em;
+  line-height: 1;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--lib-muted);
+  padding: 0;
+}
+
+.bld-inspector__close:hover {
+  background: var(--lib-paper);
+  color: var(--lib-ink);
+}
+
+.bld-inspector__locked {
+  background: color-mix(in srgb, var(--lib-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--lib-accent) 35%, transparent);
+  color: var(--lib-ink);
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: var(--lib-fs-5);
+  margin-bottom: 16px;
+}
+
+.bld-inspector__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.bld-inspector__row-label {
+  font-size: var(--lib-fs-4);
+  font-weight: 600;
+}
+
+.bld-inspector__state {
+  font-family: inherit;
+  font-size: var(--lib-fs-4);
+  padding: 7px 10px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+}
+
+.bld-inspector__state:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 1px;
+  border-color: var(--lib-accent);
+}
+
+.bld-inspector__fields-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 4px 0 10px;
+  font-size: var(--lib-fs-5);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--lib-ink-soft);
+  font-weight: 600;
+}
+
+.bld-inspector__clear {
+  font-family: inherit;
+  font-size: var(--lib-fs-5);
+  padding: 4px 10px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+  color: var(--lib-ink-soft);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.bld-inspector__clear:hover:not(:disabled) {
+  background: var(--lib-paper);
+  color: var(--lib-ink);
+}
+
+.bld-inspector__clear:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bld-inspector__fields {
+  display: grid;
+  gap: 14px;
+}
+
+.bld-inspector__empty-fields {
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+  padding: 8px 0;
+}
+
+.bld-inspector__actions {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--lib-line);
+}
+
+/* ---------- Modal ---------- */
+
+.bld-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+}
+
+.bld-modal[hidden] { display: none; }
+
+.bld-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+}
+
+.bld-modal__panel {
+  position: relative;
+  background: var(--lib-bg);
+  max-width: 520px;
+  width: calc(100% - 40px);
+  margin: 60px auto;
+  border-radius: var(--lib-radius);
+  box-shadow: 0 24px 64px -12px rgba(0,0,0,0.4);
+  max-height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+}
+
+.bld-modal__panel--wide {
+  max-width: 760px;
+}
+
+.bld-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--lib-line);
+}
+
+.bld-modal__title {
+  margin: 0;
+  font-size: var(--lib-fs-2);
+  font-weight: 600;
+}
+
+.bld-modal__close {
+  background: transparent;
+  border: 0;
+  font-size: 1.5em;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--lib-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  padding: 0;
+}
+
+.bld-modal__close:hover {
+  background: var(--lib-paper);
+  color: var(--lib-ink);
+}
+
+.bld-modal__body {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.bld-modal__hint {
+  margin: 0 0 16px;
+  font-size: var(--lib-fs-4);
+  color: var(--lib-ink-soft);
+  line-height: 1.5;
+}
+
+.bld-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.bld-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bld-modal__field label {
+  font-size: var(--lib-fs-4);
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.bld-modal__counter {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  font-weight: 400;
+  color: var(--lib-muted);
+}
+
+.bld-modal__counter[data-over="true"] { color: var(--lib-warn); }
+
+.bld-modal__optional {
+  font-weight: 400;
+  font-size: var(--lib-fs-5);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--lib-muted);
+}
+
+.bld-modal__field input,
+.bld-modal__field textarea,
+.bld-modal__field select {
+  font-family: inherit;
+  font-size: var(--lib-fs-4);
+  padding: 8px 10px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.bld-modal__field textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.bld-modal__field input:focus-visible,
+.bld-modal__field textarea:focus-visible,
+.bld-modal__field select:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 1px;
+  border-color: var(--lib-accent);
+}
+
+.bld-modal__hint-small {
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.bld-modal__hint-small code {
+  font-size: 0.9em;
+}
+
+.bld-modal__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+
+.bld-prompt {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  background: var(--lib-paper);
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin: 0 0 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 50vh;
+  overflow-y: auto;
+  color: var(--lib-ink);
+  line-height: 1.55;
+}
+
+/* ---------- Onboarding flow ----------
+   First-run init experience (onboarding.js): a 5-screen flow (Welcome →
+   Basics → Fork → Capture → Handoff) that produces the kickoff CC prompt.
+   It's a FULL-SCREEN takeover, not a popup — a fixed, opaque surface that
+   covers the whole Loom (header included) while open. Reuses the .bld-btn /
+   .bld-prompt families; the shell, screens, fork cards, fields, dots, and
+   footer are bespoke. Tokens only, so dark mode flips for free.
+
+   Brand convention: field LABELS are caps/mono (--lib-mono); the
+   placeholder + helper text stay sentence-case body for readability. */
+
+/* Background scroll lock while the takeover is open. */
+.onb-open { overflow: hidden; }
+
+.onb-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  background: var(--lib-bg);
+}
+.onb-modal[hidden] { display: none; }
+
+.onb-shell {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* The shell is focused programmatically on open (to anchor the dialog for
+   screen readers) — it's not a tabbable control, so suppress its focus ring.
+   The interactive controls inside keep their own :focus-visible rings. */
+.onb-panel:focus { outline: none; }
+
+/* Top bar: just the Skip escape hatch, top-right. */
+.onb-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  flex-shrink: 0;
+}
+
+.onb-skiplink {
+  border: 0;
+  background: transparent;
+  color: var(--lib-ink-soft);
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+.onb-skiplink:hover { color: var(--lib-ink); background: var(--lib-paper); }
+.onb-skiplink:focus-visible { outline: 2px solid var(--lib-accent); outline-offset: 2px; }
+
+/* Stage: the scrollable region; inner block is vertically + horizontally
+   centered (margin:auto in a flex column is overflow-safe — it won't clip
+   the top the way justify-content:center can). */
+.onb-stage {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+
+.onb-stage__inner {
+  width: 100%;
+  max-width: 640px;
+  margin: auto;
+  padding: 16px 0 32px;
+}
+
+.onb-screen[hidden] { display: none; }
+
+.onb-head__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.onb-title {
+  margin: 0;
+  font-size: var(--lib-fs-1);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  color: var(--lib-ink);
+}
+
+.onb-sub {
+  margin: 0;
+  font-size: var(--lib-fs-3);
+  line-height: 1.5;
+  color: var(--lib-ink-soft);
+}
+.onb-sub[hidden] { display: none; }
+
+.onb-lead {
+  margin: 0 0 14px;
+  font-size: var(--lib-fs-3);
+  line-height: 1.55;
+  color: var(--lib-ink);
+}
+
+.onb-lead strong { color: var(--lib-ink); font-weight: 600; }
+
+.onb-note {
+  margin: 14px 0 0;
+  font-size: var(--lib-fs-4);
+  line-height: 1.5;
+  color: var(--lib-ink-soft);
+}
+
+/* Welcome: the CC ↔ Loom loop + the four-beat working rhythm. */
+.onb-loop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+
+.onb-loop__node {
+  padding: 8px 14px;
+  border: 1px solid var(--lib-line);
+  border-radius: 8px;
+  background: var(--lib-paper);
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--lib-ink);
+}
+
+.onb-loop__node--cc {
+  background: var(--lib-accent);
+  border-color: var(--lib-accent);
+  color: var(--lib-bg);
+}
+
+.onb-loop__arrow {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft);
+  white-space: nowrap;
+}
+
+.onb-steps {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.onb-steps li {
+  font-size: var(--lib-fs-4);
+  line-height: 1.45;
+  color: var(--lib-ink-soft);
+}
+
+.onb-steps strong { color: var(--lib-ink); font-weight: 600; }
+
+/* ---------- form fields (Basics + Capture) ---------- */
+
+.onb-field { margin-bottom: 16px; }
+.onb-field[hidden] { display: none; }
+.onb-field:last-child { margin-bottom: 0; }
+
+.onb-label {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--lib-ink);
+}
+
+.onb-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid var(--lib-line);
+  border-radius: 8px;
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  font-family: inherit;
+  font-size: var(--lib-fs-4);
+  line-height: 1.45;
+}
+
+.onb-input::placeholder { color: var(--lib-muted); }
+
+.onb-input:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 1px;
+  border-color: var(--lib-accent);
+}
+
+.onb-textarea { resize: vertical; min-height: 56px; }
+
+.onb-help {
+  margin: 6px 0 0;
+  font-size: var(--lib-fs-5);
+  line-height: 1.45;
+  color: var(--lib-ink-soft);
+}
+
+/* ---------- fork select cards ---------- */
+
+.onb-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.onb-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: 20px 14px;
+  border: 1.5px solid var(--lib-line);
+  border-radius: 10px;
+  background: var(--lib-bg);
+  color: var(--lib-accent);
+  cursor: pointer;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.onb-card:hover { border-color: var(--lib-accent); }
+
+.onb-card:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+
+.onb-card.is-selected {
+  border-color: var(--lib-accent);
+  background: var(--lib-accent-wash, var(--lib-paper));
+}
+
+.onb-card__icon { color: var(--lib-accent); }
+
+.onb-card__title {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-4);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--lib-accent);
+}
+
+.onb-card__blurb {
+  font-size: var(--lib-fs-5);
+  line-height: 1.45;
+  color: var(--lib-ink-soft);
+}
+
+/* ---------- import source toggle ---------- */
+
+.onb-toggle {
+  display: inline-flex;
+  margin-bottom: 16px;
+  padding: 3px;
+  border: 1px solid var(--lib-line);
+  border-radius: 8px;
+  background: var(--lib-paper);
+}
+
+.onb-toggle__btn {
+  padding: 6px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--lib-ink-soft);
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+
+.onb-toggle__btn.is-active {
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.onb-toggle__btn:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 1px;
+}
+
+/* ---------- folder drop zone + path chip ---------- */
+
+.onb-drop {
+  border: 1.5px dashed var(--lib-line);
+  border-radius: 8px;
+  padding: 4px;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+
+.onb-drop.is-drag {
+  border-color: var(--lib-accent);
+  background: var(--lib-accent-wash, var(--lib-paper));
+}
+
+.onb-drop__input {
+  border: 0;
+  background: transparent;
+}
+.onb-drop__input:focus-visible { outline: none; }
+
+.onb-chip {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--lib-line);
+  border-radius: 999px;
+  background: var(--lib-paper);
+}
+.onb-chip[hidden] { display: none; }
+
+.onb-chip__name {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink);
+}
+
+.onb-chip__note {
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft);
+}
+
+/* ---------- handoff ---------- */
+
+.onb-prompt { margin: 0 0 12px; }
+.onb-copy { font-size: var(--lib-fs-4); }
+.onb-handoff__hint { margin-top: 12px; }
+
+/* Footer: full-width border, content aligned to the same 640 column as the
+   stage — progress dots on the left, controls on the right. */
+.onb-foot {
+  flex-shrink: 0;
+  border-top: 1px solid var(--lib-line);
+}
+
+.onb-foot__inner {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 24px;
+}
+
+.onb-foot__btns { display: flex; gap: 8px; }
+
+.onb-dots { display: flex; gap: 6px; }
+
+.onb-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: transparent;
+  border: 1.5px solid var(--lib-line);
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.onb-dot.is-active {
+  background: var(--lib-accent);
+  border-color: var(--lib-accent);
+}
+
+.onb-dot.is-done {
+  background: var(--lib-ink-soft);
+  border-color: var(--lib-ink-soft);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .onb-dot,
+  .onb-card,
+  .onb-toggle__btn,
+  .onb-drop { transition: none; }
+}
+
+/* "?" reopen button — injected by onboarding.js at the bottom of the page
+   sidebar (.lib-side). The desktop sidebar rule below pins it to the bottom
+   via margin-top:auto; on mobile it just trails the section nav. */
+.lib-onboard-help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--lib-ink-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+
+/* Desktop: let the sidebar fill the viewport so the "?" can sit in its
+   bottom-left corner. The sidebar is sticky (top = header + 24px) inside
+   .lib-main (padding-bottom 64px). Cap its height to the gap between that
+   sticky top and .lib-main's content bottom — i.e. 100dvh − stickyTop(80) −
+   padding-bottom(64) − a small cushion. Taller than that and, at the very
+   bottom of a long page, sticky pins the sidebar's bottom to the container
+   and shoves its top up past the header (overlapping the brand). */
+@media (min-width: 801px) {
+  .lib-side {
+    display: flex;
+    flex-direction: column;
+    min-height: calc(100dvh - var(--lib-header-h) - 96px);
+  }
+  .lib-side .lib-onboard-help {
+    margin-top: auto;
+  }
+}
+
+.lib-onboard-help:hover {
+  background: var(--lib-paper);
+  color: var(--lib-ink);
+}
+
+.lib-onboard-help:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lib-onboard-help { transition: none; }
+}
+
+/* ---------- Mobile fallback ----------
+   v1 is desktop-first. On narrow viewports we stack: palette →
+   canvas → inspector. The builder is usable but cramped.
+*/
+@media (max-width: 900px) {
+  .bld-layout {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: calc(100vh - var(--lib-header-h));
+  }
+  .bld-palette {
+    border-right: 0;
+    border-bottom: 1px solid var(--lib-line);
+    max-height: 280px;
+  }
+  .bld-inspector {
+    border-left: 0;
+    border-top: 1px solid var(--lib-line);
+  }
+  .bld-canvas__scroll {
+    overflow-y: visible;
+  }
+}
+
+/* ---------- Grid section ---------- */
+
+.ds-grid-viz {
+  /* Fixed-height "stage" for the grid visualization. The inner (gray panel)
+     is laid out at the hovered breakpoint's design width and scaled down
+     via transform — like the Sandbox's fixed-breakpoint scaler. Flex
+     centering vertically keeps the visible panel anchored in the middle
+     regardless of how small it scales; overflow:hidden clips any horizontal
+     spill from the unscaled layout box. */
+  display: flex;
+  align-items: center;
+  height: 80px;
+  overflow: hidden;
+}
+
+.ds-grid-viz__inner {
+  /* JS sets display/grid-template-columns/gap/padding/width/transform from
+     either the ACTIVE --grid-* values or the hovered row's --grid-*-{bp}
+     values. transform-origin: left center keeps the scaling anchored to
+     the left edge horizontally and the outer's vertical midline.
+     flex-shrink: 0 stops the flex parent from squeezing the layout box
+     below its specified design width (needed for the overflow case where
+     the inner is laid out at e.g. 1280px and visually scaled to fit). */
+  flex-shrink: 0;
+  transition: transform 160ms ease, width 160ms ease;
+}
+
+.ds-grid-table {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-4);
+}
+
+.ds-grid-table__row {
+  display: grid;
+  grid-template-columns: 80px 90px 1fr 1fr 1fr;
+  gap: 16px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+
+.ds-grid-table__row:not(.ds-grid-table__row--head) {
+  cursor: pointer;
+}
+
+.ds-grid-table__row:not(.ds-grid-table__row--head):hover {
+  background: color-mix(in srgb, var(--lib-ink) 5%, transparent);
+}
+
+.ds-grid-table__row--head {
+  color: var(--lib-muted);
+  font-size: var(--lib-fs-5);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding-bottom: 2px;
+}
+
+.ds-grid-table__row--active {
+  background: color-mix(in srgb, var(--lib-accent) 8%, transparent);
+  color: var(--lib-ink);
+  border: 1px solid color-mix(in srgb, var(--lib-accent) 35%, transparent);
+}
+
+.ds-grid-table__row--active:hover {
+  background: color-mix(in srgb, var(--lib-accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--lib-accent) 55%, transparent);
+}
+
+.ds-note {
+  color: var(--lib-muted);
+  font-size: var(--lib-fs-4);
+  margin: 0 0 16px;
+  max-width: 60ch;
+}
+
+/* ============================================================
+   Tokens page — Import affordance + modal
+   ------------------------------------------------------------
+   See system/tokens-import.md. The button + modal are scoped
+   to the Tokens page; modal chrome reuses .bld-modal* utilities
+   so the visual language stays consistent with the Builder.
+   ============================================================ */
+
+.ds-actions {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 20px;
+  margin-bottom: 28px;
+  background: var(--lib-paper);
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+}
+
+.ds-actions__text { flex: 1; min-width: 0; }
+
+.ds-actions__btns {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.ds-actions__hint {
+  margin: 0;
+  font-size: var(--lib-fs-4);
+  color: var(--lib-ink-soft);
+  line-height: 1.55;
+  max-width: 60ch;
+}
+
+.ds-actions code {
+  font-size: 0.9em;
+  background: var(--lib-bg);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--lib-line);
+}
+
+/* Tabs inside the Import modal */
+.ds-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  margin-bottom: 16px;
+  background: var(--lib-paper);
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  width: max-content;
+}
+
+.ds-tab {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--lib-fs-4);
+  color: var(--lib-ink-soft);
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.ds-tab:hover { color: var(--lib-ink); }
+
+.ds-tab.is-active {
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  font-weight: 600;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 1px 3px -1px rgba(0,0,0,0.12);
+}
+
+.ds-tabpanel[hidden] { display: none; }
+
+/* .bld-modal__field has display: flex which overrides [hidden]'s
+   UA display: none. Same gotcha as the Sandbox chips. */
+.bld-modal__field[hidden],
+.ds-companions[hidden],
+.ds-dropzone__empty[hidden],
+.ds-dropzone__filled[hidden] {
+  display: none !important;
+}
+
+/* Quick / Advanced sub-mode toggle (inside the Visual tab) */
+.ds-submode {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  margin-bottom: 14px;
+  background: var(--lib-paper);
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+}
+
+.ds-submode__btn {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft);
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ds-submode__btn:hover { color: var(--lib-ink); }
+
+.ds-submode__btn.is-active {
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  font-weight: 600;
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 1px 2px -1px rgba(0,0,0,0.15);
+}
+
+/* Visual tab — Advanced (default current layout): two columns.
+   Quick: single column, room for a bigger ramp. */
+.ds-visual {
+  display: grid;
+  gap: 24px;
+}
+
+.ds-visual[data-submode="advanced"] {
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 1.4fr);
+}
+
+.ds-visual[data-submode="quick"] {
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+/* In Quick mode, hide the advanced-only controls. */
+.ds-visual[data-submode="quick"] [data-advanced-only] {
+  display: none !important;
+}
+
+/* Quick mode gets larger ramp swatches since there's more vertical room
+   and fewer competing controls. */
+.ds-visual[data-submode="quick"] .ds-ramp__chip {
+  aspect-ratio: 1 / 1.8;
+  border-radius: 6px;
+}
+
+.ds-visual[data-submode="quick"] .ds-ramp__stop {
+  font-size: 11px;
+  gap: 6px;
+}
+
+@media (max-width: 720px) {
+  .ds-visual[data-submode="advanced"] { grid-template-columns: 1fr; }
+}
+
+.ds-visual__controls { display: flex; flex-direction: column; gap: 14px; }
+.ds-visual__output   { display: flex; flex-direction: column; gap: 12px; }
+
+.ds-visual__sub {
+  margin: 0;
+  font-size: var(--lib-fs-5);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--lib-muted);
+}
+
+.ds-color-input {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.ds-color-input input[type="color"] {
+  width: 44px;
+  height: 36px;
+  padding: 2px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ds-color-input input[type="text"] {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-4);
+  padding: 8px 10px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+}
+
+.ds-color-input input:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 1px;
+  border-color: var(--lib-accent);
+}
+
+.ds-harmony {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ds-harmony__opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--lib-fs-5);
+  padding: 4px 10px;
+  border: 1px solid var(--lib-line);
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--lib-bg);
+  user-select: none;
+}
+
+.ds-harmony__opt input { margin: 0; accent-color: var(--lib-accent); }
+.ds-harmony__opt:has(input:checked) {
+  background: var(--lib-ink);
+  color: var(--lib-bg);
+  border-color: var(--lib-ink);
+}
+
+/* Specificity bump — .bld-modal__field label sets justify-content:
+   space-between which pushes the checkbox and label to opposite ends.
+   Override with a matching-specificity selector. */
+.bld-modal__field label.ds-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  font-size: var(--lib-fs-4);
+  cursor: pointer;
+  font-weight: 400;
+  width: auto;
+}
+
+.ds-toggle input { accent-color: var(--lib-accent); }
+
+.ds-ramp {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 4px;
+}
+
+.ds-ramp-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ds-ramp-row { display: flex; flex-direction: column; gap: 4px; }
+
+.ds-ramp-row__label {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.ds-ramp__stop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  font-family: var(--lib-mono);
+  color: var(--lib-muted);
+}
+
+.ds-ramp__chip {
+  width: 100%;
+  aspect-ratio: 1 / 1.4;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.ds-companions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+.ds-companions__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ds-companions__label {
+  font-size: var(--lib-fs-5);
+  font-family: var(--lib-mono);
+  color: var(--lib-muted);
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.ds-companions__chips {
+  display: grid;
+  grid-template-columns: repeat(11, 1fr);
+  gap: 4px;
+  flex: 1;
+}
+
+.ds-companions__chip {
+  aspect-ratio: 1 / 1.4;
+  border-radius: 4px;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.ds-semantic-map {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+}
+
+.ds-semantic-map__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: var(--lib-fs-4);
+}
+
+.ds-semantic-map__label {
+  font-family: var(--lib-mono);
+  color: var(--lib-ink-soft);
+}
+
+.ds-semantic-map__select {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  padding: 4px 6px;
+  border: 1px solid var(--lib-line);
+  border-radius: 4px;
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+}
+
+/* Image dropzone */
+.ds-dropzone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  padding: 20px;
+  border: 2px dashed var(--lib-line);
+  border-radius: var(--lib-radius);
+  background: var(--lib-paper);
+  cursor: pointer;
+  transition: border-color 100ms, background 100ms;
+}
+
+.ds-dropzone:hover,
+.ds-dropzone:focus-visible,
+.ds-dropzone.is-drag {
+  border-color: var(--lib-accent);
+  background: var(--lib-bg);
+  outline: none;
+}
+
+.ds-dropzone__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  color: var(--lib-ink-soft);
+}
+
+.ds-dropzone__empty strong { font-size: var(--lib-fs-3); color: var(--lib-ink); }
+.ds-dropzone__empty span   { font-size: var(--lib-fs-5); color: var(--lib-muted); }
+
+.ds-dropzone__filled {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.ds-dropzone__filled img {
+  max-width: 100%;
+  max-height: 240px;
+  border-radius: 6px;
+  border: 1px solid var(--lib-line);
+}
+
+.ds-dropzone__meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--lib-fs-5);
+  font-family: var(--lib-mono);
+  color: var(--lib-muted);
+}
+
+/* Scope picker */
+.ds-scope {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--lib-line);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.ds-scope__opts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .ds-scope__opts { grid-template-columns: 1fr; }
+}
+
+.ds-scope__opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--lib-line);
+  border-radius: 8px;
+  cursor: pointer;
+  background: var(--lib-bg);
+}
+
+.ds-scope__opt input,
+.ds-harmony__opt input,
+.ds-toggle input {
+  width: auto;
+  margin-top: 3px;
+  accent-color: var(--lib-accent);
+  flex-shrink: 0;
+}
+
+.ds-harmony__opt input,
+.ds-toggle input { margin-top: 0; }
+
+.ds-scope__opt span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--lib-fs-4);
+  flex: 1;
+  min-width: 0;
+}
+
+.ds-scope__opt strong { font-weight: 600; color: var(--lib-ink); }
+.ds-scope__opt em {
+  font-style: normal;
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+  line-height: 1.4;
+}
+
+.ds-scope__opt:has(input:checked) {
+  border-color: var(--lib-ink);
+  background: var(--lib-paper);
+}
+
+/* ============================================================
+   Vibe tab — chip input + font picker + output
+   ------------------------------------------------------------
+   See system/tokens-import.md § Vibe mode.
+   ============================================================ */
+
+.ds-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 5px 8px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+}
+
+.ds-chips:focus-within {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 1px;
+  border-color: var(--lib-accent);
+}
+
+.ds-chips input {
+  flex: 1;
+  min-width: 120px;
+  border: 0;
+  background: transparent;
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  padding: 4px 0;
+  outline: none;
+  color: var(--lib-ink);
+}
+
+.ds-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 5px 3px 8px;
+  border: 1px solid var(--lib-line);
+  border-radius: 999px;
+  background: var(--lib-paper);
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink);
+  cursor: pointer;
+}
+
+.ds-chip:hover { background: var(--lib-bg); }
+
+.ds-chip__swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+.ds-chip__remove {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--lib-muted);
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.ds-chip__remove:hover {
+  background: var(--lib-line);
+  color: var(--lib-ink);
+}
+
+.ds-font {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ds-font__opt {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--lib-fs-5);
+  padding: 4px 10px;
+  border: 1px solid var(--lib-line);
+  border-radius: 999px;
+  cursor: pointer;
+  background: var(--lib-bg);
+  user-select: none;
+}
+
+.ds-font__opt input { margin: 0; width: auto; accent-color: var(--lib-accent); }
+
+.ds-font__opt:has(input:checked) {
+  background: var(--lib-ink);
+  color: var(--lib-bg);
+  border-color: var(--lib-ink);
+}
+
+.ds-font__detail {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ds-font__detail[hidden] { display: none !important; }
+
+.ds-font__detail input[type="text"] {
+  font-family: inherit;
+  font-size: var(--lib-fs-4);
+  padding: 8px 10px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+}
+
+.ds-font__detail input[type="text"]:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 1px;
+  border-color: var(--lib-accent);
+}
+
+.ds-font__generic {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.ds-vibe__output {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ds-vibe__output[hidden] { display: none !important; }
+
+/* ============================================================
+   Proposal banner (variant of .dev-banner)
+   ------------------------------------------------------------
+   Shown when src/tokens.proposed.css exists. Same anchor + look
+   as the dev banner but with Commit/Discard buttons instead of
+   a single Clear. See library/dev-tokens.js.
+   ============================================================ */
+
+.dev-banner[data-variant="proposal"] {
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  border: 1px solid var(--lib-ink);
+}
+
+.dev-banner[data-variant="proposal"] .dev-banner__dot {
+  background: var(--lib-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--lib-accent) 25%, transparent);
+}
+
+.dev-banner[data-variant="proposal"] .dev-banner__text code {
+  background: var(--lib-paper);
+  color: var(--lib-ink);
+}
+
+.dev-banner[data-variant="proposal"] .dev-banner__clear {
+  background: var(--lib-ink);
+  color: var(--lib-bg);
+}
+
+.dev-banner[data-variant="proposal"] .dev-banner__clear:hover {
+  background: var(--lib-ink-soft);
+}
+
+.dev-banner__commit {
+  background: var(--lib-accent);
+  color: var(--lib-bg);
+  border: 0;
+  font: inherit;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dev-banner__commit:hover { background: color-mix(in srgb, var(--lib-accent) 85%, black); }
+
+.dev-banner__commit:focus-visible {
+  outline: 2px solid var(--lib-ink);
+  outline-offset: 2px;
+}
+
+.dev-toast {
+  position: fixed;
+  left: 50%;
+  bottom: 90px;
+  transform: translateX(-50%) translateY(8px);
+  background: var(--lib-ink);
+  color: var(--lib-bg);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: var(--lib-fs-5);
+  box-shadow: 0 16px 36px -12px rgba(0,0,0,0.45);
+  z-index: 201;
+  opacity: 0;
+  transition: opacity 160ms ease, transform 160ms ease;
+  pointer-events: none;
+}
+
+.dev-toast.is-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ============================================================
+   Dev tokens banner
+   ------------------------------------------------------------
+   Shown when localStorage `loomling:dev-tokens:v1` is set —
+   makes it obvious that the user is looking at preview-only
+   tokens, not the real on-disk values. Pinned to the bottom of
+   every Loom view (see library/dev-tokens.js).
+   ============================================================ */
+
+.dev-banner {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--lib-ink);
+  color: var(--lib-bg);
+  border-radius: var(--lib-radius);
+  box-shadow: 0 16px 36px -12px rgba(0,0,0,0.45);
+  font-size: var(--lib-fs-5);
+  line-height: 1.4;
+  max-width: calc(100vw - 32px);
+}
+
+.dev-banner__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lib-awaiting, #dc2626);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.25);
+  flex-shrink: 0;
+}
+
+.dev-banner__text {
+  flex: 1;
+  min-width: 0;
+}
+
+.dev-banner__text strong { font-weight: 600; }
+
+.dev-banner__text code {
+  background: rgba(255,255,255,0.12);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-family: var(--lib-mono);
+  font-size: 0.92em;
+}
+
+.dev-banner__clear {
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+  border: 0;
+  font: inherit;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.dev-banner__clear:hover { background: var(--lib-paper); }
+
+.dev-banner__clear:focus-visible {
+  outline: 2px solid var(--lib-bg);
+  outline-offset: 2px;
+}
+
+/* ============================================================
+   Dark mode — Loomling chrome
+   ------------------------------------------------------------
+   Activated when <html data-theme="dark"> is set by theme.js.
+   This block ONLY overrides --lib-* tokens — the Loom chrome
+   palette. The user's design system tokens live in src/tokens.css
+   and toggle independently via the same [data-theme="dark"]
+   selector when applied to their own :root.
+
+   Palette intent: warm-tinted near-blacks (not pure #000) so the
+   chrome feels like a designed dark surface rather than a
+   high-contrast inversion. Accent shifts a few steps brighter to
+   stay legible against the dark paper. Awaiting-red is lifted to
+   a brighter coral so it remains the warning signal it is in
+   light mode.
+   ============================================================ */
+
+:root[data-theme="dark"] {
+  --lib-bg:        #15161a;
+  --lib-paper:     #1b1d22;
+  --lib-panel:     #24262c;
+  --lib-ink:       #f1efea;
+  --lib-ink-soft:  #b8b4ab;
+  --lib-muted:     #8a8680;
+  --lib-line:      #2d3036;
+  --lib-accent:    #7a93ff;
+  --lib-warn:      #f0a050;
+  --lib-awaiting:  #ff6b6b;
+  --lib-shadow:    0 1px 0 rgba(0,0,0,0.4), 0 8px 24px -16px rgba(0,0,0,0.6);
+}
+
+/* Two chrome bits use hardcoded hex/rgba and need dark equivalents. */
+:root[data-theme="dark"] .lib-tab.is-active,
+:root[data-theme="dark"] .sb-action--primary,
+:root[data-theme="dark"] .sb-pill.is-active,
+:root[data-theme="dark"] .lib-state.is-active,
+:root[data-theme="dark"] .bld-btn--primary,
+:root[data-theme="dark"] .sr-only:focus,
+:root[data-theme="dark"] .sr-only:focus-visible {
+  background: var(--lib-ink);
+  color: var(--lib-bg);
+}
+
+:root[data-theme="dark"] .bld-btn--primary {
+  border-color: var(--lib-ink);
+}
+
+:root[data-theme="dark"] .bld-btn--primary:hover {
+  background: var(--lib-ink-soft);
+  border-color: var(--lib-ink-soft);
+  color: var(--lib-bg);
+}
+
+:root[data-theme="dark"] .sb-action--primary {
+  border-color: var(--lib-ink);
+}
+
+:root[data-theme="dark"] .sb-action--primary:hover {
+  background: var(--lib-ink-soft);
+  border-color: var(--lib-ink-soft);
+  color: var(--lib-bg);
+}
+
+:root[data-theme="dark"] .sb-field__thumb img {
+  background: var(--lib-bg);
+}
+
+/* Status badges — the light versions have hand-picked tinted backgrounds
+   with dark text. In dark mode flip to dim tints + bright text so they
+   stay readable. */
+:root[data-theme="dark"] .lib-badge--draft {
+  background: #3a3220;
+  color: #f3d27a;
+}
+:root[data-theme="dark"] .lib-badge--approved {
+  background: #1f3a2b;
+  color: #9fe2bb;
+}
+
+/* The dev banner is a fixed dark surface in light mode (--lib-ink
+   background, white text). In dark mode that surface is already dark,
+   so swap to the accent for distinction. */
+:root[data-theme="dark"] .dev-banner {
+  background: var(--lib-panel);
+  border-top-color: var(--lib-line);
+  color: var(--lib-ink);
+  box-shadow: 0 -4px 24px -8px rgba(0,0,0,0.6);
+}
+
+:root[data-theme="dark"] .dev-banner__text code {
+  background: rgba(255,255,255,0.06);
+}
+
+:root[data-theme="dark"] .dev-banner__clear {
+  background: var(--lib-bg);
+  color: var(--lib-ink);
+}
+
+:root[data-theme="dark"] .dev-banner__clear:hover {
+  background: var(--lib-panel);
+}
+
+/* ============================================================
+   Nav theme toggle (sun/moon)
+   ------------------------------------------------------------
+   Lives in .lib-header__inner, appended by theme.js after .lib-tabs.
+   Shows the sun OR moon based on aria-pressed (= current state). The
+   visible icon is the OPPOSITE of the current theme — i.e. in light
+   mode the moon shows (clicking goes to dark), in dark mode the sun
+   shows. data-propagates="false" adds a subtle muted dot indicating
+   the user's DS has no dark tokens, so the toggle only affects chrome.
+   ============================================================ */
+.lib-theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: 8px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--lib-ink-soft);
+  cursor: pointer;
+  position: relative;
+  transition: background 120ms, color 120ms, border-color 120ms;
+  /* Without flex-shrink: 0 the button collapses to ~0px when the header
+     runs out of horizontal space — the SVG icons are absolutely
+     positioned and don't contribute to intrinsic min-width. */
+  flex-shrink: 0;
+}
+
+.lib-theme-toggle:hover {
+  background: var(--lib-paper);
+  color: var(--lib-ink);
+}
+
+.lib-theme-toggle:focus-visible {
+  outline: 2px solid var(--lib-accent);
+  outline-offset: 2px;
+}
+
+.lib-theme-toggle__icon {
+  width: 18px;
+  height: 18px;
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: opacity 160ms, transform 160ms;
+  /* Without this, clicks land on the SVG instead of the button and the
+     click handler never fires. The button is what owns the listener. */
+  pointer-events: none;
+}
+
+/* Light theme (default): hide sun, show moon (= "switch to dark"). */
+.lib-theme-toggle__icon--sun {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.7) rotate(-45deg);
+}
+.lib-theme-toggle__icon--moon {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1) rotate(0deg);
+}
+
+/* Dark theme (aria-pressed="true"): hide moon, show sun. */
+.lib-theme-toggle[aria-pressed="true"] .lib-theme-toggle__icon--sun {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1) rotate(0deg);
+}
+.lib-theme-toggle[aria-pressed="true"] .lib-theme-toggle__icon--moon {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.7) rotate(45deg);
+}
+
+/* Subtle muted dot when chrome-only (user's DS has no dark tokens). The
+   hover title explains it; the dot makes the constraint visible without
+   stealing attention. */
+.lib-theme-toggle[data-propagates="false"]::after {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--lib-muted);
+  opacity: 0.7;
+}
+
+@media (max-width: 800px) {
+  /* On narrow widths the brand label hides and the toggle should still
+     sit next to the tabs without crowding them. */
+  .lib-theme-toggle { margin-left: 4px; }
+
+  /* Free up horizontal space for the tabs + toggle by hiding the
+     project-name chip. The brand wordmark (and user logo, if uploaded)
+     stays visible — that's identity enough at narrow widths. */
+  .lib-brand__project {
+    display: none;
+  }
+
+  .lib-header__inner {
+    gap: 16px;
+    padding: 0 12px;
+  }
+
+  .lib-tab {
+    padding: 6px 8px;
+  }
+}
+
+/* ============================================================
+   Tokens page — Dark mode section
+   ------------------------------------------------------------
+   Surfaces project.json.darkMode (the flag) + detection state
+   (whether src/tokens.css contains a [data-theme="dark"] block).
+   Changes are committed via a CC paste prompt — the Loom can't
+   write project.json directly.
+   ============================================================ */
+.ds-darkmode__row {
+  margin-bottom: 16px;
+}
+
+.ds-darkmode__opts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.ds-darkmode__opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  background: var(--lib-bg);
+  cursor: pointer;
+  user-select: none;
+  font-size: var(--lib-fs-4);
+  transition: border-color 120ms, background 120ms;
+}
+
+.ds-darkmode__opt:hover { border-color: var(--lib-ink-soft); }
+
+.ds-darkmode__opt input {
+  margin: 2px 0 0;
+  accent-color: var(--lib-accent);
+  width: auto;
+}
+
+.ds-darkmode__opt:has(input:checked) {
+  border-color: var(--lib-accent);
+  background: color-mix(in srgb, var(--lib-accent) 6%, var(--lib-bg));
+}
+
+.ds-darkmode__opt > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ds-darkmode__opt strong {
+  font-weight: 600;
+  color: var(--lib-ink);
+}
+
+.ds-darkmode__opt em {
+  font-style: normal;
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+  line-height: 1.4;
+}
+
+.ds-darkmode__status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.ds-darkmode__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--lib-paper);
+  border: 1px solid var(--lib-line);
+  border-radius: 999px;
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft);
+  font-family: var(--lib-mono);
+}
+
+.ds-darkmode__chip-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lib-muted);
+}
+
+.ds-darkmode__chip[data-state="yes"] .ds-darkmode__chip-dot {
+  background: #2ea043;
+}
+
+.ds-darkmode__chip[data-state="no"] .ds-darkmode__chip-dot {
+  background: var(--lib-muted);
+}
+
+#ds-darkmode-save {
+  margin-left: auto;
+}
+
+#ds-darkmode-save:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   Settings page — Brand section
+   ------------------------------------------------------------
+   Two-column layout: live nav preview on the left, dropzone +
+   action buttons on the right. The nav preview mirrors the real
+   nav brand markup so the user sees exactly what they're shipping.
+   ============================================================ */
+.settings-brand {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(260px, 1fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+@media (max-width: 800px) {
+  .settings-brand { grid-template-columns: 1fr; }
+}
+
+.settings-brand__preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  background: var(--lib-paper);
+}
+
+.settings-brand__nav-preview {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--lib-bg);
+  border: 1px solid var(--lib-line);
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: var(--lib-fs-3);
+}
+
+.settings-brand__user-logo {
+  height: 24px;
+  max-width: 120px;
+  width: auto;
+  object-fit: contain;
+  display: inline-block;
+}
+
+.settings-brand__user-logo[hidden] { display: none; }
+
+.settings-brand__sep {
+  color: var(--lib-line);
+  font-weight: 300;
+  font-size: 1.25em;
+  user-select: none;
+}
+
+.settings-brand__sep[hidden] { display: none; }
+
+.settings-brand__mark {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, var(--lib-accent), #6d8aff);
+  display: inline-block;
+}
+
+.settings-brand__name { letter-spacing: -0.01em; }
+
+.settings-brand__controls {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-brand__dropzone {
+  border: 1px dashed var(--lib-line);
+  border-radius: var(--lib-radius);
+  padding: 24px;
+  background: var(--lib-bg);
+  cursor: pointer;
+  transition: border-color 120ms, background 120ms;
+  text-align: center;
+}
+
+.settings-brand__dropzone:hover,
+.settings-brand__dropzone:focus-visible {
+  border-color: var(--lib-accent);
+  background: var(--lib-paper);
+  outline: none;
+}
+
+.settings-brand__dropzone.is-dragging {
+  border-color: var(--lib-accent);
+  border-style: solid;
+  background: color-mix(in srgb, var(--lib-accent) 6%, var(--lib-bg));
+}
+
+.settings-brand__dz-empty,
+.settings-brand__dz-filled {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+}
+
+.settings-brand__dz-empty strong {
+  font-size: var(--lib-fs-3);
+  font-weight: 600;
+}
+
+.settings-brand__dz-empty span {
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.settings-brand__file {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-4);
+  color: var(--lib-ink);
+}
+
+.settings-brand__file-meta {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.settings-brand__actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+#settings-logo-save:disabled,
+#settings-logo-remove:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Dark-mode chrome override: the brand preview's --lib-bg background works
+   in both modes since it tracks the theme. The pipe separator also tracks
+   --lib-line — no extra dark overrides needed. */
+
+/* ============================================================
+   Primitive library — added 2026-05-22
+   ------------------------------------------------------------
+   Visual styles for the new Tokens-page sections introduced by
+   the primitive library (Radii, Elevation, Iconography, plus the
+   six Components sub-sections). All scoped to .ds-* to live
+   alongside the existing tokens-page chrome and stay out of the
+   user's design system.
+
+   See system/primitives.md for the convention; see plan file
+   `~/.claude/plans/here-s-what-i-really-quizzical-waffle.md` for
+   the design rationale.
+   ============================================================ */
+
+/* ── Inline link inside a ds-note paragraph ── */
+.ds-link {
+  color: var(--lib-accent);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.ds-link:hover { border-bottom-color: var(--lib-accent); }
+
+/* ── Radii ── */
+.ds-radii-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.ds-radii-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  background: var(--lib-bg);
+}
+
+.ds-radii-row__sample {
+  width: 100%;
+  height: 56px;
+  background: var(--lib-panel);
+  border: 1px solid var(--lib-line);
+}
+
+.ds-radii-row__meta { display: flex; flex-direction: column; gap: 2px; }
+.ds-radii-row__token { font-family: var(--lib-mono); font-size: var(--lib-fs-5); color: var(--lib-ink); }
+.ds-radii-row__value { font-family: var(--lib-mono); font-size: var(--lib-fs-5); color: var(--lib-muted); }
+.ds-radii-row__use   { font-size: var(--lib-fs-5); color: var(--lib-ink-soft); }
+
+/* ── Elevation ── */
+.ds-elev-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.ds-elev-row {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.ds-elev-row__sample {
+  height: 80px;
+  background: var(--lib-bg);
+  border-radius: var(--lib-radius);
+  border: 1px solid var(--lib-line);
+}
+
+.ds-elev-row__sample--shadow { box-shadow: 0 1px 2px hsl(0 0% 0% / 0.06), 0 4px 12px hsl(0 0% 0% / 0.06); border-color: transparent; }
+.ds-elev-row__sample--border-visible { border: 1px solid var(--lib-ink-soft); }
+.ds-elev-row__sample--surface2 { background: var(--lib-panel); border-color: var(--lib-line); }
+
+.ds-elev-row__meta { display: flex; flex-direction: column; gap: 2px; }
+.ds-elev-row__name { font-family: var(--lib-mono); font-size: var(--lib-fs-5); color: var(--lib-ink); }
+.ds-elev-row__use { font-size: var(--lib-fs-5); color: var(--lib-ink-soft); }
+
+/* ── Iconography ── */
+.ds-icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+}
+
+.ds-icon-cell {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  background: var(--lib-bg);
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  color: var(--lib-ink);
+  font-size: 22px;
+}
+
+/* ── Component primitives sections ── */
+.ds-primitives {
+  display: grid;
+  /* Bigger minimum card width — primitives like segmented-control and
+     date-picker need ~280px to render their content without truncation or
+     visual cramping. The auto-fill still packs as many columns as fit, so
+     wider viewports (and the collapsed-sidebar layout) get more cards
+     per row; narrower viewports get fewer-but-comfortable cards. */
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+/* Reserve approximate final heights for every section on the System page
+   so the page layout is stable at HTML parse time. Without this, sections
+   render async (tokens.js fills the foundation sections, primitives.js
+   fills the components sections) — they start collapsed and grow, which
+   means anchor links (tokens.html#navigation) land on whichever section
+   currently sits at the target Y. With min-heights set, the browser's
+   native anchor scroll lands correctly the first time and no JS
+   orchestration is needed.
+
+   Values are calibrated to the typical desktop content width with the
+   sidebar EXPANDED (~880px, 4–5 atomic cards per row). When the user
+   collapses the sidebar, the content area widens, fewer rows are needed,
+   and these reservations leave a visible empty gap below each section.
+   We scope the reservations to the expanded state so collapsed renders
+   tightly. The anchor-scroll trade-off in collapsed mode is acceptable —
+   foundations are filled synchronously by tokens.js so the gap is brief. */
+/* ── Foundation sections (rendered by tokens.js) ──────────────────────── */
+html:not([data-sidebar-collapsed="true"]) .ds-section#color       { min-height: 1010px; }
+html:not([data-sidebar-collapsed="true"]) .ds-section#typography  { min-height: 1180px; }
+html:not([data-sidebar-collapsed="true"]) .ds-section#radii       { min-height: 290px; }
+html:not([data-sidebar-collapsed="true"]) .ds-section#elevation   { min-height: 310px; }
+html:not([data-sidebar-collapsed="true"]) .ds-section#space       { min-height: 520px; }
+html:not([data-sidebar-collapsed="true"]) .ds-section#grid        { min-height: 740px; }
+html:not([data-sidebar-collapsed="true"]) .ds-section#breakpoints { min-height: 295px; }
+html:not([data-sidebar-collapsed="true"]) .ds-section#iconography { min-height: 290px; }
+html:not([data-sidebar-collapsed="true"]) .ds-section#motion      { min-height: 1540px; }
+/* ── Components sections (filled by primitives.js) ────────────────────── */
+html:not([data-sidebar-collapsed="true"]) .ds-primitives[data-cat="action"]       { min-height: 760px; }
+html:not([data-sidebar-collapsed="true"]) .ds-primitives[data-cat="input"]        { min-height: 1160px; }
+html:not([data-sidebar-collapsed="true"]) .ds-primitives[data-cat="data-display"] { min-height: 1080px; }
+html:not([data-sidebar-collapsed="true"]) .ds-primitives[data-cat="nav"]          { min-height: 1200px; }
+html:not([data-sidebar-collapsed="true"]) .ds-primitives[data-cat="feedback"]     { min-height: 800px; }
+html:not([data-sidebar-collapsed="true"]) .ds-primitives[data-cat="overlay"]      { min-height: 960px; }
+
+/* Module primitives (navigation + footer) span the full row of the
+   primitives grid so the module renders at real layout width — not
+   squished into a 220px atomic-primitive tile. The doubled-class selector
+   wins specificity over the base .ds-primitive-card__demo block (which
+   sets display: flex + align-items: center), so the iframe sits at the
+   top of the demo and the card sizes to the iframe's content height. */
+.ds-primitive-card[data-category="modules"] {
+  grid-column: 1 / -1;
+}
+
+.ds-primitive-card .ds-primitive-card__demo--module {
+  display: block;
+  padding: 0;
+  overflow: hidden;
+}
+
+.ds-primitive-card .ds-primitive-card__demo--module iframe {
+  width: 100%;
+  display: block;
+  border: 0;
+  background: var(--background);
+  /* height is set inline by primitives.js to match the iframe's content
+     so the card is exactly as tall as the rendered module needs. */
+}
+
+.ds-primitive-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--lib-bg);
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  min-height: 140px;
+}
+
+.ds-primitive-card__demo {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 4px;
+  /* The user-system tokens drive every primitive; reset Loom-chrome inheritance
+     so the demo reads as the user's project, not as the Loom UI. */
+  font-family: var(--font-body);
+  color: var(--text1);
+}
+
+.ds-primitive-card__demo > * { max-width: 100%; }
+
+.ds-primitive-card__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--lib-line);
+  min-height: 30px;
+}
+
+.ds-primitive-card__slug {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-6, 11px);
+  color: var(--lib-ink-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.ds-primitive-card__open {
+  font-family: var(--lib-mono);
+  font-size: 10.5px;
+  color: var(--lib-ink-soft, var(--lib-ink));
+  text-decoration: none;
+  padding: 4px 8px;
+  border: 1px solid var(--lib-line);
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: border-color 120ms ease, color 120ms ease, background-color 120ms ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ds-primitive-card__open i {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.ds-primitive-card__open:hover,
+.ds-primitive-card__open:focus-visible {
+  color: var(--lib-ink);
+  border-color: var(--lib-muted);
+  background: var(--lib-panel);
+}
+
+/* Some primitives need extra demo height (calendar, dropdown) */
+.ds-primitive-card[data-slug="date-picker"],
+.ds-primitive-card[data-slug="combobox"],
+.ds-primitive-card[data-slug="data-table"],
+.ds-primitive-card[data-slug="dropdown-menu"],
+.ds-primitive-card[data-slug="accordion"],
+.ds-primitive-card[data-slug="modal"] {
+  grid-column: span 2;
+  min-height: 220px;
+}
+
+/* Inline-content primitives wider than a single column — span 2 so
+   the row content (tab buttons, breadcrumb path, pagination set, nav
+   menu, alert body, toast row, popover panel, empty-state) renders
+   intact rather than wrapping or overflowing the card. */
+.ds-primitive-card[data-slug="tabs"],
+.ds-primitive-card[data-slug="pagination"],
+.ds-primitive-card[data-slug="nav-menu"],
+.ds-primitive-card[data-slug="breadcrumb"],
+.ds-primitive-card[data-slug="alert"],
+.ds-primitive-card[data-slug="toast"],
+.ds-primitive-card[data-slug="popover"],
+.ds-primitive-card[data-slug="empty-state"] {
+  grid-column: span 2;
+}
+
+.ds-primitive-card[data-slug="data-table"] { grid-column: span 3; }
+
+/* ── Motion ──
+   Foundation section on the System page. Three sub-areas:
+   durations (rows with a looping dot), easings (cards with an
+   inline-SVG curve and a traveling dot), and reveals (interactive
+   demo cards with a refresh icon button).
+   All animations loop or replay against the user's motion tokens
+   from src/tokens.css — the demos read the real tokens. */
+
+/* Durations — five rows showing each --motion-* value */
+.ds-motion-durations {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ds-motion-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: 160px 80px 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 16px;
+  background: var(--lib-bg);
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+}
+
+.ds-motion-row__token {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink);
+}
+
+.ds-motion-row__value {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.ds-motion-row__demo {
+  height: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.ds-motion-row__dot {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--lib-ink);
+  /* Paused by default — animation-name is `none`, so the dot sits
+     at left:0 and the inline animation-duration is unused. The
+     System page's inline script adds .is-playing on mouseenter or
+     replay-button click, which sets animation-name and kicks off
+     a one-shot slide. animationend then resets the class (only if
+     the mouse already left the row — otherwise the dot stays at the
+     end frame thanks to fill-mode: forwards). */
+  animation-name: none;
+  animation-iteration-count: 1;
+  animation-direction: normal;
+  animation-fill-mode: forwards;
+  animation-timing-function: ease-in-out;
+  /* animation-duration is set per-row inline so each row reads
+     its own --motion-* token. */
+}
+
+.ds-motion-row__dot.is-playing {
+  animation-name: ds-motion-dot-slide;
+}
+
+@keyframes ds-motion-dot-slide {
+  from { left: 0; }
+  to   { left: calc(100% - 12px); }
+}
+
+/* Easings — six cards, each with an SVG curve + a dot that travels
+   the curve's timing function on hover (or on a separate replay
+   button, but we keep these cards as ambient demos). */
+.ds-motion-easings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.ds-easing-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  background: var(--lib-bg);
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+}
+
+.ds-easing-card__curve {
+  width: 100%;
+  height: 80px;
+  display: block;
+}
+
+.ds-easing-card__curve path,
+.ds-easing-card__curve line {
+  /* preserveAspectRatio="none" stretches the viewBox in x and y independently;
+     without non-scaling-stroke the stroke gets squashed/stretched too, and
+     the spring overshoot near the top still clips. Both fixes apply. */
+  vector-effect: non-scaling-stroke;
+}
+
+.ds-easing-card__curve path {
+  fill: none;
+  stroke: var(--lib-ink);
+  stroke-width: 2;
+}
+
+.ds-easing-card__curve .ds-easing-card__axis {
+  stroke: var(--lib-line);
+  stroke-width: 1;
+}
+
+.ds-easing-card__track {
+  position: relative;
+  height: 12px;
+  background: var(--lib-panel);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.ds-easing-card__dot {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--lib-ink);
+  /* Paused by default. The System page's inline script adds .is-playing
+     on mouseenter or replay-button click, which sets animation-name
+     and kicks off a one-shot slide. The inline animation-timing-function
+     (set per card via style="...") stays valid whether the dot is
+     playing or paused. */
+  animation-name: none;
+  animation-duration: var(--motion-slow);
+  animation-iteration-count: 1;
+  animation-direction: normal;
+  animation-fill-mode: forwards;
+}
+
+.ds-easing-card__dot.is-playing {
+  animation-name: ds-motion-dot-slide;
+}
+
+.ds-easing-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ds-easing-card__token {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink);
+}
+
+.ds-easing-card__value {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-6, 11px);
+  color: var(--lib-muted);
+  word-break: break-all;
+}
+
+/* Reveals — three interactive demo cards. Each holds a sample
+   element (heading + paragraph + image placeholder) marked with
+   [data-loom-reveal] and a refresh-icon button positioned top-right
+   that calls LoomMotion.replay(card). */
+.ds-motion-reveals {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.ds-reveal-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--lib-bg);
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  min-height: 200px;
+}
+
+/* Shared replay button — appears on every [data-motion-tile] card
+   (duration rows, easing cards, reveal cards). Hidden at rest;
+   becomes visible + clickable when the parent tile is hovered. */
+.ds-motion-tile__replay {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--lib-line);
+  border-radius: 999px;
+  background: var(--lib-panel);
+  color: var(--lib-ink);
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+/* Card-shaped tiles (easing + reveal) position the button absolute,
+   top-right, above the sample content. Duration rows leave it in
+   grid flow on the right side. */
+.ds-easing-card .ds-motion-tile__replay,
+.ds-reveal-card .ds-motion-tile__replay {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+}
+
+[data-motion-tile]:hover .ds-motion-tile__replay {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ds-motion-tile__replay:hover {
+  background: var(--lib-bg-hover, var(--lib-line));
+  border-color: var(--lib-ink-soft);
+}
+
+.ds-motion-tile__replay:focus-visible {
+  outline: 2px solid var(--lib-ink);
+  outline-offset: 2px;
+}
+
+.ds-motion-tile__replay svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.ds-reveal-card__sample {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--lib-panel);
+  border-radius: 8px;
+}
+
+.ds-reveal-card__sample-image {
+  width: 100%;
+  height: 60px;
+  background: var(--lib-line);
+  border-radius: 4px;
+}
+
+.ds-reveal-card__sample-title {
+  font-family: var(--lib-font);
+  font-size: var(--lib-fs-4, 14px);
+  font-weight: 600;
+  color: var(--lib-ink);
+  margin: 0;
+}
+
+.ds-reveal-card__sample-text {
+  font-family: var(--lib-font);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.ds-reveal-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 8px;
+  border-top: 1px solid var(--lib-line);
+}
+
+.ds-reveal-card__token {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink);
+}
+
+.ds-reveal-card__use {
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft);
+}
+
+/* ============================================================
+   Archive view (Settings → Archive)
+   ------------------------------------------------------------
+   Read-only list of removed elements. Each row is a small card
+   with name, category chip, slug, dates, and the migration notes.
+   ============================================================ */
+.settings-archive {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-archive__row {
+  border: 1px solid var(--lib-line);
+  border-radius: var(--lib-radius);
+  background: var(--lib-bg);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settings-archive__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.settings-archive__name {
+  font-weight: 600;
+  color: var(--lib-ink);
+}
+
+.settings-archive__chip {
+  font-family: var(--lib-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--lib-panel);
+  color: var(--lib-muted);
+  border: 1px solid var(--lib-line);
+}
+
+.settings-archive__slug {
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.settings-archive__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-family: var(--lib-mono);
+  font-size: var(--lib-fs-5);
+  color: var(--lib-muted);
+}
+
+.settings-archive__notes {
+  font-size: var(--lib-fs-5);
+  color: var(--lib-ink-soft, var(--lib-ink));
+  line-height: 1.5;
+  padding-top: 6px;
+  border-top: 1px dashed var(--lib-line);
+}
+
+.settings-archive__error {
+  border: 1px solid var(--error, var(--lib-line));
+  background: var(--lib-bg);
+  padding: 12px 14px;
+  border-radius: var(--lib-radius);
+  font-size: var(--lib-fs-5);
+}

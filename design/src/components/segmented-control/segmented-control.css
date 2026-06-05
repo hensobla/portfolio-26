@@ -1,0 +1,42 @@
+[data-loom="segmented-control"] {
+  display: inline-flex;
+  background: var(--surface2);
+  border-radius: var(--radius-button);
+  padding: 3px;
+  gap: 2px;
+}
+
+[data-loom="segmented-control"] button {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: var(--space-2) var(--space-4);
+  border-radius: calc(var(--radius-button) - 3px);
+  font-family: var(--font-body);
+  font-size: var(--type-body-s);
+  font-weight: 600;
+  color: var(--text2);
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+[data-loom="segmented-control"] button:hover {
+  color: var(--text1);
+}
+
+[data-loom="segmented-control"] button[aria-selected="true"] {
+  background: var(--background);
+  color: var(--text1);
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.06);
+}
+
+[data-loom="segmented-control"] button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+[data-loom="segmented-control"] button[disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

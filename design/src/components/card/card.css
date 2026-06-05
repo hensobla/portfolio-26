@@ -1,0 +1,47 @@
+[data-loom="card"] {
+  display: flex;
+  flex-direction: column;
+  width: 16rem;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  font-family: var(--font-body);
+  transition: border-color 120ms ease;
+}
+
+[data-loom="card"]:hover,
+[data-loom="card"][data-state="hover"] { border-color: var(--border-visible); }
+
+[data-loom="card"][data-state="selected"] {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+[data-loom="card"] .card__media {
+  height: 6rem;
+  background: linear-gradient(135deg, var(--surface1), var(--surface2));
+}
+
+[data-loom="card"] .card__body { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
+
+[data-loom="card"] .card__meta {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text2);
+  letter-spacing: 0.04em;
+}
+
+[data-loom="card"] .card__title {
+  font-size: var(--type-body);
+  font-weight: 600;
+  color: var(--text1);
+  margin: 0;
+}
+
+[data-loom="card"] .card__text {
+  font-size: var(--type-body-s);
+  color: var(--text2);
+  margin: 0;
+  line-height: var(--line-height-body);
+}

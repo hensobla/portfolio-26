@@ -1,0 +1,28 @@
+[data-loom="skeleton"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+}
+
+[data-loom="skeleton"] .skel {
+  display: block;
+  background: linear-gradient(90deg, var(--surface2) 0px, var(--border-visible) 60px, var(--surface2) 120px);
+  background-size: 280px 100%;
+  border-radius: 4px;
+  animation: loom-skel-shimmer 1.4s linear infinite;
+}
+
+[data-loom="skeleton"] .skel--circle { width: 2.5rem; height: 2.5rem; border-radius: 50%; }
+[data-loom="skeleton"] .skel--line   { width: 10rem; height: 0.75rem; }
+[data-loom="skeleton"] .skel--line-short { width: 6rem; }
+
+[data-loom="skeleton"] .skel__col { display: flex; flex-direction: column; gap: var(--space-2); }
+
+@keyframes loom-skel-shimmer {
+  0%   { background-position: -120px 0; }
+  100% { background-position:  280px 0; }
+}

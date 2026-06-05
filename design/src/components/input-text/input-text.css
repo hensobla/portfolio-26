@@ -1,0 +1,61 @@
+[data-loom="input-text"] {
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  font-family: var(--font-body);
+}
+
+[data-loom="input-text"] .input__label {
+  font-size: var(--type-body-s);
+  color: var(--text2);
+  font-weight: 500;
+}
+
+[data-loom="input-text"] input {
+  height: 2.5rem;
+  padding: 0 var(--space-3);
+  background: var(--background);
+  border: 1px solid var(--border-visible);
+  border-radius: var(--radius-button);
+  color: var(--text1);
+  font: inherit;
+  font-size: var(--type-body-s);
+  width: min(16rem, 100%);
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+[data-loom="input-text"] input::placeholder { color: var(--text3); }
+
+[data-loom="input-text"] input:hover,
+[data-loom="input-text"][data-state="hover"] input {
+  border-color: var(--text2);
+}
+
+[data-loom="input-text"] input:focus-visible,
+[data-loom="input-text"][data-state="focused"] input {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+[data-loom="input-text"][data-state="disabled"] input,
+[data-loom="input-text"] input[disabled] {
+  background: var(--surface1);
+  color: var(--text3);
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+[data-loom="input-text"][data-state="error"] input {
+  border-color: var(--error);
+}
+
+[data-loom="input-text"][data-state="error"][data-state="focused"] input,
+[data-loom="input-text"][data-state="error"] input:focus-visible {
+  box-shadow: 0 0 0 3px var(--error-bg);
+}
+
+/* Filled state — input has a value */
+[data-loom="input-text"] input:not(:placeholder-shown) {
+  background: var(--background);
+}

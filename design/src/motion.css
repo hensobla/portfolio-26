@@ -1,0 +1,104 @@
+/* ============================================================
+   motion.css — Loomling animation foundation
+   ------------------------------------------------------------
+   Imported by tokens.css. Provides keyframes + a small set of
+   reveal utility classes ("subtle entrances that work with any
+   brand"). Driven by the [data-loom-reveal] attribute and the
+   .loom-revealed trigger class applied by src/motion.js when an
+   element enters the viewport.
+
+   Scope is deliberately small: fade-in, rise, scale-95.
+   Micro-interactions, state transitions, and stagger are
+   future work — see system/motion.md.
+
+   The @media (prefers-reduced-motion: reduce) block at the
+   bottom collapses every motion token to 1ms AND zeroes the
+   reveal utilities to a no-op. Accessibility is non-negotiable.
+   ============================================================ */
+
+/* ---------- Reveal keyframes ---------- */
+@keyframes loom-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes loom-rise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes loom-scale-95 {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* ---------- Reveal utilities ----------
+   Apply [data-loom-reveal="fade-in|rise|scale-95"] to any element.
+   Initial state is the "before" frame (hidden + transformed).
+   src/motion.js adds .loom-revealed when the element enters the
+   viewport, which fires the named animation.
+
+   animation-fill-mode: both ensures the element stays at the
+   final frame after the animation completes (no snap-back).
+*/
+[data-loom-reveal] {
+  opacity: 0;
+}
+
+[data-loom-reveal="rise"] {
+  transform: translateY(16px);
+}
+
+[data-loom-reveal="scale-95"] {
+  transform: scale(0.95);
+}
+
+[data-loom-reveal].loom-revealed {
+  animation-duration: var(--motion-standard);
+  animation-timing-function: var(--ease-out);
+  animation-fill-mode: both;
+}
+
+[data-loom-reveal="fade-in"].loom-revealed  { animation-name: loom-fade-in; }
+[data-loom-reveal="rise"].loom-revealed     { animation-name: loom-rise; }
+[data-loom-reveal="scale-95"].loom-revealed { animation-name: loom-scale-95; }
+
+/* ---------- Pulse (looping status indicator) ----------
+   A continuous radar-style ping for live/status dots (e.g. an
+   "available for work" indicator). Unlike the reveals this LOOPS, so
+   the reduced-motion block below disables it explicitly. First
+   continuous-animation utility — see system/motion.md. */
+@keyframes loom-pulse {
+  0%        { opacity: 0.55; transform: scale(1); }
+  70%, 100% { opacity: 0;    transform: scale(2.8); }
+}
+
+.loom-pulse { animation: loom-pulse 2s var(--ease-out) infinite; }
+
+/* ---------- Reduced motion ----------
+   Collapses every duration token to 1ms — token-driven, so any
+   component that uses var(--motion-*) automatically respects
+   the user's OS-level preference without code changes.
+
+   The reveal utilities are additionally forced to their final
+   visible state with !important, since the animation would
+   otherwise still play (at 1ms it would flash imperceptibly,
+   but explicit override is cleaner and more predictable).
+*/
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-instant:  1ms;
+    --motion-fast:     1ms;
+    --motion-standard: 1ms;
+    --motion-slow:     1ms;
+    --motion-slower:   1ms;
+  }
+
+  [data-loom-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .loom-pulse { animation: none !important; }
+}

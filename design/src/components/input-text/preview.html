@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Text Input — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="input-text.css">
+  <style>html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); } .preview-frame { display: flex; align-items: center; justify-content: center; padding: var(--space-5); }</style>
+</head>
+<body>
+  <div class="preview-frame">
+    <label data-loom="input-text">
+      <span class="input__label">Project name</span>
+      <input type="text" placeholder="Untitled">
+    </label>
+  </div>
+  <script>try { parent.postMessage({ type: "loom:ready", slug: "input-text" }, "*"); } catch (_) {}</script>
+</body>
+</html>

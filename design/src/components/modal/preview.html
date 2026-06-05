@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Modal — preview</title><link rel="stylesheet" href="../../../src/tokens.css"><link rel="stylesheet" href="../button-primary/button-primary.css"><link rel="stylesheet" href="../button-ghost/button-ghost.css"><link rel="stylesheet" href="modal.css"><script src="modal.js" defer></script><style>html, body { margin: 0; padding: 0; min-height: 100vh; background: var(--surface1); color: var(--text1); font-family: var(--font-body); display: flex; align-items: center; justify-content: center; padding: var(--space-5); }</style></head>
+<body>
+  <div data-loom="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h4 class="modal__title" id="modal-title">Ship the brand system?</h4>
+    <p class="modal__text">This pushes identity, site, and motion live at 09:00 PT. The action can't be undone without contacting the client.</p>
+    <div class="modal__actions">
+      <button type="button" data-loom="button-ghost"><span>Not yet</span></button>
+      <button type="button" data-loom="button-primary"><span>Ship it</span></button>
+    </div>
+  </div>
+  <script>try { parent.postMessage({ type: "loom:ready", slug: "modal" }, "*"); } catch (_) {}</script>
+</body>
+</html>

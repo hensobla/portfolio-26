@@ -1,0 +1,16 @@
+{
+  "name": "portfolio-26",
+  "purpose": "Design system + look/feel for a personal portfolio site; tokens/components authored here flow into the parent Next app via src/tokens.css.",
+  "brandSource": null,
+  "stack": null,
+  "darkMode": null,
+  "initializedAt": "2026-06-05",
+  "deferred": [
+    "audience",
+    "stack",
+    "deployment",
+    "cms",
+    "analytics"
+  ],
+  "answers": {}
+}

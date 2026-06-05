@@ -1,0 +1,357 @@
+/* ============================================================
+   tokens.css — Loomling design tokens
+   ------------------------------------------------------------
+   Single source of truth for design values.
+   The init interview replaces the placeholder values below
+   with project-specific seeds.
+
+   Components reference SEMANTIC tokens (--paper, --ink, etc).
+   Primitives (--color-blue-500) are for the system layer only.
+   ============================================================ */
+
+/* This file currently lives at .loomling/tokens.original.css — the
+   canonical pre-import baseline used by the Reset tokens dev tool.
+   CC copies this entire file (header included) over src/tokens.css
+   during a reset; the header above is the intentional identity for
+   src/tokens.css, so verbatim copy lands correctly. */
+
+:root {
+  /* ---------- Color primitives ----------
+     Filled by init. Each hue uses steps 50–950.
+     Example structure:
+       --color-neutral-50: …;
+       --color-neutral-500: …;
+       --color-neutral-950: …;
+  */
+
+  /* Placeholder neutrals (replaced at init) */
+  --color-neutral-50:  hsl(0 0% 98%);
+  --color-neutral-100: hsl(0 0% 95%);
+  --color-neutral-200: hsl(0 0% 88%);
+  --color-neutral-300: hsl(0 0% 78%);
+  --color-neutral-400: hsl(0 0% 65%);
+  --color-neutral-500: hsl(0 0% 50%);
+  --color-neutral-600: hsl(0 0% 38%);
+  --color-neutral-700: hsl(0 0% 28%);
+  --color-neutral-800: hsl(0 0% 18%);
+  --color-neutral-900: hsl(0 0% 10%);
+  --color-neutral-950: hsl(0 0% 6%);
+
+  /* Placeholder accent ramp (replaced at init).
+     50–900 ramp around the brand blue at step 500. Lighter steps tint
+     toward the canvas; darker steps deepen toward ink. */
+  --color-accent-50:  hsl(220 100% 97%);
+  --color-accent-100: hsl(220 95%  92%);
+  --color-accent-200: hsl(220 90%  85%);
+  --color-accent-300: hsl(220 85%  72%);
+  --color-accent-400: hsl(220 80%  62%);
+  --color-accent-500: hsl(220 80%  55%);
+  --color-accent-600: hsl(220 80%  48%);
+  --color-accent-700: hsl(220 78%  40%);
+  --color-accent-800: hsl(220 72%  30%);
+  --color-accent-900: hsl(220 65%  22%);
+
+  /* Status color primitives (placeholder — replaced at init if the user
+     overrides them). Each hue carries 50 / 500 / 900 plus a -bg variant
+     for tinted backgrounds (alerts, badges). */
+  --color-success-50:  hsl(140 60% 95%);
+  --color-success-500: hsl(140 60% 40%);
+  --color-success-900: hsl(140 50% 18%);
+  --color-success-bg:  hsl(140 55% 92%);
+
+  --color-warning-50:  hsl(38 95% 95%);
+  --color-warning-500: hsl(38 90% 50%);
+  --color-warning-900: hsl(38 80% 20%);
+  --color-warning-bg:  hsl(38 90% 92%);
+
+  --color-error-50:  hsl(0 75% 96%);
+  --color-error-500: hsl(0 70% 50%);
+  --color-error-900: hsl(0 65% 22%);
+  --color-error-bg:  hsl(0 75% 94%);
+
+  /* ---------- Semantic color tokens ----------
+     What components should reference. Vocabulary migrated to hue-style
+     names on 2026-05-22 — the broader ecosystem (Tailwind, Radix,
+     Shadcn, hue) gravitates here, and it removes the awkward
+     translation layer in Tokens Import.
+       --paper   → --background  (+ --bg alias)
+       --panel   → --surface1
+       --ink     → --text1
+       --muted   → --text2
+       --line    → --border
+     Brand-new semantic roles added in the same pass:
+       --text3       — tertiary text (timestamps, placeholders)
+       --text4       — disabled text
+       --surface3    — wells, recessed UI
+  */
+  --background: var(--color-neutral-50);
+  --bg:         var(--background);
+  --surface1:   var(--color-neutral-100);
+  --surface2:   var(--color-neutral-200);
+  --surface3:   var(--color-neutral-300);
+  --text1:      var(--color-neutral-900);
+  --text2:      var(--color-neutral-600);
+  --text3:      var(--color-neutral-500);
+  --text4:      var(--color-neutral-400);
+  --accent:     var(--color-accent-500);
+  --border:     var(--color-neutral-200);
+  --border-visible: var(--color-neutral-300);
+
+  /* Tinted accent background — for badges, focus rings, selected states.
+     Never use --accent-subtle as a hover background (looks broken in dark
+     mode). Use --panel or --surface2 for hover. */
+  --accent-subtle: var(--color-accent-50);
+
+  /* Status semantic mappings */
+  --success:    var(--color-success-500);
+  --warning:    var(--color-warning-500);
+  --error:      var(--color-error-500);
+  --success-bg: var(--color-success-bg);
+  --warning-bg: var(--color-warning-bg);
+  --error-bg:   var(--color-error-bg);
+
+  /* Focus ring */
+  --focus-ring: 2px solid var(--accent);
+  --focus-ring-offset: 2px;
+
+  /* ---------- Interactive (added 2026-05-20, drift round 1) ---------- */
+  --accent-hover:    hsl(220 80% 48%);   /* ~10% darker than --color-accent-500 */
+  --accent-disabled: hsl(220 25% 70%);   /* desaturated accent for disabled fill */
+
+  /* ---------- Button anatomy ---------- */
+  --radius-button:    0.5rem;
+  --button-padding-y: var(--space-3);
+  --button-padding-x: var(--space-5);
+
+  /* ---------- Surfaces ---------- */
+  --radius-card: 0.75rem;
+  --shadow-card: 0 1px 2px hsl(0 0% 0% / 0.06), 0 4px 12px hsl(0 0% 0% / 0.06);
+
+  /* ---------- Typography ----------
+     Replaced by init with project-specific families.
+  */
+  --font-display: ui-sans-serif, system-ui, sans-serif;
+  --font-body:    ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --type-display-xl: 4.5rem;
+  --type-display-l:  3rem;
+  --type-display-m:  2.25rem;
+  --type-display-s:  1.75rem;
+  --type-body-l:     1.25rem;
+  --type-body:       1rem;
+  --type-body-s:     0.875rem;
+  --type-mono:       0.875rem;
+
+  --line-height-display: 1.1;
+  --line-height-body:    1.55;
+  --line-height-mono:    1.5;
+
+  --measure: 65ch;
+
+  /* ---------- Eyebrow text role ----------
+     Small, uppercase, letter-spaced label text. Previously the
+     `eyebrow` component; now a typography role any module/template
+     can apply directly via the sub-tokens below. See system/typography.md.
+  */
+  --eyebrow-family:    var(--font-body);
+  --eyebrow-size:      var(--type-body-s);
+  --eyebrow-weight:    600;
+  --eyebrow-tracking:  0.12em;
+  --eyebrow-transform: uppercase;
+  --eyebrow-color:     var(--text2);
+
+  /* ---------- Spacing scale ---------- */
+  --space-0:  0;
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.5rem;
+  --space-6:  2rem;
+  --space-7:  3rem;
+  --space-8:  4rem;
+  --space-9:  6rem;
+  --space-10: 8rem;
+
+  /* ---------- Layout ---------- */
+  --container-max: 80rem;
+
+  /* ---------- Breakpoints ----------
+     Referenced by media queries (use the value, not the var, in @media).
+  */
+  --bp-xs:  320px;
+  --bp-sm:  480px;
+  --bp-md:  768px;
+  --bp-lg:  1024px;
+  --bp-xl:  1280px;
+  --bp-2xl: 1536px;
+
+  /* ---------- Grid (added 2026-05-20, drift round 2) ----------
+     A responsive 12-column grid that narrows at small breakpoints.
+     Modules and templates consume the ACTIVE values (--grid-cols,
+     --grid-gap, --grid-margin) — those are re-mapped per breakpoint
+     by the @media blocks at the bottom of this file.
+
+     To customize: edit the per-breakpoint values below. Everything
+     downstream (every module and template) re-flows automatically.
+     See system/space.md → Grid for the full reference.
+  */
+
+  /* Column counts per breakpoint (Material-inspired narrowing) */
+  --grid-cols-xs:  4;
+  --grid-cols-sm:  4;
+  --grid-cols-md:  8;
+  --grid-cols-lg:  12;
+  --grid-cols-xl:  12;
+  --grid-cols-2xl: 12;
+
+  /* Gap between columns */
+  --grid-gap-xs:  var(--space-3);
+  --grid-gap-sm:  var(--space-3);
+  --grid-gap-md:  var(--space-4);
+  --grid-gap-lg:  var(--space-5);
+  --grid-gap-xl:  var(--space-5);
+  --grid-gap-2xl: var(--space-5);
+
+  /* Outer side padding (container gutter, inside --container-max) */
+  --grid-margin-xs:  var(--space-4);
+  --grid-margin-sm:  var(--space-5);
+  --grid-margin-md:  var(--space-6);
+  --grid-margin-lg:  var(--space-7);
+  --grid-margin-xl:  var(--space-7);
+  --grid-margin-2xl: var(--space-7);
+
+  /* ACTIVE values — start at xs, overridden by media queries below.
+     Consume these in module/template CSS:
+       grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+       gap: var(--grid-gap);
+       padding-inline: var(--grid-margin);
+  */
+  --grid-cols:   var(--grid-cols-xs);
+  --grid-gap:    var(--grid-gap-xs);
+  --grid-margin: var(--grid-margin-xs);
+}
+
+/* ============================================================
+   Dark mode — semantic overrides
+   ------------------------------------------------------------
+   Activated when <html data-theme="dark"> is set by the Loom's
+   sun/moon nav toggle. Override SEMANTIC tokens only — primitives
+   stay constant. The presence of this block is what tells Loomling
+   the user's design system supports dark mode (auto-detected by
+   library/theme.js); remove the block to opt out.
+
+   Transpose, don't invert: warm light gray → warm dark gray;
+   accents bump one step brighter to keep perceived saturation
+   against the darker surround. See system/dark-mode.md.
+   ============================================================ */
+[data-theme="dark"] {
+  --background: var(--color-neutral-950);
+  --bg:         var(--background);
+  --surface1:   var(--color-neutral-900);
+  --surface2:   var(--color-neutral-800);
+  --surface3:   var(--color-neutral-700);
+  --text1:      var(--color-neutral-50);
+  --text2:      var(--color-neutral-400);
+  --text3:      var(--color-neutral-500);
+  --text4:      var(--color-neutral-600);
+  --accent:     hsl(220 80% 65%);                 /* +10% lightness vs light's --color-accent-500 */
+  --border:     var(--color-neutral-800);
+  --border-visible: var(--color-neutral-700);
+
+  --accent-hover:    hsl(220 80% 75%);        /* lighter on dark — opposite of light-mode hover */
+  --accent-disabled: hsl(220 25% 35%);        /* desaturated, dark-surround-friendly */
+
+  /* Accent-subtle in dark mode = deep, low-chroma tint (NOT light) */
+  --accent-subtle: hsl(220 50% 18%);
+
+  /* Status colors keep their hue but get bg variants tuned for dark */
+  --success-bg: hsl(140 30% 16%);
+  --warning-bg: hsl(38 45% 18%);
+  --error-bg:   hsl(0 35% 18%);
+
+  /* Eyebrow color in dark — softer than --text2 to read at small size */
+  --eyebrow-color: var(--color-neutral-500);
+}
+
+/* ---------- Grid: per-breakpoint active value overrides ----------
+   Each @media block re-points the ACTIVE grid vars at the matching
+   per-breakpoint tokens. Modules/templates only read the active
+   vars, so adjusting the per-breakpoint values above is enough to
+   reshape every grid-driven layout in the project.
+*/
+@media (min-width: 480px) {
+  :root {
+    --grid-cols:   var(--grid-cols-sm);
+    --grid-gap:    var(--grid-gap-sm);
+    --grid-margin: var(--grid-margin-sm);
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --grid-cols:   var(--grid-cols-md);
+    --grid-gap:    var(--grid-gap-md);
+    --grid-margin: var(--grid-margin-md);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --grid-cols:   var(--grid-cols-lg);
+    --grid-gap:    var(--grid-gap-lg);
+    --grid-margin: var(--grid-margin-lg);
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --grid-cols:   var(--grid-cols-xl);
+    --grid-gap:    var(--grid-gap-xl);
+    --grid-margin: var(--grid-margin-xl);
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --grid-cols:   var(--grid-cols-2xl);
+    --grid-gap:    var(--grid-gap-2xl);
+    --grid-margin: var(--grid-margin-2xl);
+  }
+}
+
+/* ============================================================
+   Image placeholder (added 2026-05-20)
+   ------------------------------------------------------------
+   Global fallback for slot-managed images with no real source.
+   When `src` is empty, missing, or a %PLACEHOLDER% string, the
+   img renders as a centered "no image" icon on a panel-grey
+   background instead of the browser's broken-image marker.
+
+   The `content: url(...)` swap is what suppresses the marker —
+   browsers stop drawing the broken src once `content` is set
+   explicitly. !important defeats module-level object-fit rules
+   that would otherwise stretch the icon to cover the box.
+
+   Selector is `img[data-loom-slot]` only — Loomling-managed
+   image slots opt in by declaring that attribute; bare <img>
+   tags (logos, icons) are unaffected. See system/seo.md §5
+   for the convention.
+   ============================================================ */
+
+:root {
+  --image-placeholder-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 48' width='64' height='48'%3E%3Crect x='5' y='5' width='54' height='38' rx='3' fill='none' stroke='%23999' stroke-width='2.4'/%3E%3Ccircle cx='19' cy='18' r='3.6' fill='%23999'/%3E%3Cpath d='M9 36 L23 24 L31 30 L43 19 L55 30 V40 H9 Z' fill='%23999'/%3E%3C/svg%3E");
+}
+
+img[data-loom-slot] {
+  background-color: var(--surface1);
+}
+
+img[data-loom-slot][src=""],
+img[data-loom-slot][src^="%"],
+img[data-loom-slot]:not([src]) {
+  content: var(--image-placeholder-icon) !important;
+  object-fit: scale-down !important;
+  object-position: center !important;
+}

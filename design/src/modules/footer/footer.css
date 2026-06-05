@@ -1,0 +1,120 @@
+/* Content module — uses the full grid system (system/space.md → Grid).
+   The brand block and the link columns each claim a span of the global
+   grid. The link columns area is itself a sub-grid (3 sub-tracks at md+,
+   4 at the wide state) so each column lines up evenly within the parent
+   span without inventing new tokens. */
+[data-loom-module="footer"] {
+  border-top: 1px solid var(--border);
+  background: var(--background);
+  color: var(--text1);
+  --footer-brand-cols: 1 / -1;
+  --footer-cols-cols:  1 / -1;
+}
+
+@media (min-width: 768px) {
+  [data-loom-module="footer"] {
+    --footer-brand-cols: span 3;
+    --footer-cols-cols:  span 5;
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-loom-module="footer"] {
+    --footer-brand-cols: span 4;
+    --footer-cols-cols:  span 8;
+  }
+}
+
+[data-loom-module="footer"] .footer__inner {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+  gap: var(--grid-gap);
+  row-gap: var(--space-7);
+  padding-block: var(--space-8);
+  padding-inline: var(--grid-margin);
+  max-width: var(--container-max);
+  margin-inline: auto;
+  align-items: start;
+}
+
+[data-loom-module="footer"] .footer__brand {
+  grid-column: var(--footer-brand-cols);
+}
+
+[data-loom-module="footer"] .footer__brand-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--type-body-l);
+  color: var(--text1);
+  display: block;
+}
+
+[data-loom-module="footer"] .footer__brand-tag {
+  font-size: var(--type-body-s);
+  color: var(--text2);
+  margin: var(--space-2) 0 0;
+  max-width: 28ch;
+}
+
+[data-loom-module="footer"] .footer__cols {
+  grid-column: var(--footer-cols-cols);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--grid-gap);
+  row-gap: var(--space-6);
+}
+
+@media (min-width: 768px) {
+  [data-loom-module="footer"] .footer__cols {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  [data-loom-module="footer"][data-state="wide"] .footer__cols {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* Column titles are <h2> for outline correctness — the host page's
+   only other heading is the <h1>, so anything deeper would skip a
+   level. They're styled visually as small caps to read as labels
+   rather than competing with the page's content headings. */
+[data-loom-module="footer"] .footer__col h2 {
+  font-size: var(--type-body-s);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text2);
+  margin: 0 0 var(--space-3);
+  font-weight: 600;
+}
+
+[data-loom-module="footer"] .footer__col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-2);
+}
+
+[data-loom-module="footer"] .footer__col a {
+  color: var(--text1);
+  text-decoration: none;
+  font-size: var(--type-body);
+}
+
+[data-loom-module="footer"] .footer__col a:hover {
+  color: var(--accent-text);
+}
+
+[data-loom-module="footer"] .footer__copyright {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-block: var(--space-5);
+  padding-inline: var(--grid-margin);
+  border-top: 1px solid var(--border);
+  color: var(--text2);
+  font-size: var(--type-body-s);
+}
+
+[data-loom-module="footer"][data-state="minimal"] .footer__cols {
+  display: none;
+}

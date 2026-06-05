@@ -1,0 +1,38 @@
+[data-loom="button-destructive"] {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  padding: var(--button-padding-y) var(--button-padding-x);
+  border: 0;
+  border-radius: var(--radius-button);
+  background: var(--error);
+  color: var(--background);
+  font-family: var(--font-body);
+  font-size: var(--type-body);
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: filter 120ms ease;
+}
+
+[data-loom="button-destructive"]:hover,
+[data-loom="button-destructive"][data-state="hover"] {
+  filter: brightness(0.9);
+}
+
+[data-loom="button-destructive"]:active,
+[data-loom="button-destructive"][data-state="pressed"] {
+  filter: brightness(0.8);
+}
+
+[data-loom="button-destructive"]:focus-visible,
+[data-loom="button-destructive"][data-state="focused"] {
+  outline: 2px solid var(--error);
+  outline-offset: 2px;
+}
+
+[data-loom="button-destructive"][data-state="disabled"] {
+  background: var(--accent-disabled);
+  cursor: not-allowed;
+}

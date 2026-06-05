@@ -1,0 +1,41 @@
+<div data-loom-template="home" class="home" data-home-state="resting">
+  <p class="home__status">
+    <span class="home__status-dot" aria-hidden="true"><span class="home__status-ping loom-pulse"></span></span>
+    Available for work
+  </p>
+
+  <header class="home__identity">
+    <h1 class="home__name" data-loom-slot="name">Blake Henson</h1>
+    <div class="home__bio">
+      <p class="home__bio-lead" data-loom-slot="bio-lead">I design how things get built and bought.</p>
+      <p class="home__bio-text" data-loom-slot="bio-text">Commerce and ownership experiences for physical products — the web as the exploded diagram of a thing you can't hold yet, every part labelled, every join shown.</p>
+    </div>
+  </header>
+
+  <aside class="home__explorer" aria-label="Projects">
+    <div class="home__folder">
+      <!-- back tabs sit BEHIND the body, cascading down-right: tops step down a
+           little, bottoms stay on the folder line. Side inset scales with each
+           tab's height so every tab shares the SAME side angle. -->
+      <svg class="home__tabs home__tabs--back" viewBox="0 0 160 40" preserveAspectRatio="xMinYMax meet" aria-hidden="true" focusable="false">
+        <path class="home__tab" d="M36 40 L43.2 14 L138.8 14 L146 40" />
+        <path class="home__tab" d="M20 40 L28.6 9 L121.4 9 L130 40" />
+      </svg>
+
+      <div class="home__folder-body">
+        <h2 class="home__folder-title">My Projects</h2>
+        <ul class="home__list">
+          <li><button class="home__item" type="button">Project 1</button></li>
+          <li><button class="home__item" type="button">Project 2</button></li>
+          <li><button class="home__item" type="button">Project 3</button></li>
+          <li><button class="home__item" type="button">Project 4</button></li>
+        </ul>
+      </div>
+
+      <!-- active tab: front, highest, opens into the body (no bottom edge). -->
+      <svg class="home__tabs home__tabs--front" viewBox="0 0 160 40" preserveAspectRatio="xMinYMax meet" aria-hidden="true" focusable="false">
+        <path class="home__tab" d="M4 40 L14 4 L104 4 L114 40" />
+      </svg>
+    </div>
+  </aside>
+</div>

@@ -1,0 +1,22 @@
+[data-loom="nav-menu"] {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-button);
+  font-family: var(--font-body);
+}
+
+[data-loom="nav-menu"] a {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--type-body-s);
+  font-weight: 600;
+  color: var(--text2);
+  text-decoration: none;
+  border-radius: calc(var(--radius-button) - 4px);
+  transition: background 120ms ease, color 120ms ease;
+}
+
+[data-loom="nav-menu"] a:hover { color: var(--text1); }
+[data-loom="nav-menu"] a[aria-current="page"] { background: var(--surface2); color: var(--text1); }

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Home — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="home.css">
+  <script src="../../loader.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+  </style>
+</head>
+<body>
+  <div id="preview-frame"></div>
+  <script>
+    // Fetch the canonical template markup so home.html stays the single
+    // source of truth while we iterate piece by piece. State + slot wiring
+    // arrive in later pieces; for now ?state= is read but only "default"
+    // (the resting layout) exists.
+    (function () {
+      const params = new URLSearchParams(location.search);
+      const state = params.get("state") || "default"; // reserved for later pieces
+      fetch("home.html")
+        .then((r) => r.text())
+        .then((html) => {
+          const frame = document.getElementById("preview-frame");
+          frame.innerHTML = html;
+          const root = frame.querySelector('[data-loom-template="home"]');
+          if (root) {
+            root.setAttribute("data-preview-state", state);
+            // Full-viewport (100svh) only when standalone (direct URL / real
+            // page). Inside the Loom Sandbox iframe (self !== top) the iframe
+            // auto-sizes to content, so 100svh would loop — size to content.
+            if (window.self === window.top) root.classList.add("home--standalone");
+          }
+          try { parent.postMessage({ type: "loom:ready", slug: "home" }, location.origin); } catch (_) {}
+        });
+    })();
+  </script>
+</body>
+</html>

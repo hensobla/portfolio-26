@@ -1,0 +1,41 @@
+[data-loom="popover"] {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 16rem;
+  padding: var(--space-3) var(--space-4);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  font-family: var(--font-body);
+  margin-top: 10px;
+}
+
+[data-loom="popover"]::before {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: var(--space-4);
+  width: 10px;
+  height: 10px;
+  background: var(--background);
+  border-left: 1px solid var(--border);
+  border-top: 1px solid var(--border);
+  transform: rotate(45deg);
+}
+
+[data-loom="popover"] .popover__title {
+  font-size: var(--type-body-s);
+  font-weight: 600;
+  color: var(--text1);
+  margin: 0;
+}
+
+[data-loom="popover"] .popover__text {
+  font-size: var(--type-body-s);
+  color: var(--text2);
+  margin: 0;
+  line-height: var(--line-height-body);
+}

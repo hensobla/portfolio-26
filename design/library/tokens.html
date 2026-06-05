@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>System — Loomling</title>
+  <link rel="icon" type="image/svg+xml" href="loomling-lettermark.svg">
+  <script>(function(){try{var t=localStorage.getItem("loomling:theme:v1");if(t==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}}())</script>
+  <script>(function(){try{if(localStorage.getItem("loomling:sidebar:collapsed:v1")==="true")document.documentElement.setAttribute("data-sidebar-collapsed","true");}catch(e){}}())</script>
+  <link rel="stylesheet" href="library.css">
+  <link rel="stylesheet" href="../src/tokens.css">
+  <link rel="stylesheet"
+        href="https://unpkg.com/@phosphor-icons/web@2.1.2/src/regular/style.css"
+        integrity="sha384-6p9AefaqUhEVheRlj1mpAkbngHXy9mbYMrIdcIt4Jlc9lOLIablJq3bBsLOjGwZ7"
+        crossorigin="anonymous">
+</head>
+<body data-page="tokens">
+  <header class="lib-header">
+    <div class="lib-header__inner">
+      <a class="lib-brand" href="index.html" aria-label="Loomling Loom home">
+        <img class="lib-brand__user-logo" alt="" hidden>
+        <span class="lib-brand__sep" aria-hidden="true" hidden>|</span>
+        <span class="lib-brand__mark" aria-hidden="true"></span>
+        <span class="lib-brand__project" data-project-name>—</span>
+      </a>
+      <nav class="lib-tabs" aria-label="Loom views">
+        <a class="lib-tab" href="index.html">Library</a>
+        <a class="lib-tab is-active" href="tokens.html">System</a>
+        <a class="lib-tab" href="components.html">Components</a>
+        <a class="lib-tab" href="builder.html">Builder</a>
+        <a class="lib-tab" href="settings.html">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="lib-main" id="main-content">
+    <h1 class="sr-only">System</h1>
+    <aside class="lib-side" aria-label="Sections">
+      <button
+        class="lib-side__collapse"
+        id="lib-side-collapse"
+        type="button"
+        aria-pressed="false"
+        data-tooltip="Collapse sidebar">
+        <i class="ph ph-sidebar-simple" aria-hidden="true"></i>
+        <span class="sr-only">Collapse sidebar</span>
+      </button>
+      <button
+        class="lib-side__toggle"
+        id="lib-side-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="lib-side-nav">
+        <span class="lib-side__toggle-label" id="lib-side-toggle-label">Color</span>
+        <span class="lib-side__toggle-caret" aria-hidden="true">▾</span>
+      </button>
+      <nav class="lib-side__nav" id="lib-side-nav">
+        <div class="lib-side__group-title">Foundations</div>
+        <a class="lib-side__link" href="#color" data-tooltip="Color"><i class="ph ph-palette lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Color</span></a>
+        <a class="lib-side__link" href="#typography" data-tooltip="Typography"><i class="ph ph-text-aa lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Typography</span></a>
+        <a class="lib-side__link" href="#radii" data-tooltip="Radii"><i class="ph ph-bezier-curve lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Radii</span></a>
+        <a class="lib-side__link" href="#elevation" data-tooltip="Elevation"><i class="ph ph-stack lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Elevation</span></a>
+        <a class="lib-side__link" href="#space" data-tooltip="Space"><i class="ph ph-arrows-out-cardinal lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Space</span></a>
+        <a class="lib-side__link" href="#grid" data-tooltip="Grid"><i class="ph ph-grid-four lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Grid</span></a>
+        <a class="lib-side__link" href="#breakpoints" data-tooltip="Breakpoints"><i class="ph ph-devices lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Breakpoints</span></a>
+        <a class="lib-side__link" href="#iconography" data-tooltip="Iconography"><i class="ph ph-shapes lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Iconography</span></a>
+        <a class="lib-side__link" href="#motion" data-tooltip="Motion"><i class="ph ph-play-circle lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Motion</span></a>
+      </nav>
+    </aside>
+
+    <section class="lib-content">
+      <section class="ds-section" id="color">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Color</h2>
+          <span class="lib-section__meta" id="color-source">src/tokens.css</span>
+        </div>
+        <p class="ds-note">Primitives (top) are the raw ramps. Semantic tokens (below) map roles onto them — they're what components reference.</p>
+        <h3 class="lib-side__group-title" style="padding-left: 0;">Primitives</h3>
+        <div class="ds-grid-colors" id="ds-primitives"></div>
+        <h3 class="lib-side__group-title" style="padding-left: 0; margin-top: 24px;">Semantic</h3>
+        <div class="ds-grid-colors" id="ds-semantic"></div>
+      </section>
+
+      <section class="ds-section" id="typography">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Typography</h2>
+          <span class="lib-section__meta">type scale</span>
+        </div>
+        <p class="ds-note">Stepped scale from <code>--type-display-xl</code> down to <code>--type-mono</code>. Components reference the role tokens, not raw sizes.</p>
+        <div class="ds-type-list" id="ds-type"></div>
+      </section>
+
+      <section class="ds-section" id="radii">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Radii</h2>
+          <span class="lib-section__meta">corner discipline</span>
+        </div>
+        <p class="ds-note">Stepped, named radii. Components reference role tokens (<code>--radius-button</code>, <code>--radius-card</code>) — bare px values not allowed.</p>
+        <div class="ds-radii-list" id="ds-radii"></div>
+      </section>
+
+      <section class="ds-section" id="elevation">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Elevation</h2>
+          <span class="lib-section__meta">depth strategy</span>
+        </div>
+        <p class="ds-note">Depth comes from surfaces + 1px borders, not shadows. The single allowed shadow role is <code>--shadow-card</code> for floating cards.</p>
+        <div class="ds-elev-list" id="ds-elev"></div>
+      </section>
+
+      <section class="ds-section" id="space">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Space</h2>
+          <span class="lib-section__meta">spacing scale</span>
+        </div>
+        <p class="ds-note">Used for padding, gap, and margin. Off-scale values are not allowed in components.</p>
+        <div class="ds-space-list" id="ds-space"></div>
+      </section>
+
+      <section class="ds-section" id="grid">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Grid</h2>
+          <span class="lib-section__meta" id="grid-active">—</span>
+        </div>
+        <p class="ds-note">A responsive 12-column grid (narrowing at smaller breakpoints) governs every module and template. Modules consume the <strong>active</strong> values — <code>--grid-cols</code>, <code>--grid-gap</code>, <code>--grid-margin</code> — which the media-query map in <code>tokens.css</code> re-points at the per-breakpoint tokens. Resize the window to see the active values change live.</p>
+        <h3 class="lib-side__group-title" style="padding-left: 0;">Live preview at this viewport</h3>
+        <div class="ds-grid-viz" id="ds-grid-viz"></div>
+        <h3 class="lib-side__group-title" style="padding-left: 0; margin-top: 24px;">Per-breakpoint tokens</h3>
+        <div class="ds-grid-table" id="ds-grid-table"></div>
+        <p class="ds-note" style="margin-top: 16px;">To customize: edit <code>--grid-cols-{xs..2xl}</code>, <code>--grid-gap-{xs..2xl}</code>, or <code>--grid-margin-{xs..2xl}</code> in <code>src/tokens.css</code>. Every grid-driven module and template re-flows automatically. See <code>system/space.md → Grid</code> for the full reference.</p>
+      </section>
+
+      <section class="ds-section" id="breakpoints">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Breakpoints</h2>
+          <span class="lib-section__meta">responsive</span>
+        </div>
+        <div class="ds-bp-list" id="ds-bp"></div>
+      </section>
+
+      <section class="ds-section" id="iconography">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Iconography</h2>
+          <span class="lib-section__meta">Phosphor · regular</span>
+        </div>
+        <p class="ds-note">Loomling ships with <a href="https://phosphoricons.com/" class="ds-link" target="_blank" rel="noopener">Phosphor</a> as the default icon kit. Components reference glyphs by class name (e.g. <code>ph ph-arrow-right</code>). To swap kits, change the CDN link in <code>library/tokens.html</code> and rewrite the <code>ph</code> prefix in component HTML.</p>
+        <div class="ds-icon-grid" id="ds-icons"></div>
+      </section>
+
+      <section class="ds-section" id="motion">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Motion</h2>
+          <span class="lib-section__meta">src/tokens.css · src/motion.css</span>
+        </div>
+        <p class="ds-note">Universal durations and easings — brand-agnostic, performance-first. Components reference <code>var(--motion-*)</code> and <code>var(--ease-*)</code> instead of hardcoded values. The reveal utilities (<code>data-loom-reveal</code>) layer on <code>IntersectionObserver</code> via <code>src/motion.js</code>. Reduced-motion (OS preference) collapses every duration token to 1ms automatically — see <code>system/motion.md</code>.</p>
+
+        <h3 class="lib-side__group-title" style="padding-left: 0; margin-top: 24px;">Durations</h3>
+        <div class="ds-motion-durations">
+          <div class="ds-motion-row" data-motion-tile>
+            <span class="ds-motion-row__token">--motion-instant</span>
+            <span class="ds-motion-row__value">100ms</span>
+            <div class="ds-motion-row__demo"><span class="ds-motion-row__dot" style="animation-duration: var(--motion-instant);"></span></div>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+          </div>
+          <div class="ds-motion-row" data-motion-tile>
+            <span class="ds-motion-row__token">--motion-fast</span>
+            <span class="ds-motion-row__value">180ms</span>
+            <div class="ds-motion-row__demo"><span class="ds-motion-row__dot" style="animation-duration: var(--motion-fast);"></span></div>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+          </div>
+          <div class="ds-motion-row" data-motion-tile>
+            <span class="ds-motion-row__token">--motion-standard</span>
+            <span class="ds-motion-row__value">300ms</span>
+            <div class="ds-motion-row__demo"><span class="ds-motion-row__dot" style="animation-duration: var(--motion-standard);"></span></div>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+          </div>
+          <div class="ds-motion-row" data-motion-tile>
+            <span class="ds-motion-row__token">--motion-slow</span>
+            <span class="ds-motion-row__value">500ms</span>
+            <div class="ds-motion-row__demo"><span class="ds-motion-row__dot" style="animation-duration: var(--motion-slow);"></span></div>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+          </div>
+          <div class="ds-motion-row" data-motion-tile>
+            <span class="ds-motion-row__token">--motion-slower</span>
+            <span class="ds-motion-row__value">800ms</span>
+            <div class="ds-motion-row__demo"><span class="ds-motion-row__dot" style="animation-duration: var(--motion-slower);"></span></div>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+          </div>
+        </div>
+
+        <h3 class="lib-side__group-title" style="padding-left: 0; margin-top: 32px;">Easings</h3>
+        <div class="ds-motion-easings">
+          <div class="ds-easing-card" data-motion-tile>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+            <svg class="ds-easing-card__curve" viewBox="0 -20 100 84" preserveAspectRatio="none" aria-hidden="true">
+              <line class="ds-easing-card__axis" x1="0" y1="60" x2="100" y2="60"></line>
+              <path d="M 0 60 L 100 0"></path>
+            </svg>
+            <div class="ds-easing-card__track"><span class="ds-easing-card__dot" style="animation-timing-function: var(--ease-linear);"></span></div>
+            <div class="ds-easing-card__meta">
+              <span class="ds-easing-card__token">--ease-linear</span>
+              <span class="ds-easing-card__value">linear</span>
+            </div>
+          </div>
+          <div class="ds-easing-card" data-motion-tile>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+            <svg class="ds-easing-card__curve" viewBox="0 -20 100 84" preserveAspectRatio="none" aria-hidden="true">
+              <line class="ds-easing-card__axis" x1="0" y1="60" x2="100" y2="60"></line>
+              <path d="M 0 60 C 40 60, 80 12, 100 0"></path>
+            </svg>
+            <div class="ds-easing-card__track"><span class="ds-easing-card__dot" style="animation-timing-function: var(--ease-standard);"></span></div>
+            <div class="ds-easing-card__meta">
+              <span class="ds-easing-card__token">--ease-standard</span>
+              <span class="ds-easing-card__value">cubic-bezier(0.4, 0, 0.2, 1)</span>
+            </div>
+          </div>
+          <div class="ds-easing-card" data-motion-tile>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+            <svg class="ds-easing-card__curve" viewBox="0 -20 100 84" preserveAspectRatio="none" aria-hidden="true">
+              <line class="ds-easing-card__axis" x1="0" y1="60" x2="100" y2="60"></line>
+              <path d="M 0 60 C 0 60, 80 12, 100 0"></path>
+            </svg>
+            <div class="ds-easing-card__track"><span class="ds-easing-card__dot" style="animation-timing-function: var(--ease-out);"></span></div>
+            <div class="ds-easing-card__meta">
+              <span class="ds-easing-card__token">--ease-out</span>
+              <span class="ds-easing-card__value">cubic-bezier(0, 0, 0.2, 1)</span>
+            </div>
+          </div>
+          <div class="ds-easing-card" data-motion-tile>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+            <svg class="ds-easing-card__curve" viewBox="0 -20 100 84" preserveAspectRatio="none" aria-hidden="true">
+              <line class="ds-easing-card__axis" x1="0" y1="60" x2="100" y2="60"></line>
+              <path d="M 0 60 C 40 60, 100 60, 100 0"></path>
+            </svg>
+            <div class="ds-easing-card__track"><span class="ds-easing-card__dot" style="animation-timing-function: var(--ease-in);"></span></div>
+            <div class="ds-easing-card__meta">
+              <span class="ds-easing-card__token">--ease-in</span>
+              <span class="ds-easing-card__value">cubic-bezier(0.4, 0, 1, 1)</span>
+            </div>
+          </div>
+          <div class="ds-easing-card" data-motion-tile>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+            <svg class="ds-easing-card__curve" viewBox="0 -20 100 84" preserveAspectRatio="none" aria-hidden="true">
+              <line class="ds-easing-card__axis" x1="0" y1="60" x2="100" y2="60"></line>
+              <path d="M 0 60 C 40 60, 60 0, 100 0"></path>
+            </svg>
+            <div class="ds-easing-card__track"><span class="ds-easing-card__dot" style="animation-timing-function: var(--ease-in-out);"></span></div>
+            <div class="ds-easing-card__meta">
+              <span class="ds-easing-card__token">--ease-in-out</span>
+              <span class="ds-easing-card__value">cubic-bezier(0.4, 0, 0.2, 1)</span>
+            </div>
+          </div>
+          <div class="ds-easing-card" data-motion-tile>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+            <svg class="ds-easing-card__curve" viewBox="0 -20 100 84" preserveAspectRatio="none" aria-hidden="true">
+              <line class="ds-easing-card__axis" x1="0" y1="60" x2="100" y2="60"></line>
+              <path d="M 0 60 C 34 -34, 64 -22, 100 0"></path>
+            </svg>
+            <div class="ds-easing-card__track"><span class="ds-easing-card__dot" style="animation-timing-function: var(--ease-spring);"></span></div>
+            <div class="ds-easing-card__meta">
+              <span class="ds-easing-card__token">--ease-spring</span>
+              <span class="ds-easing-card__value">cubic-bezier(0.34, 1.56, 0.64, 1)</span>
+            </div>
+          </div>
+        </div>
+
+        <h3 class="lib-side__group-title" style="padding-left: 0; margin-top: 32px;">Reveals</h3>
+        <p class="ds-note">Subtle entrance animations. Apply <code>data-loom-reveal="fade-in|rise|scale-95"</code> to any element. <code>src/motion.js</code> wires <code>IntersectionObserver</code> automatically. The refresh icon on each card replays the animation as many times as you want.</p>
+        <div class="ds-motion-reveals" id="ds-motion-reveals" data-loom-reveal-mode="manual">
+          <div class="ds-reveal-card" data-reveal-card data-motion-tile>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+            <div class="ds-reveal-card__sample" data-loom-reveal="fade-in">
+              <div class="ds-reveal-card__sample-image" aria-hidden="true"></div>
+              <h4 class="ds-reveal-card__sample-title">Fade in</h4>
+              <p class="ds-reveal-card__sample-text">The most subtle entrance. Opacity 0 → 1 over <code>--motion-standard</code>.</p>
+            </div>
+            <div class="ds-reveal-card__meta">
+              <span class="ds-reveal-card__token">data-loom-reveal="fade-in"</span>
+              <span class="ds-reveal-card__use">When the entrance shouldn't draw attention.</span>
+            </div>
+          </div>
+
+          <div class="ds-reveal-card" data-reveal-card data-motion-tile>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+            <div class="ds-reveal-card__sample" data-loom-reveal="rise">
+              <div class="ds-reveal-card__sample-image" aria-hidden="true"></div>
+              <h4 class="ds-reveal-card__sample-title">Rise</h4>
+              <p class="ds-reveal-card__sample-text">Fades + translates from 16px below. The default choice for content blocks.</p>
+            </div>
+            <div class="ds-reveal-card__meta">
+              <span class="ds-reveal-card__token">data-loom-reveal="rise"</span>
+              <span class="ds-reveal-card__use">Default for hero, section, and content-block entrances.</span>
+            </div>
+          </div>
+
+          <div class="ds-reveal-card" data-reveal-card data-motion-tile>
+            <button class="ds-motion-tile__replay" type="button" aria-label="Replay animation">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 A 5.5 5.5 0 1 0 14 9.5 M13.5 4.5 V 1.5 M13.5 4.5 H 10.5"></path></svg>
+            </button>
+            <div class="ds-reveal-card__sample" data-loom-reveal="scale-95">
+              <div class="ds-reveal-card__sample-image" aria-hidden="true"></div>
+              <h4 class="ds-reveal-card__sample-title">Scale 95</h4>
+              <p class="ds-reveal-card__sample-text">Fades + scales from 95%. The "settle into place" feel for cards and tiles.</p>
+            </div>
+            <div class="ds-reveal-card__meta">
+              <span class="ds-reveal-card__token">data-loom-reveal="scale-95"</span>
+              <span class="ds-reveal-card__use">Cards, tiles, and grid items entering the viewport.</span>
+            </div>
+          </div>
+        </div>
+
+        <script src="../src/motion.js"></script>
+        <script>
+          (() => {
+            // Shared state machine for every motion tile on the System page:
+            // duration rows, easing cards, and reveal cards. Each card is
+            // marked [data-motion-tile] and has:
+            //   - a target element (the dot or reveal sample) selected via
+            //     the per-tile configuration below
+            //   - a .ds-motion-tile__replay button (hidden until card hover
+            //     via CSS)
+            //
+            // Behavior:
+            //   mouseenter → play once (if not already playing)
+            //   mouseleave → if currently playing, do NOTHING — wait for
+            //                 animationend; if already at end state, reset
+            //   animationend → if mouse already left, reset; if still
+            //                   hovering, stay at end state (forwards fill)
+            //   replay click → force-restart from beginning, even mid-play
+            //
+            // This means a mid-animation mouseleave never cancels the
+            // animation; it always plays out to completion, then resets.
+
+            function setupTile(card, targetSelector, classWhilePlaying) {
+              const target = card.querySelector(targetSelector);
+              const btn = card.querySelector('.ds-motion-tile__replay');
+              if (!target) return;
+              let hovering = false;
+              let playing = false;
+
+              function play() {
+                target.classList.remove(classWhilePlaying);
+                void target.offsetWidth;  // reflow so re-add retriggers anim
+                target.classList.add(classWhilePlaying);
+                playing = true;
+              }
+
+              function reset() {
+                target.classList.remove(classWhilePlaying);
+                playing = false;
+              }
+
+              card.addEventListener('mouseenter', () => {
+                hovering = true;
+                if (!playing) play();
+              });
+
+              card.addEventListener('mouseleave', () => {
+                hovering = false;
+                if (!playing) reset();
+                // If playing, animationend handler will reset on its own.
+              });
+
+              target.addEventListener('animationend', () => {
+                playing = false;
+                if (!hovering) reset();
+              });
+
+              if (btn) {
+                btn.addEventListener('click', (e) => {
+                  e.stopPropagation();
+                  play();
+                });
+              }
+            }
+
+            // Wire each tile category. Selectors per type:
+            //   - duration rows → animate the .ds-motion-row__dot via .is-playing
+            //   - easing cards  → animate the .ds-easing-card__dot via .is-playing
+            //   - reveal cards  → animate the [data-loom-reveal] sample via .loom-revealed
+            document.querySelectorAll('.ds-motion-row[data-motion-tile]').forEach((c) =>
+              setupTile(c, '.ds-motion-row__dot', 'is-playing'));
+            document.querySelectorAll('.ds-easing-card[data-motion-tile]').forEach((c) =>
+              setupTile(c, '.ds-easing-card__dot', 'is-playing'));
+            document.querySelectorAll('#ds-motion-reveals [data-reveal-card]').forEach((c) =>
+              setupTile(c, '[data-loom-reveal]', 'loom-revealed'));
+          })();
+        </script>
+      </section>
+
+    </section>
+  </main>
+
+  <script src="theme.js" defer></script>
+  <script src="brand.js" defer></script>
+  <script src="dev-tokens.js" defer></script>
+  <script src="library.js" defer></script>
+  <script src="tokens.js" defer></script>
+  <script src="primitives.js" defer></script>
+  <script src="settings.js" defer></script>
+  <script src="builder.js" defer></script>
+  <script src="sidebar-collapse.js" defer></script>
+  <script src="loom-router.js" defer></script>
+  <script src="onboarding.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+[data-loom="tag"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px 10px;
+  line-height: 1;
+  background: var(--surface2);
+  color: var(--text2);
+  border-radius: var(--radius-button);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+[data-loom="tag"][data-tone="accent"] { background: var(--accent-subtle); color: var(--accent-text); }
+
+[data-loom="tag"]:hover,
+[data-loom="tag"][data-state="hover"] { background: var(--border-visible); color: var(--text1); }
+
+[data-loom="tag"][data-state="disabled"] { opacity: 0.4; }

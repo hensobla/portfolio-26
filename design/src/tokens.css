@@ -1,0 +1,390 @@
+/* ============================================================
+   tokens.css — Loomling design tokens
+   ------------------------------------------------------------
+   Single source of truth for design values.
+
+   Seeded 2026-06-05 from the "Blueprint" brand kit
+   (design/brand-kit-blueprint.html): one electric-blue accent
+   against two warm grounds (near-black + cream), dual-mode.
+   Vocabulary kept usage-based (Loomling defaults) per the init
+   decision — components reference --background / --surface1 /
+   --text1 / --accent / etc., never raw values. See ADR 0026.
+
+   Components reference SEMANTIC tokens (--background, --text1, …).
+   Primitives (--color-accent-500, …) are for the system layer only.
+
+   Light is the default (:root); dark is the [data-theme="dark"]
+   override the Loom's sun/moon toggle activates.
+   ============================================================ */
+
+/* Brand families (Loom previews) + motion foundation live in sibling
+   files so this one stays as :root tokens. fonts.css must precede
+   non-@import rules, so both @imports sit at the top.
+   NOTE: fonts.css is Loom-only — drop it when hand-porting tokens.css
+   into the parent Next app, which loads fonts via next/font. */
+@import url('./fonts.css');
+@import url('./motion.css');
+
+:root {
+  /* ---------- Color primitives ----------
+     Warm-neutral ramp + electric-blue accent ramp, both 50–950.
+     8 of 11 neutral steps and 3 accent steps are the blueprint's
+     exact hand-picked values; the rest are interpolated on-hue to
+     complete the ramp (system/color.md requires the full range).
+  */
+
+  /* Warm neutral ramp — cream → ground (blueprint's two families,
+     merged into one ramp; light mode reads the light end, dark the dark) */
+  --color-neutral-50:  #FDFBF8;  /* cream-raised */
+  --color-neutral-100: #F7F4EE;  /* cream (≈ dark-mode ink #F4F1EA) */
+  --color-neutral-200: #E8E2D9;  /* rule-light */
+  --color-neutral-300: #BDB6AB;  /* ink-soft */
+  --color-neutral-400: #A0968A;  /* interpolated */
+  --color-neutral-500: #857D71;  /* ink-mute */
+  --color-neutral-600: #6F665B;  /* text-dark-mute */
+  --color-neutral-700: #574E44;  /* text-dark-soft */
+  --color-neutral-800: #3B3733;  /* rule-dark */
+  --color-neutral-900: #2C2925;  /* raised */
+  --color-neutral-950: #1F1C19;  /* ground (≈ text-dark #1C1813) */
+
+  /* Electric-blue accent ramp. Base (500) = blueprint #2E4BFF.
+     400 = blue-bright, 600 = blue-deep (both blueprint, contrast-tuned). */
+  --color-accent-50:  #EAEDFF;
+  --color-accent-100: #D5DBFF;
+  --color-accent-200: #B3BDFF;
+  --color-accent-300: #8A9BFF;
+  --color-accent-400: #5C78FF;  /* blue-bright — accent text on dark */
+  --color-accent-500: #2E4BFF;  /* blue — the stable brand fill */
+  --color-accent-600: #1B33C7;  /* blue-deep — accent text on cream */
+  --color-accent-700: #14279B;
+  --color-accent-800: #0E1C72;
+  --color-accent-900: #0A1450;
+  --color-accent-950: #060D33;
+
+  /* Blueprint motif line-work (dark mode --line). Slightly calmed
+     from the primary; not part of the ramp. */
+  --color-accent-line: #3A5BFF;  /* ink-line */
+
+  /* Status color primitives (carried over from the Loomling starter —
+     not specified by the brand kit). Each hue carries 50 / 500 / 900
+     plus a -bg variant for tinted backgrounds (alerts, badges). */
+  --color-success-50:  hsl(140 60% 95%);
+  --color-success-500: hsl(140 60% 40%);
+  --color-success-900: hsl(140 50% 18%);
+  --color-success-bg:  hsl(140 55% 92%);
+
+  --color-warning-50:  hsl(38 95% 95%);
+  --color-warning-500: hsl(38 90% 50%);
+  --color-warning-900: hsl(38 80% 20%);
+  --color-warning-bg:  hsl(38 90% 92%);
+
+  --color-error-50:  hsl(0 75% 96%);
+  --color-error-500: hsl(0 70% 50%);
+  --color-error-900: hsl(0 65% 22%);
+  --color-error-bg:  hsl(0 75% 94%);
+
+  /* ---------- Semantic color tokens (LIGHT — default) ----------
+     What components reference. Usage-based vocabulary (kept from the
+     Loomling defaults per the init decision). The blueprint's warm
+     grounds map here: paper → --background, the (lighter) raised cream
+     → --surface1. See system/color.md § Surface map.
+  */
+  --background: var(--color-neutral-100);  /* cream */
+  --bg:         var(--background);
+  --surface1:   var(--color-neutral-50);   /* cream-raised — lighter than paper */
+  --surface2:   var(--color-neutral-200);
+  --surface3:   var(--color-neutral-300);
+  --text1:      var(--color-neutral-950);
+  --text2:      var(--color-neutral-700);
+  --text3:      var(--color-neutral-600);
+  --text4:      var(--color-neutral-500);
+
+  /* Accent splits three ways (the blueprint's contrast discipline):
+     - --accent      stable vibrant FILL (buttons, focus rings, selected)
+     - --accent-text mode-specific accent TEXT / links (AA on the ground)
+     - --accent-fg   light foreground that rides ON an accent fill
+     See ADR 0026 + system/color.md § Accent. */
+  --accent:      var(--color-accent-500);  /* #2E4BFF — stable across modes */
+  --accent-text: var(--color-accent-600);  /* #1B33C7 — 8.2:1 on cream */
+  --accent-fg:   var(--color-neutral-50);   /* cream — light on accent fills */
+
+  /* Blueprint line-work (grid washes, technical-drawing rules). */
+  --line:        var(--color-accent-600);  /* deep blue on cream */
+
+  --border:         var(--color-neutral-200);  /* rule-light */
+  --border-visible: var(--color-neutral-300);
+
+  /* Tinted accent background — badges, focus rings, selected states.
+     Never use --accent-subtle as a hover background (looks broken in
+     dark mode). Use --surface1 or --surface2 for hover. */
+  --accent-subtle: var(--color-accent-50);
+
+  /* Status semantic mappings */
+  --success:    var(--color-success-500);
+  --warning:    var(--color-warning-500);
+  --error:      var(--color-error-500);
+  --success-bg: var(--color-success-bg);
+  --warning-bg: var(--color-warning-bg);
+  --error-bg:   var(--color-error-bg);
+
+  /* Focus ring */
+  --focus-ring: 2px solid var(--accent);
+  --focus-ring-offset: 2px;
+
+  /* ---------- Interactive ---------- */
+  --accent-hover:    var(--color-accent-600);  /* deepen on hover (light) */
+  --accent-disabled: #A9AEC9;                   /* desaturated accent for disabled fill */
+
+  /* ---------- Button anatomy ---------- */
+  --radius-button:    0.5rem;
+  --button-padding-y: var(--space-3);
+  --button-padding-x: var(--space-5);
+
+  /* ---------- Surfaces ---------- */
+  --radius-card: 0.75rem;
+  --shadow-card: 0 1px 2px hsl(0 0% 0% / 0.06), 0 4px 12px hsl(0 0% 0% / 0.06);
+
+  /* ---------- Motion ----------
+     Universal, brand-agnostic durations and easings. Reference these
+     in component CSS instead of hardcoding values like `120ms ease`.
+     Reduced-motion collapses every duration token to 1ms via the
+     @media block in motion.css — no per-component handling needed.
+  */
+
+  /* Durations */
+  --motion-instant:  100ms;   /* haptic-feel feedback (toggles, button press) */
+  --motion-fast:     180ms;   /* hover/focus transitions; micro-interactions */
+  --motion-standard: 300ms;   /* default for most reveals + state changes */
+  --motion-slow:     500ms;   /* deliberate entrances (modals, drawers) */
+  --motion-slower:   800ms;   /* full-screen / page-level transitions */
+
+  /* Easings — same family Material/Tailwind ship; named by intent */
+  --ease-linear:    linear;
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);     /* default; enter + leave */
+  --ease-out:       cubic-bezier(0, 0, 0.2, 1);       /* deceleration; reveals */
+  --ease-in:        cubic-bezier(0.4, 0, 1, 1);       /* acceleration; exits */
+  --ease-in-out:    cubic-bezier(0.4, 0, 0.2, 1);     /* symmetric */
+  --ease-spring:    cubic-bezier(0.34, 1.56, 0.64, 1); /* slight overshoot */
+
+  /* ---------- Typography ----------
+     Seeded from the blueprint: Archivo (display), Hanken Grotesk
+     (body), Departure Mono (pixel mono — short labels only). Families
+     load via fonts.css in the Loom; the parent app uses next/font.
+     See system/typography.md.
+  */
+  --font-display: 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-body:    'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono:    'Departure Mono', 'Spline Sans Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --type-display-xl: 4.5rem;
+  --type-display-l:  3rem;
+  --type-display-m:  2.25rem;
+  --type-display-s:  1.75rem;
+  --type-body-l:     1.25rem;
+  --type-body:       1rem;
+  --type-body-s:     0.875rem;
+  --type-mono:       0.875rem;
+
+  /* Letter-spacing scale (blueprint: tight display, wide mono labels).
+     Letter-spacing must be tokenized, never raw in component CSS. */
+  --tracking-display: -0.03em;  /* Archivo display — tight */
+  --tracking-normal:  0em;
+  --tracking-wide:    0.04em;   /* mono meta / file-path labels */
+  /* (eyebrow caps use --eyebrow-tracking 0.16em below) */
+
+  --line-height-display: 1.05;  /* Archivo display runs tight (blueprint 0.95–1.0) */
+  --line-height-body:    1.6;   /* Hanken body (blueprint 1.5–1.6) */
+  --line-height-mono:    1.5;
+
+  --measure: 62ch;  /* blueprint body measure */
+
+  /* ---------- Eyebrow text role ----------
+     The blueprint's signature: pixel-mono, uppercase, letter-spaced
+     technical labels (kickers, figure numbers, section labels).
+     Kept small (11px) where Departure Mono stays crisp; muted by
+     default (never accent — see system/color.md). See system/typography.md.
+  */
+  --eyebrow-family:    var(--font-mono);
+  --eyebrow-size:      0.6875rem;  /* 11px — Departure Mono's crisp size */
+  --eyebrow-weight:    400;        /* pixel font ships a single weight */
+  --eyebrow-tracking:  0.16em;
+  --eyebrow-transform: uppercase;
+  --eyebrow-color:     var(--text3);
+
+  /* ---------- Spacing scale ---------- */
+  --space-0:  0;
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.5rem;
+  --space-6:  2rem;
+  --space-7:  3rem;
+  --space-8:  4rem;
+  --space-9:  6rem;
+  --space-10: 8rem;
+
+  /* ---------- Layout ---------- */
+  --container-max: 80rem;
+
+  /* ---------- Breakpoints ----------
+     Referenced by media queries (use the value, not the var, in @media).
+  */
+  --bp-xs:  320px;
+  --bp-sm:  480px;
+  --bp-md:  768px;
+  --bp-lg:  1024px;
+  --bp-xl:  1280px;
+  --bp-2xl: 1536px;
+
+  /* ---------- Grid (responsive 12-column, narrows at small bps) ----------
+     Modules/templates consume the ACTIVE values (--grid-cols, --grid-gap,
+     --grid-margin), re-mapped per breakpoint by the @media blocks below.
+     See system/space.md → Grid.
+  */
+
+  /* Column counts per breakpoint */
+  --grid-cols-xs:  4;
+  --grid-cols-sm:  4;
+  --grid-cols-md:  8;
+  --grid-cols-lg:  12;
+  --grid-cols-xl:  12;
+  --grid-cols-2xl: 12;
+
+  /* Gap between columns */
+  --grid-gap-xs:  var(--space-3);
+  --grid-gap-sm:  var(--space-3);
+  --grid-gap-md:  var(--space-4);
+  --grid-gap-lg:  var(--space-5);
+  --grid-gap-xl:  var(--space-5);
+  --grid-gap-2xl: var(--space-5);
+
+  /* Outer side padding (container gutter, inside --container-max) */
+  --grid-margin-xs:  var(--space-4);
+  --grid-margin-sm:  var(--space-5);
+  --grid-margin-md:  var(--space-6);
+  --grid-margin-lg:  var(--space-7);
+  --grid-margin-xl:  var(--space-7);
+  --grid-margin-2xl: var(--space-7);
+
+  /* ACTIVE values — start at xs, overridden by media queries below. */
+  --grid-cols:   var(--grid-cols-xs);
+  --grid-gap:    var(--grid-gap-xs);
+  --grid-margin: var(--grid-margin-xs);
+}
+
+/* ============================================================
+   Dark mode — semantic overrides
+   ------------------------------------------------------------
+   Activated when <html data-theme="dark"> is set by the Loom's
+   sun/moon nav toggle. Override SEMANTIC tokens only — primitives
+   stay constant. The presence of this block is what tells Loomling
+   the user's design system supports dark mode (auto-detected by
+   library/theme.js).
+
+   The blueprint's dark family (ground / raised / ink) reads from the
+   dark end of the warm ramp. The accent FILL stays #2E4BFF (stable);
+   only accent TEXT and the line-work swap brighter for contrast.
+   See system/dark-mode.md + ADR 0026.
+   ============================================================ */
+[data-theme="dark"] {
+  --background: var(--color-neutral-950);  /* ground */
+  --bg:         var(--background);
+  --surface1:   var(--color-neutral-900);  /* raised */
+  --surface2:   var(--color-neutral-800);  /* rule-dark */
+  --surface3:   var(--color-neutral-700);
+  --text1:      var(--color-neutral-100);  /* ink */
+  --text2:      var(--color-neutral-300);  /* ink-soft */
+  --text3:      var(--color-neutral-500);  /* ink-mute */
+  --text4:      var(--color-neutral-600);
+
+  --accent:      var(--color-accent-500);  /* #2E4BFF — STABLE fill */
+  --accent-text: var(--color-accent-400);  /* #5C78FF — 4.5:1 on ground */
+  --accent-fg:   var(--color-neutral-50);   /* cream — stays light on accent fills */
+  --line:        var(--color-accent-line);  /* #3A5BFF ink-line */
+
+  --border:         var(--color-neutral-800);  /* rule-dark */
+  --border-visible: var(--color-neutral-700);
+
+  --accent-hover:    var(--color-accent-300);  /* lighter on dark */
+  --accent-disabled: #2E3354;                   /* desaturated, dark-friendly */
+
+  /* Accent-subtle in dark = deep, low-chroma tint (NOT light) */
+  --accent-subtle: #18204A;
+
+  /* Status colors keep their hue but get bg variants tuned for dark */
+  --success-bg: hsl(140 30% 16%);
+  --warning-bg: hsl(38 45% 18%);
+  --error-bg:   hsl(0 35% 18%);
+}
+
+/* ---------- Grid: per-breakpoint active value overrides ----------
+   Each @media block re-points the ACTIVE grid vars at the matching
+   per-breakpoint tokens. Modules/templates only read the active vars,
+   so adjusting the per-breakpoint values above reshapes every
+   grid-driven layout in the project.
+*/
+@media (min-width: 480px) {
+  :root {
+    --grid-cols:   var(--grid-cols-sm);
+    --grid-gap:    var(--grid-gap-sm);
+    --grid-margin: var(--grid-margin-sm);
+  }
+}
+
+@media (min-width: 768px) {
+  :root {
+    --grid-cols:   var(--grid-cols-md);
+    --grid-gap:    var(--grid-gap-md);
+    --grid-margin: var(--grid-margin-md);
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --grid-cols:   var(--grid-cols-lg);
+    --grid-gap:    var(--grid-gap-lg);
+    --grid-margin: var(--grid-margin-lg);
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --grid-cols:   var(--grid-cols-xl);
+    --grid-gap:    var(--grid-gap-xl);
+    --grid-margin: var(--grid-margin-xl);
+  }
+}
+
+@media (min-width: 1536px) {
+  :root {
+    --grid-cols:   var(--grid-cols-2xl);
+    --grid-gap:    var(--grid-gap-2xl);
+    --grid-margin: var(--grid-margin-2xl);
+  }
+}
+
+/* ============================================================
+   Image placeholder
+   ------------------------------------------------------------
+   Global fallback for slot-managed images with no real source.
+   When `src` is empty, missing, or a %PLACEHOLDER% string, the img
+   renders as a centered "no image" icon on a panel-grey background
+   instead of the browser's broken-image marker. See system/seo.md §5.
+   ============================================================ */
+
+:root {
+  --image-placeholder-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 48' width='64' height='48'%3E%3Crect x='5' y='5' width='54' height='38' rx='3' fill='none' stroke='%23999' stroke-width='2.4'/%3E%3Ccircle cx='19' cy='18' r='3.6' fill='%23999'/%3E%3Cpath d='M9 36 L23 24 L31 30 L43 19 L55 30 V40 H9 Z' fill='%23999'/%3E%3C/svg%3E");
+}
+
+img[data-loom-slot] {
+  background-color: var(--surface1);
+}
+
+img[data-loom-slot][src=""],
+img[data-loom-slot][src^="%"],
+img[data-loom-slot]:not([src]) {
+  content: var(--image-placeholder-icon) !important;
+  object-fit: scale-down !important;
+  object-position: center !important;
+}

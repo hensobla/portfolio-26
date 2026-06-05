@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Footer — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="footer.css">
+  <script src="../../loader.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+  </style>
+</head>
+<body>
+  <div id="preview-frame"></div>
+  <script>
+    (function () {
+      const COL_DEFAULTS = {
+        "col-1": '<h2>Product</h2><ul><li><a href="#">Overview</a></li><li><a href="#">Pricing</a></li></ul>',
+        "col-2": '<h2>Company</h2><ul><li><a href="#">About</a></li><li><a href="#">Careers</a></li></ul>',
+        "col-3": '<h2>Resources</h2><ul><li><a href="#">Docs</a></li><li><a href="#">Changelog</a></li></ul>',
+        "col-4": '<h2>Legal</h2><ul><li><a href="#">Privacy</a></li><li><a href="#">Terms</a></li></ul>'
+      };
+
+      const STATES = {
+        default: { brand: "Brandmark", tagline: "Built with Loomling.", copyright: "© 2026 Brandmark.", state: null,      columnIds: ["col-1","col-2","col-3"] },
+        minimal: { brand: "Brandmark", tagline: "Built with Loomling.", copyright: "© 2026 Brandmark.", state: "minimal", columnIds: ["col-1","col-2","col-3"] },
+        wide:    { brand: "Brandmark", tagline: "Built with Loomling.", copyright: "© 2026 Brandmark.", state: "wide",    columnIds: ["col-1","col-2","col-3","col-4"] }
+      };
+
+      const params = new URLSearchParams(location.search);
+      const stateId = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+
+      let overrides = {};
+
+      function render() {
+        const props = { ...baseState, ...overrides };
+        const stateAttr = props.state ? ` data-state="${escapeAttr(props.state)}"` : "";
+        const cols = props.columnIds.map((id) => {
+          // Defaults are author-controlled markup (above); overrides arrive
+          // via postMessage from an unauthenticated sender, so any user value
+          // is parsed as a heading + plain bullets rather than raw HTML.
+          if (id in overrides) {
+            return `<div class="footer__col" data-loom-slot="${id}">${escapeColumn(overrides[id])}</div>`;
+          }
+          return `<div class="footer__col" data-loom-slot="${id}">${COL_DEFAULTS[id] || ""}</div>`;
+        }).join("");
+
+        document.getElementById("preview-frame").innerHTML =
+          `<footer data-loom-module="footer"${stateAttr}>` +
+            `<div class="footer__inner">` +
+              `<div class="footer__brand">` +
+                `<span class="footer__brand-name" data-loom-slot="brand">${escapeText(props.brand || "")}</span>` +
+                `<p class="footer__brand-tag" data-loom-slot="tagline">${escapeText(props.tagline || "")}</p>` +
+              `</div>` +
+              `<nav class="footer__cols" aria-label="Footer">${cols}</nav>` +
+            `</div>` +
+            `<div class="footer__copyright" data-loom-slot="copyright">${escapeText(props.copyright || "")}</div>` +
+          `</footer>`;
+      }
+
+      function escapeAttr(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]);
+      }
+      function escapeText(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"})[c]);
+      }
+      // Sanitize a single column's raw text: first line is the heading,
+      // remaining non-empty lines become list items. Everything escaped.
+      function escapeColumn(s) {
+        const lines = String(s).split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+        if (!lines.length) return "";
+        const head = `<h2>${escapeText(lines[0])}</h2>`;
+        const items = lines.slice(1).map((l) => `<li><a href="#">${escapeText(l)}</a></li>`).join("");
+        return items ? head + `<ul>${items}</ul>` : head;
+      }
+
+      window.addEventListener("message", (e) => {
+        // Reject cross-origin senders — content overrides should only come
+        // from the composing parent (Sandbox, Builder, composed template).
+        if (e.origin !== location.origin) return;
+        if (!e.data || e.data.type !== "loom:content") return;
+        const v = e.data.values || {};
+        overrides = {};
+        if ("brand"     in v) overrides.brand     = v.brand;
+        if ("tagline"   in v) overrides.tagline   = v.tagline;
+        if ("copyright" in v) overrides.copyright = v.copyright;
+        ["col-1","col-2","col-3"].forEach((id) => {
+          if (id in v) overrides[id] = v[id];
+        });
+        render();
+      });
+
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "footer" }, location.origin); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

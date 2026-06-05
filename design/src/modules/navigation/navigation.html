@@ -1,0 +1,38 @@
+<nav data-loom-module="navigation" aria-label="Primary">
+  <div class="nav__inner">
+    <a class="nav__brand" data-loom-slot="brand" href="#">Brandmark</a>
+    <ul class="nav__links" data-loom-slot="links">
+      <li><a href="#">Work</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Journal</a></li>
+    </ul>
+    <button class="nav__menu" type="button" aria-label="Open menu" aria-expanded="false">
+      <span class="nav__menu-icon" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </span>
+      <span class="nav__menu-label">Menu</span>
+    </button>
+    <div class="nav__cta">
+      <button type="button" data-loom="button-primary">
+        <span data-loom-slot="cta-label">Start a project</span>
+      </button>
+    </div>
+  </div>
+  <!--
+    Mobile dropdown panel. In-flow (pushes content below), opens via
+    navigation.js when the .nav__menu button is tapped. Mirrors the same
+    link list + CTA so the user-edited slot values flow through.
+  -->
+  <div class="nav__panel" hidden>
+    <ul class="nav__panel-links">
+      <li><a href="#">Work</a></li>
+      <li><a href="#">About</a></li>
+      <li><a href="#">Journal</a></li>
+    </ul>
+    <div class="nav__panel-cta">
+      <button type="button" data-loom="button-primary">
+        <span>Start a project</span>
+      </button>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,64 @@
+[data-loom="dropdown-menu"] {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  width: 14rem;
+  padding: 4px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  font-family: var(--font-body);
+}
+
+[data-loom="dropdown-menu"] button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border: 0;
+  border-radius: calc(var(--radius-button) - 4px);
+  background: transparent;
+  color: var(--text1);
+  font: inherit;
+  font-size: var(--type-body-s);
+  line-height: 1.2;
+  text-align: left;
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+[data-loom="dropdown-menu"] button i {
+  font-size: 1rem;
+  color: var(--text2);
+}
+
+[data-loom="dropdown-menu"] button span { flex: 1; }
+
+[data-loom="dropdown-menu"] button kbd {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text2);
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+[data-loom="dropdown-menu"] button:hover,
+[data-loom="dropdown-menu"] button[data-state="hover"] {
+  background: var(--surface1);
+}
+
+[data-loom="dropdown-menu"] button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
+
+[data-loom="dropdown-menu"] button[data-tone="destructive"] { color: var(--error); }
+[data-loom="dropdown-menu"] button[data-tone="destructive"] i { color: var(--error); }
+
+[data-loom="dropdown-menu"] hr {
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 4px 0;
+}

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Builder — Loomling</title>
+  <link rel="icon" type="image/svg+xml" href="loomling-lettermark.svg">
+  <script>(function(){try{var t=localStorage.getItem("loomling:theme:v1");if(t==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}}())</script>
+  <link rel="stylesheet" href="library.css">
+  <link rel="stylesheet" href="../src/tokens.css">
+</head>
+<body data-page="builder">
+  <header class="lib-header">
+    <div class="lib-header__inner">
+      <a class="lib-brand" href="index.html" aria-label="Loomling Loom home">
+        <img class="lib-brand__user-logo" alt="" hidden>
+        <span class="lib-brand__sep" aria-hidden="true" hidden>|</span>
+        <span class="lib-brand__mark" aria-hidden="true"></span>
+        <span class="lib-brand__project" data-project-name>—</span>
+      </a>
+      <nav class="lib-tabs" aria-label="Loom views">
+        <a class="lib-tab" href="index.html">Library</a>
+        <a class="lib-tab" href="tokens.html">System</a>
+        <a class="lib-tab" href="components.html">Components</a>
+        <a class="lib-tab is-active" href="builder.html">Builder</a>
+        <a class="lib-tab" href="settings.html">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="bld-main" id="main-content">
+    <h1 class="sr-only">Page Builder</h1>
+
+    <div class="bld-error" id="bld-error" hidden></div>
+
+    <div class="bld-layout" id="bld-layout" hidden>
+      <!-- Left: module palette -->
+      <aside class="bld-palette" aria-label="Modules">
+        <div class="bld-palette__head">
+          <h2 class="bld-palette__title">Modules</h2>
+          <span class="bld-palette__count" id="bld-palette-count">0</span>
+        </div>
+        <p class="bld-palette__hint">Click to add to the canvas. Reorder by dragging the handle on each card.</p>
+        <div class="bld-palette__list" id="bld-palette-list"></div>
+      </aside>
+
+      <!-- Center: canvas -->
+      <section class="bld-canvas" aria-label="Page canvas">
+        <div class="bld-toolbar">
+          <div class="bld-toolbar__title">
+            <span class="bld-toolbar__label">Page in progress</span>
+            <span class="bld-toolbar__name" id="bld-page-name">Untitled draft</span>
+          </div>
+          <div class="bld-toolbar__actions">
+            <button type="button" class="bld-btn bld-btn--ghost" id="bld-reset">Reset</button>
+            <button type="button" class="bld-btn bld-btn--primary" id="bld-finalize">Finalize</button>
+          </div>
+        </div>
+        <div class="bld-canvas__scroll" id="bld-canvas-scroll">
+          <div class="bld-canvas__stack" id="bld-canvas-stack"></div>
+        </div>
+      </section>
+
+      <!-- Right: inspector -->
+      <aside class="bld-inspector" id="bld-inspector" aria-label="Inspector" data-empty="true">
+        <div class="bld-inspector__empty" id="bld-inspector-empty">
+          <p>Click a module on the canvas to edit its content, state, or position.</p>
+        </div>
+        <div class="bld-inspector__pane" id="bld-inspector-pane" hidden>
+          <header class="bld-inspector__head">
+            <div>
+              <div class="bld-inspector__label">Editing</div>
+              <h2 class="bld-inspector__title" id="bld-insp-title">—</h2>
+              <div class="bld-inspector__slug" id="bld-insp-slug">—</div>
+            </div>
+            <button type="button" class="bld-inspector__close" id="bld-insp-close" aria-label="Close inspector">×</button>
+          </header>
+          <div class="bld-inspector__locked" id="bld-insp-locked" hidden>
+            Locked position. State + content edits apply; position is fixed.
+          </div>
+          <div class="bld-inspector__row">
+            <label class="bld-inspector__row-label" for="bld-insp-state">State</label>
+            <select class="bld-inspector__state" id="bld-insp-state"></select>
+          </div>
+          <div class="bld-inspector__fields-head">
+            <span>Content</span>
+            <button type="button" class="bld-inspector__clear" id="bld-insp-clear" disabled>Clear all</button>
+          </div>
+          <div class="bld-inspector__fields" id="bld-insp-fields"></div>
+          <div class="bld-inspector__actions">
+            <button type="button" class="bld-btn bld-btn--danger" id="bld-insp-delete" hidden>Delete from page</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Finalize modal: collect SEO + naming -->
+  <div class="bld-modal" id="bld-modal" hidden role="dialog" aria-labelledby="bld-modal-title">
+    <div class="bld-modal__backdrop" data-modal-dismiss></div>
+    <div class="bld-modal__panel" role="document">
+      <header class="bld-modal__head">
+        <h2 class="bld-modal__title" id="bld-modal-title">Finalize page</h2>
+        <button type="button" class="bld-modal__close" data-modal-dismiss aria-label="Close">×</button>
+      </header>
+      <div class="bld-modal__body">
+        <form class="bld-modal__form" id="bld-modal-form">
+          <p class="bld-modal__hint">When you click <strong>Build CC prompt</strong>, the Loom packages your page into a payload + a Claude Code prompt. You paste it into CC; CC writes <code>src/templates/&lt;slug&gt;/</code> and applies <code>system/seo.md</code> rules.</p>
+
+          <div class="bld-modal__field">
+            <label for="bld-modal-name">Display name</label>
+            <input id="bld-modal-name" name="name" type="text" required autocomplete="off" placeholder="About">
+          </div>
+
+          <div class="bld-modal__field">
+            <label for="bld-modal-slug">Slug</label>
+            <input id="bld-modal-slug" name="slug" type="text" required pattern="^[a-z0-9]+(-[a-z0-9]+)*$" autocomplete="off" placeholder="about">
+            <span class="bld-modal__hint-small">lowercase-kebab. Will become <code>src/templates/&lt;slug&gt;/</code>.</span>
+          </div>
+
+          <div class="bld-modal__field">
+            <label for="bld-modal-page-type">Page type (JSON-LD)</label>
+            <select id="bld-modal-page-type" name="pageType" required>
+              <option value="WebPage">WebPage (default)</option>
+              <option value="Article">Article</option>
+              <option value="AboutPage">AboutPage</option>
+              <option value="ContactPage">ContactPage</option>
+              <option value="FAQPage">FAQPage</option>
+            </select>
+          </div>
+
+          <div class="bld-modal__field">
+            <label for="bld-modal-title-tag">Title <span class="bld-modal__counter" data-counter-for="title">0/60</span></label>
+            <input id="bld-modal-title-tag" name="title" type="text" required maxlength="80" autocomplete="off">
+            <span class="bld-modal__hint-small">5–60 chars recommended per <code>system/seo.md</code>.</span>
+          </div>
+
+          <div class="bld-modal__field">
+            <label for="bld-modal-description">Meta description <span class="bld-modal__counter" data-counter-for="description">0/160</span></label>
+            <textarea id="bld-modal-description" name="description" required maxlength="220" rows="3"></textarea>
+            <span class="bld-modal__hint-small">50–160 chars recommended.</span>
+          </div>
+
+          <div class="bld-modal__field">
+            <label for="bld-modal-canonical">Canonical URL <span class="bld-modal__optional">optional</span></label>
+            <input id="bld-modal-canonical" name="canonical" type="url" autocomplete="off" placeholder="https://example.com/your-page">
+            <span class="bld-modal__hint-small">Blank ships as a <code>%CANONICAL_URL%</code> placeholder.</span>
+          </div>
+
+          <div class="bld-modal__field">
+            <label for="bld-modal-og">OG image URL <span class="bld-modal__optional">optional</span></label>
+            <input id="bld-modal-og" name="ogImage" type="url" autocomplete="off" placeholder="https://example.com/og.png">
+            <span class="bld-modal__hint-small">Blank ships as <code>%OG_IMAGE_URL%</code>.</span>
+          </div>
+
+          <div class="bld-modal__actions">
+            <button type="button" class="bld-btn bld-btn--ghost" data-modal-dismiss>Cancel</button>
+            <button type="submit" class="bld-btn bld-btn--primary">Build CC prompt</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- CC prompt result modal -->
+  <div class="bld-modal" id="bld-prompt-modal" hidden role="dialog" aria-labelledby="bld-prompt-title">
+    <div class="bld-modal__backdrop" data-modal-dismiss="prompt"></div>
+    <div class="bld-modal__panel bld-modal__panel--wide" role="document">
+      <header class="bld-modal__head">
+        <h2 class="bld-modal__title" id="bld-prompt-title">Paste into Claude Code</h2>
+        <button type="button" class="bld-modal__close" data-modal-dismiss="prompt" aria-label="Close">×</button>
+      </header>
+      <div class="bld-modal__body">
+        <p class="bld-modal__hint">Copy this and paste into a Claude Code conversation in your project directory. CC will create the template files and append a manifest entry per <code>system/page-builder.md</code>.</p>
+        <pre class="bld-prompt" id="bld-prompt-text"></pre>
+        <div class="bld-modal__actions">
+          <button type="button" class="bld-btn bld-btn--ghost" id="bld-prompt-back">Back to fields</button>
+          <button type="button" class="bld-btn bld-btn--primary" id="bld-prompt-copy">Copy to clipboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"
+          integrity="sha384-HZZ/fukV+9G8gwTNjN7zQDG0Sp7MsZy5DDN6VfY3Be7V9dvQpEpR2jF2HlyFUUjU"
+          crossorigin="anonymous"
+          defer></script>
+  <script src="theme.js" defer></script>
+  <script src="brand.js" defer></script>
+  <script src="dev-tokens.js" defer></script>
+  <script src="library.js" defer></script>
+  <script src="tokens.js" defer></script>
+  <script src="primitives.js" defer></script>
+  <script src="settings.js" defer></script>
+  <script src="builder.js" defer></script>
+  <script src="loom-router.js" defer></script>
+  <script src="onboarding.js" defer></script>
+</body>
+</html>
