@@ -866,7 +866,7 @@
         { "slot": "name", "role": "primary" }
       ],
       "addedAt": "2026-06-05",
-      "notes": "Portfolio homepage — incremental build to the Figma 'June 2026' wireframe (BLOCK A, file fqfwIkPzFHLw4FcEePUeiW, nodes 2021:3 resting / 2021:78 open; refs in .figma-ref/, gitignored). Piece 1 = resting state: name top-left, bio bottom-left, tabbed 'My Projects' FOLDER on the right (manila-tab metaphor, line-work on cream). Intentionally a HAND-WRITTEN template (not the composed/iframed pattern) because the planned takeover animation must move name + folder within one DOM. Vanilla; no stack triggered. Next: folder polish/tab-slant + open state (folder grows, name→nav-logo, P1–P4 tabs spread, title + body + 2×2 image grid), then the takeover animation (new motion category, drift-C)."
+      "notes": "Portfolio homepage — incremental build to the Figma 'June 2026' wireframe (BLOCK A, file fqfwIkPzFHLw4FcEePUeiW, nodes 2021:3 resting / 2021:78 open; refs in .figma-ref/, gitignored). Piece 1 = resting state: name top-left, bio bottom-left, tabbed 'My Projects' FOLDER on the right (manila-tab metaphor, line-work on cream). Intentionally a HAND-WRITTEN template (not the composed/iframed pattern) because the planned takeover animation must move name + folder within one DOM. Vanilla; no stack triggered. Next: folder polish/tab-slant + open state (folder grows, name→nav-logo, P1–P4 tabs spread, title + body + 2×2 image grid), then the takeover animation (new motion category, drift-C). GSAP adopted (ADR 0028); first GSAP motion wired into preview.html as a tokens-driven, reduced-motion-guarded entrance timeline (status→name→bio→folder) — the takeover animation will build on this."
     }
   ]
 }

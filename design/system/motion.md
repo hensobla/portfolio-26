@@ -7,7 +7,7 @@ Loomling's motion foundation is small and opinionated: a token scale for duratio
 Three principles, in this order:
 
 1. **Subtle, not signature.** Motion tokens are universal — they don't carry brand personality. A spring easing on a hero is the same spring whether the site is a law firm or a music app.
-2. **Performance-first.** CSS animations where possible. JS only where CSS can't reach (reveal-on-scroll needs `IntersectionObserver`). No external animation library — adopting one is a stack-declaration-level decision (see CLAUDE.md §10).
+2. **Performance-first.** CSS animations where possible. JS only where CSS can't reach (reveal-on-scroll needs `IntersectionObserver`). **GSAP is the adopted animation library** (ADR 0028) for motion beyond CSS's reach — it is an escape hatch, not the default. Reach for tokens + CSS first; reach for GSAP only when the effect genuinely requires it (timelines, scrub, complex sequencing).
 3. **Accessibility is non-negotiable.** `prefers-reduced-motion: reduce` collapses every duration token to 1ms and forces reveal utilities to their final state. Token-driven, so any component using `var(--motion-*)` is automatically compliant.
 
 ## Token surface
@@ -122,7 +122,7 @@ Follows the drift protocol (CLAUDE.md §5):
 - **B — Extend.** Add a new keyframe + utility class to `motion.css`, register a demo card in the System page Motion section, document the new utility in this file. Suitable when the new animation is in the spirit of the existing set (subtle, brand-agnostic, performance-friendly).
 - **C — Amend.** Rewrite the philosophy or scope of this doc itself (e.g., introducing a state-transition category, or formalizing micro-interactions). Append an ADR to `decisions/` per CLAUDE.md §10.
 
-Adding a third-party animation library (Motion One, GSAP, Framer Motion) is **not** a drift B — it's a stack-declaration-level decision. Animation libraries have bundle-size + framework-binding implications and require their own ADR.
+Adding a third-party animation library is **not** a drift B — it's a stack-declaration-level decision with bundle-size + framework-binding implications, requiring its own ADR. **GSAP `3.15.0` has been adopted** on these terms (ADR 0028): npm `gsap` + `@gsap/react` (`useGSAP()` hook) in the Next app; a vendored `src/vendor/gsap.min.js` in the Loom, **opt-in per preview** via `<script src="../../vendor/gsap.min.js"></script>` (path from `src/<category>/<slug>/preview.html`). GSAP code still references the motion token scale for durations/easings, and must guard `prefers-reduced-motion` **explicitly** — GSAP bypasses the CSS `--motion-*`→1ms collapse, so the centralized reduced-motion trick does not cover it. Adopting a different library (Motion One, Framer Motion, …) would still require a fresh ADR.
 
 ## Out of scope (intentional)
 
