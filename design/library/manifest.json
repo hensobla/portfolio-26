@@ -3,7 +3,7 @@
   "version": 1,
   "project": {
     "name": "portfolio-26",
-    "stack": null
+    "stack": "next"
   },
   "categories": [
     { "id": "components", "title": "Components", "dir": "src/components" },
