@@ -1,0 +1,4 @@
+# Loomling design workspace — local design-authoring tool, never deployed.
+# Next only serves app routes + public/, so design/ is already unreachable;
+# this excludes it from the Vercel upload entirely (zero chance of exposure).
+design/

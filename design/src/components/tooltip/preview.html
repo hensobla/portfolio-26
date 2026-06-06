@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Tooltip — preview</title><link rel="stylesheet" href="../../../src/tokens.css"><link rel="stylesheet" href="tooltip.css"><script src="tooltip.js" defer></script><style>html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); } .preview-frame { display: flex; align-items: center; justify-content: center; gap: var(--space-5); padding: var(--space-6); }</style></head>
+<body>
+  <div class="preview-frame">
+    <span data-loom="tooltip" data-side="top"><span>⌘K to search</span></span>
+    <span data-loom="tooltip" data-side="bottom"><span>Open in new tab</span></span>
+    <span data-loom="tooltip" data-side="right"><span>2 unread</span></span>
+  </div>
+  <script>try { parent.postMessage({ type: "loom:ready", slug: "tooltip" }, "*"); } catch (_) {}</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+/* ============================================================
+   home — portfolio homepage template (hand-written, single DOM)
+   Piece 1 (rev. to Figma "June 2026"): resting state.
+   Name top-left · bio bottom-left · tabbed "My Projects" folder right.
+   Tokens only. Open state + takeover animation land in later pieces.
+   ============================================================ */
+
+[data-loom-template="home"],
+[data-loom-template="home"] * { box-sizing: border-box; }
+
+[data-loom-template="home"] {
+  position: relative;          /* anchor the grid wash */
+  display: grid;
+  grid-template-columns: 1fr;  /* mobile: single column — identity, then folder */
+  gap: var(--space-7);
+  padding: var(--space-6);
+  background: var(--background);
+  color: var(--text1);
+  font-family: var(--font-body);
+}
+
+/* ---------- blueprint working-sheet: faint grid wash behind everything ---------- */
+[data-loom-template="home"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right,  var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: var(--space-6) var(--space-6);   /* 32px grid, matches the brand sheet */
+  -webkit-mask-image: radial-gradient(135% 120% at 50% 35%, #000 42%, transparent 88%);
+          mask-image: radial-gradient(135% 120% at 50% 35%, #000 42%, transparent 88%);
+  opacity: 0.55;
+}
+
+/* keep all real content above the grid wash */
+.home__identity,
+.home__explorer { position: relative; z-index: 1; }
+
+/* Canvas height. Standalone (real page / direct URL) = full viewport. In the
+   Loom Sandbox the iframe auto-sizes to content (sandbox.js), so 100svh would
+   loop — instead give it a viewport-like aspect ratio so the vertical layout
+   states stay visible without a vh feedback loop. preview.html adds the
+   standalone class only when it's the top-level document. */
+[data-loom-template="home"].home--standalone { min-height: 100svh; }
+[data-loom-template="home"]:not(.home--standalone) { aspect-ratio: 16 / 9; }
+
+@media (min-width: 768px) {
+  [data-loom-template="home"] {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);  /* identity ~58% · folder ~42% */
+    grid-template-rows: minmax(0, 1fr);                      /* one full-height row */
+    align-items: center;                                     /* default state: centered */
+    padding: var(--space-7);
+  }
+
+  /* layout states — where the identity block + folder sit vertically */
+  [data-loom-template="home"][data-preview-state="top"]    { align-items: start; }
+  [data-loom-template="home"][data-preview-state="bottom"] { align-items: end; }
+}
+
+/* ---------- top-right: availability status ---------- */
+.home__status {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-6);
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--eyebrow-size);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text3);
+}
+
+@media (min-width: 768px) {
+  .home__status { top: var(--space-7); right: var(--space-7); }
+}
+
+.home__status-dot {
+  position: relative;
+  flex: none;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: 50%;
+  background: var(--success);
+}
+
+/* expanding ring (the pulse) — .loom-pulse drives the animation (motion.css) */
+.home__status-ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--success);
+}
+
+/* ---------- left: identity block (name + bio grouped) ---------- */
+.home__identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.home__name {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--type-display-m);
+  font-weight: 600;
+  line-height: var(--line-height-display);
+  letter-spacing: var(--tracking-display);
+}
+
+@media (min-width: 1024px) {
+  .home__name { font-size: var(--type-display-l); }
+}
+
+.home__bio { max-width: var(--measure); }
+
+.home__bio-lead {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--type-body-l);
+  font-weight: 500;
+  line-height: var(--line-height-body);
+  color: var(--text1);
+}
+
+.home__bio-text {
+  margin: 0;
+  font-size: var(--type-body);
+  line-height: var(--line-height-body);
+  color: var(--text2);
+}
+
+/* ---------- right: the tabbed "My Projects" folder ---------- */
+.home__explorer { min-width: 0; }   /* allow the column to shrink without overflow */
+
+.home__folder {
+  position: relative;
+  width: 100%;
+  padding-top: calc(var(--space-6) - 2px);  /* reserve the tab band above the body
+                                               (padding, not margin — margin would
+                                               collapse and drop tabs onto the body) */
+}
+
+/* Tabs are SVG line-work — true trapezoids with crisp geometric strokes
+   (CSS clip-path can't stroke the angled sides). Two layers around the body:
+   ghosts BEHIND (z 0), active IN FRONT (z 2), body BETWEEN (z 1). Both SVGs
+   share the same viewBox + left origin, so the active naturally occludes the
+   ghosts' left portions and they peek out to the right. */
+.home__tabs {
+  position: absolute;
+  top: 0;
+  left: var(--space-4);        /* inset the tab cluster from the folder's left edge */
+  height: var(--space-6);
+  width: auto;                 /* width follows the viewBox aspect ratio */
+  overflow: visible;
+}
+
+.home__tabs--back  { z-index: 0; }  /* behind the body */
+.home__tabs--front { z-index: 2; }  /* in front of the body */
+
+.home__tab {
+  fill: var(--surface1);              /* lighter than the page; opaque so tabs occlude cleanly */
+  stroke: var(--line);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;  /* stay 2px regardless of scale */
+  stroke-linejoin: miter;             /* sharp corners */
+}
+
+.home__folder-body {
+  position: relative;
+  z-index: 1;                  /* between the two tab layers */
+  padding: var(--space-7);     /* more presence */
+  background: var(--surface1);     /* whole folder structure is the lighter surface */
+  border: 2px solid var(--line);   /* sharp rectangle — no border-radius */
+}
+
+.home__folder-title {
+  margin: 0 0 var(--space-5);
+  font-family: var(--eyebrow-family);
+  font-size: var(--eyebrow-size);
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
+  line-height: 1.2;
+  color: var(--text3);
+}
+
+.home__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+.home__item {
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font-body);
+  font-size: var(--type-body-l);
+  font-weight: 400;
+  line-height: var(--line-height-body);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    color var(--motion-fast) var(--ease-standard),
+    transform var(--motion-fast) var(--ease-standard);
+}
+
+.home__item:hover {
+  color: var(--accent-text);
+  transform: translateX(var(--space-2));
+}
+
+.home__item:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: 2px;
+}

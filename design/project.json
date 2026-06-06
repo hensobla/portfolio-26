@@ -1,0 +1,17 @@
+{
+  "name": "portfolio-26",
+  "purpose": "Design system + look/feel for a personal portfolio site; tokens/components authored here flow into the parent Next app via src/tokens.css.",
+  "brandSource": null,
+  "stack": "next",
+  "darkMode": null,
+  "initializedAt": "2026-06-05",
+  "deferred": [
+    "audience",
+    "cms",
+    "analytics"
+  ],
+  "answers": {
+    "stack": "Next.js 16 · React 19 · Tailwind v4 — the parent app at ../ . Loomling targets it as the publish target and its design system OVERRIDES the app's. No framework is scaffolded inside design/ — it stays a vanilla authoring tool whose approved elements export to the app. See ADR 0027.",
+    "deployment": "Vercel. design/ is excluded from the deploy via ../.vercelignore."
+  }
+}

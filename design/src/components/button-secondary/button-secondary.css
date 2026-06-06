@@ -1,0 +1,62 @@
+[data-loom="button-secondary"] {
+  display: inline-flex;
+  gap: var(--space-2);
+  align-items: center;
+  justify-content: center;
+  padding: var(--button-padding-y) var(--button-padding-x);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-button);
+  background: transparent;
+  color: var(--text1);
+  font-family: var(--font-body);
+  font-size: var(--type-body);
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  position: relative;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+[data-loom="button-secondary"]:hover,
+[data-loom="button-secondary"][data-state="hover"] {
+  background: var(--surface1);
+  border-color: var(--text1);
+}
+
+[data-loom="button-secondary"]:active,
+[data-loom="button-secondary"][data-state="pressed"] {
+  background: var(--surface2);
+  border-color: var(--text1);
+}
+
+[data-loom="button-secondary"]:focus-visible,
+[data-loom="button-secondary"][data-state="focused"] {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+[data-loom="button-secondary"][data-state="disabled"] {
+  color: var(--text2);
+  border-color: var(--border);
+  background: transparent;
+  cursor: not-allowed;
+}
+
+[data-loom="button-secondary"][data-state="loading"] [data-loom-slot="label"] {
+  visibility: hidden;
+}
+
+[data-loom="button-secondary"][data-state="loading"]::after {
+  content: "";
+  position: absolute;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--text1);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: loom-button-secondary-spin 0.6s linear infinite;
+}
+
+@keyframes loom-button-secondary-spin {
+  to { transform: rotate(360deg); }
+}

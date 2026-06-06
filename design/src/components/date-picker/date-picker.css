@@ -1,0 +1,54 @@
+[data-loom="date-picker"] {
+  display: inline-block;
+  width: 17rem;
+  padding: var(--space-4);
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  font-family: var(--font-body);
+  font-size: var(--type-body-s);
+  color: var(--text1);
+}
+
+[data-loom="date-picker"] .dp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+}
+
+[data-loom="date-picker"] .dp-head i { color: var(--text2); font-size: 1rem; cursor: pointer; }
+[data-loom="date-picker"] .dp-title { font-weight: 600; color: var(--text1); }
+
+[data-loom="date-picker"] .dp-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  margin-bottom: var(--space-1);
+}
+
+[data-loom="date-picker"] .dp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+[data-loom="date-picker"] .dp-day {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  color: var(--text1);
+  cursor: pointer;
+  transition: background 120ms ease;
+}
+
+[data-loom="date-picker"] .dp-day:hover { background: var(--surface1); }
+[data-loom="date-picker"] .dp-day--muted { color: var(--border-visible); }
+[data-loom="date-picker"] .dp-day--today { box-shadow: inset 0 0 0 1px var(--accent); color: var(--accent-text); }
+[data-loom="date-picker"] .dp-day--selected { background: var(--accent); color: var(--accent-fg); }

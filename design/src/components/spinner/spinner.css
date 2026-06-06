@@ -1,0 +1,14 @@
+[data-loom="spinner"] {
+  display: inline-block;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 2px solid var(--surface2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: loom-spinner-spin 0.8s linear infinite;
+}
+
+[data-loom="spinner"][data-size="sm"] { width: 1rem; height: 1rem; border-width: 2px; }
+[data-loom="spinner"][data-size="lg"] { width: 2.25rem; height: 2.25rem; border-width: 3px; }
+
+@keyframes loom-spinner-spin { to { transform: rotate(360deg); } }

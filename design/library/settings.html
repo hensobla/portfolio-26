@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Settings — Loomling</title>
+  <link rel="icon" type="image/svg+xml" href="loomling-lettermark.svg">
+  <script>(function(){try{var t=localStorage.getItem("loomling:theme:v1");if(t==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}}())</script>
+  <link rel="stylesheet" href="library.css">
+  <link rel="stylesheet" href="../src/tokens.css">
+</head>
+<body data-page="settings">
+  <header class="lib-header">
+    <div class="lib-header__inner">
+      <a class="lib-brand" href="index.html" aria-label="Loomling Loom home">
+        <img class="lib-brand__user-logo" alt="" hidden>
+        <span class="lib-brand__sep" aria-hidden="true" hidden>|</span>
+        <span class="lib-brand__mark" aria-hidden="true"></span>
+        <span class="lib-brand__project" data-project-name>—</span>
+      </a>
+      <nav class="lib-tabs" aria-label="Loom views">
+        <a class="lib-tab" href="index.html">Library</a>
+        <a class="lib-tab" href="tokens.html">System</a>
+        <a class="lib-tab" href="components.html">Components</a>
+        <a class="lib-tab" href="builder.html">Builder</a>
+        <a class="lib-tab is-active" href="settings.html">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="lib-main" id="main-content">
+    <h1 class="sr-only">Settings</h1>
+    <aside class="lib-side" aria-label="Sections">
+      <button
+        class="lib-side__toggle"
+        id="lib-side-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="lib-side-nav">
+        <span class="lib-side__toggle-label" id="lib-side-toggle-label">Brand</span>
+        <span class="lib-side__toggle-caret" aria-hidden="true">▾</span>
+      </button>
+      <nav class="lib-side__nav" id="lib-side-nav">
+        <div class="lib-side__group-title">Sections</div>
+        <a class="lib-side__link" href="#brand">Brand</a>
+        <a class="lib-side__link" href="#darkmode">Dark mode</a>
+        <a class="lib-side__link" href="#archive">Archive</a>
+      </nav>
+    </aside>
+
+    <section class="lib-content">
+      <div class="ds-actions">
+        <div class="ds-actions__text">
+          <p class="ds-actions__hint">Bring your design system into Loomling. Pick a color, paste tokens, drop in a brand URL or screenshot — Claude Code maps it onto <code>src/tokens.css</code> and the <code>system/*.md</code> docs.</p>
+        </div>
+        <div class="ds-actions__btns">
+          <button type="button" class="bld-btn" id="ds-reset" title="Apply the pre-import token snapshot as a dev preview across the Loom (Clear in the banner undoes). Also copies the commit-to-disk prompt to your clipboard.">Reset tokens</button>
+          <button type="button" class="bld-btn bld-btn--primary" id="ds-import">Import…</button>
+        </div>
+      </div>
+
+      <section class="ds-section" id="brand" aria-labelledby="brand-title">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title" id="brand-title">Brand</h2>
+          <span class="lib-section__meta">project.json · localStorage</span>
+        </div>
+        <p class="ds-note">Upload a logo to display next to the Loomling mark in the nav. SVG preferred (scales cleanly); PNG / JPG / WebP also accepted. Saved locally for instant preview; click <strong>Save to project</strong> to persist to disk and share across machines.</p>
+
+        <div class="settings-brand">
+          <div class="settings-brand__preview">
+            <div class="settings-brand__nav-preview" aria-label="Nav preview">
+              <img class="settings-brand__user-logo" id="settings-logo-img" alt="" hidden>
+              <span class="settings-brand__sep" id="settings-logo-sep" aria-hidden="true" hidden>|</span>
+              <span class="settings-brand__mark" aria-hidden="true"></span>
+              <span class="settings-brand__name">Loomling</span>
+            </div>
+            <span class="bld-modal__hint-small">Live preview — this is how your nav will look.</span>
+          </div>
+
+          <div class="settings-brand__controls">
+            <div class="settings-brand__dropzone" id="settings-logo-dropzone" tabindex="0" role="button" aria-label="Choose or drop a logo">
+              <input type="file" id="settings-logo-file" accept="image/svg+xml,image/png,image/jpeg,image/webp" hidden>
+              <div class="settings-brand__dz-empty" id="settings-logo-empty">
+                <strong>Drop a logo</strong>
+                <span>or click to choose — SVG, PNG, JPG, WebP</span>
+              </div>
+              <div class="settings-brand__dz-filled" id="settings-logo-filled" hidden>
+                <span class="settings-brand__file" id="settings-logo-filename">—</span>
+                <span class="settings-brand__file-meta" id="settings-logo-filesize">—</span>
+              </div>
+            </div>
+
+            <div class="settings-brand__actions">
+              <button type="button" class="bld-btn bld-btn--ghost" id="settings-logo-remove" disabled>Remove</button>
+              <button type="button" class="bld-btn bld-btn--primary" id="settings-logo-save" disabled>Save to project</button>
+            </div>
+            <span class="bld-modal__hint-small" id="settings-logo-status">No logo set.</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="ds-section ds-darkmode" id="darkmode" aria-labelledby="darkmode-title">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title" id="darkmode-title">Dark mode</h2>
+          <span class="lib-section__meta" id="darkmode-meta">project.json</span>
+        </div>
+        <p class="ds-note">The sun/moon toggle in the nav always flips Loomling's chrome. Whether it also flips your design system depends on this setting and whether <code>src/tokens.css</code> declares a <code>[data-theme="dark"]</code> block.</p>
+
+        <div class="ds-darkmode__row">
+          <div class="ds-darkmode__opts" role="radiogroup" aria-label="Toggle behavior">
+            <label class="ds-darkmode__opt">
+              <input type="radio" name="ds-darkmode" value="auto">
+              <span>
+                <strong>Auto</strong>
+                <em>Propagate when dark tokens are detected.</em>
+              </span>
+            </label>
+            <label class="ds-darkmode__opt">
+              <input type="radio" name="ds-darkmode" value="always">
+              <span>
+                <strong>Always</strong>
+                <em>Always propagate (chrome and content flip together).</em>
+              </span>
+            </label>
+            <label class="ds-darkmode__opt">
+              <input type="radio" name="ds-darkmode" value="never">
+              <span>
+                <strong>Never</strong>
+                <em>Chrome only. Your design system stays in light mode.</em>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="ds-darkmode__status">
+          <span class="ds-darkmode__chip" id="ds-darkmode-detected">
+            <span class="ds-darkmode__chip-dot" aria-hidden="true"></span>
+            <span id="ds-darkmode-detected-text">Detection: pending</span>
+          </span>
+          <span class="ds-darkmode__chip" id="ds-darkmode-effect">
+            <span id="ds-darkmode-effect-text">Effective behavior: —</span>
+          </span>
+          <button type="button" class="bld-btn bld-btn--primary" id="ds-darkmode-save" disabled>Save via Claude Code</button>
+        </div>
+      </section>
+
+      <section class="ds-section" id="archive" aria-labelledby="archive-title">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title" id="archive-title">Archive</h2>
+          <span class="lib-section__meta" id="archive-meta">manifest.json · history</span>
+        </div>
+        <p class="ds-note">Elements removed from the project. Their source files are gone, but the manifest entry is kept as history (CLAUDE.md §11, ADR 0010). Restoring one means asking Claude Code to recreate the files and flip the status back to <code>draft</code>.</p>
+        <ul class="settings-archive" id="settings-archive-list" aria-label="Removed elements"></ul>
+        <p class="ds-note" id="settings-archive-empty" hidden><em>Nothing removed yet.</em></p>
+      </section>
+    </section>
+
+    <!-- Tokens Import modal -->
+  <div class="bld-modal" id="ds-import-modal" hidden role="dialog" aria-labelledby="ds-import-title">
+    <div class="bld-modal__backdrop" data-modal-dismiss="import"></div>
+    <div class="bld-modal__panel bld-modal__panel--wide" role="document">
+      <header class="bld-modal__head">
+        <h2 class="bld-modal__title" id="ds-import-title">Import design tokens</h2>
+        <button type="button" class="bld-modal__close" data-modal-dismiss="import" aria-label="Close">×</button>
+      </header>
+      <div class="bld-modal__body">
+        <p class="bld-modal__hint">Hand Loomling whatever you have. Claude Code maps it onto <code>src/tokens.css</code> and updates the <code>system/*.md</code> docs per the rules.</p>
+
+        <div class="ds-tabs" role="tablist" aria-label="Input mode">
+          <button type="button" class="ds-tab is-active" role="tab" aria-selected="true" data-tab="vibe">Vibe</button>
+          <button type="button" class="ds-tab" role="tab" aria-selected="false" data-tab="paste">Paste</button>
+          <button type="button" class="ds-tab" role="tab" aria-selected="false" data-tab="url">URL</button>
+          <button type="button" class="ds-tab" role="tab" aria-selected="false" data-tab="image">Image</button>
+        </div>
+
+        <!-- Vibe tab -->
+        <div class="ds-tabpanel" data-tabpanel="vibe" role="tabpanel">
+          <div class="bld-modal__field">
+            <label for="ds-vibe-prompt">Describe the vibe</label>
+            <textarea id="ds-vibe-prompt" rows="4" placeholder="Warm earthy palette. Sage as the accent. Restrained, editorial — think slow news magazine. Serif for headlines, clean sans for body."></textarea>
+            <span class="bld-modal__hint-small">Free-text intent. Claude Code interprets and proposes tokens — you preview before committing.</span>
+          </div>
+
+          <div class="bld-modal__field">
+            <label for="ds-vibe-hex-input">Anchor colors <span class="bld-modal__optional">optional</span></label>
+            <div class="ds-chips" id="ds-vibe-chips">
+              <input type="text" id="ds-vibe-hex-input" placeholder="#0b6e4f, then Enter" autocomplete="off" spellcheck="false">
+            </div>
+            <span class="bld-modal__hint-small">Add as many hexes as you want — leave empty to let CC propose colors from the prompt. Enter or comma to add; click a chip to remove.</span>
+          </div>
+
+          <div class="bld-modal__field" id="ds-vibe-harmony-field" hidden>
+            <label>Harmony <span class="bld-modal__optional">optional add-on</span></label>
+            <div class="ds-harmony" role="radiogroup" aria-label="Harmony mode">
+              <label class="ds-harmony__opt"><input type="radio" name="ds-harmony" value="mono" checked> Mono</label>
+              <label class="ds-harmony__opt"><input type="radio" name="ds-harmony" value="analogous"> Analogous</label>
+              <label class="ds-harmony__opt"><input type="radio" name="ds-harmony" value="complementary"> Complementary</label>
+              <label class="ds-harmony__opt"><input type="radio" name="ds-harmony" value="triadic"> Triadic</label>
+            </div>
+            <span class="bld-modal__hint-small">Mono = one ramp per anchor. Others derive companion ramps by hue rotation. Only used when anchor colors are set.</span>
+          </div>
+
+          <div class="bld-modal__field">
+            <label>Font direction <span class="bld-modal__optional">optional</span></label>
+            <div class="ds-font" role="radiogroup" aria-label="Font direction">
+              <label class="ds-font__opt"><input type="radio" name="ds-font-mode" value="google" checked> Google fonts</label>
+              <label class="ds-font__opt"><input type="radio" name="ds-font-mode" value="generic"> Generic family</label>
+              <label class="ds-font__opt"><input type="radio" name="ds-font-mode" value="auto"> Choose for me</label>
+            </div>
+            <div class="ds-font__detail" data-font-mode="google">
+              <input type="text" id="ds-vibe-font-google" placeholder="e.g. Inter, Fraunces, JetBrains Mono" autocomplete="off">
+              <span class="bld-modal__hint-small">Family names. Comma-separated. CC adds the right Google Fonts link in <code>system/typography.md</code>.</span>
+            </div>
+            <div class="ds-font__detail" data-font-mode="generic" hidden>
+              <div class="ds-font__generic" role="radiogroup" aria-label="Generic family">
+                <label class="ds-harmony__opt"><input type="radio" name="ds-font-generic" value="serif"> Serif</label>
+                <label class="ds-harmony__opt"><input type="radio" name="ds-font-generic" value="sans-serif" checked> Sans-serif</label>
+                <label class="ds-harmony__opt"><input type="radio" name="ds-font-generic" value="monospace"> Monospace</label>
+              </div>
+              <span class="bld-modal__hint-small">Uses system-stack fonts in that family — no Google Fonts dependency.</span>
+            </div>
+            <div class="ds-font__detail" data-font-mode="auto" hidden>
+              <span class="bld-modal__hint-small">CC picks fonts that match the vibe prompt. Default if you don't want to think about it.</span>
+            </div>
+          </div>
+
+          <div class="bld-modal__field">
+            <label class="ds-toggle">
+              <input type="checkbox" id="ds-visual-preview" checked>
+              <span>Live preview on the Tokens page</span>
+            </label>
+            <span class="bld-modal__hint-small">Re-skins the swatches behind this modal as you adjust. Only active when anchor colors are set.</span>
+          </div>
+
+          <div class="ds-vibe__output" id="ds-vibe-output" hidden>
+            <h4 class="ds-visual__sub">Anchor ramps</h4>
+            <div id="ds-visual-ramp" class="ds-ramp-list" aria-label="Generated ramps"></div>
+            <div class="ds-companions" id="ds-visual-companions" hidden></div>
+          </div>
+        </div>
+
+        <!-- Paste tab -->
+        <div class="ds-tabpanel" data-tabpanel="paste" role="tabpanel" hidden>
+          <div class="bld-modal__field">
+            <label for="ds-paste-format">Format</label>
+            <select id="ds-paste-format">
+              <option value="auto">Auto-detect (recommended)</option>
+              <option value="css">CSS / tokens.css</option>
+              <option value="tailwind">Tailwind config snippet</option>
+              <option value="figma-tokens">Figma Tokens JSON</option>
+              <option value="hex-list">Hex code list</option>
+              <option value="vibe-text">Vibe / description</option>
+            </select>
+            <span class="bld-modal__hint-small">Claude Code sniffs the input — pick a format only if you want to be explicit.</span>
+          </div>
+          <div class="bld-modal__field">
+            <label for="ds-paste-raw">Paste here</label>
+            <textarea id="ds-paste-raw" rows="10" placeholder="Paste your tokens.css / Tailwind theme / Figma export / hex list — or describe the vibe in a sentence."></textarea>
+          </div>
+        </div>
+
+        <!-- URL tab -->
+        <div class="ds-tabpanel" data-tabpanel="url" role="tabpanel" hidden>
+          <div class="bld-modal__field">
+            <label for="ds-url-input">Brand URL</label>
+            <input type="url" id="ds-url-input" placeholder="https://acme.example.com" autocomplete="off">
+            <span class="bld-modal__hint-small">Prefilled from <code>project.json.brandSource</code> when set. Claude Code WebFetches and extracts palette + typography.</span>
+          </div>
+          <div class="bld-modal__field">
+            <label for="ds-url-hint">Hint <span class="bld-modal__optional">optional</span></label>
+            <textarea id="ds-url-hint" rows="3" placeholder="Logo color is the brand primary. Pull the body font from the article pages."></textarea>
+          </div>
+        </div>
+
+        <!-- Image tab -->
+        <div class="ds-tabpanel" data-tabpanel="image" role="tabpanel" hidden>
+          <div class="bld-modal__field">
+            <label>Image</label>
+            <div class="ds-dropzone" id="ds-image-dropzone" tabindex="0" role="button" aria-label="Choose or drop an image">
+              <input type="file" id="ds-image-file" accept="image/*" hidden>
+              <div class="ds-dropzone__empty" id="ds-image-empty">
+                <strong>Drop an image</strong>
+                <span>or click to choose — PNG / JPG / WebP. Embedded as base64 in the payload.</span>
+              </div>
+              <div class="ds-dropzone__filled" id="ds-image-filled" hidden>
+                <img id="ds-image-preview" alt="">
+                <div class="ds-dropzone__meta">
+                  <span id="ds-image-filename">—</span>
+                  <button type="button" class="bld-btn bld-btn--ghost" id="ds-image-clear">Remove</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="bld-modal__field">
+            <label for="ds-image-hint">Hint <span class="bld-modal__optional">optional</span></label>
+            <textarea id="ds-image-hint" rows="3" placeholder="Pull two accents and one neutral. Skip the gradient in the bottom-right."></textarea>
+          </div>
+        </div>
+
+        <!-- Scope picker (always visible) -->
+        <div class="ds-scope">
+          <div class="bld-modal__field">
+            <label>Scope</label>
+            <div class="ds-scope__opts" role="radiogroup" aria-label="Scope">
+              <label class="ds-scope__opt"><input type="radio" name="ds-scope" value="merge" checked> <span><strong>Merge</strong><em>Add alongside existing tokens. Safest.</em></span></label>
+              <label class="ds-scope__opt"><input type="radio" name="ds-scope" value="replace-all"> <span><strong>Replace all</strong><em>Wipe affected tokens, re-seed from input.</em></span></label>
+              <label class="ds-scope__opt"><input type="radio" name="ds-scope" value="replace-target"> <span><strong>Replace target</strong><em>Overwrite one named group only.</em></span></label>
+            </div>
+          </div>
+          <div class="bld-modal__field" id="ds-scope-target-field" hidden>
+            <label for="ds-scope-target">Target</label>
+            <select id="ds-scope-target">
+              <option value="color.accent">color.accent</option>
+              <option value="color.neutral">color.neutral</option>
+              <option value="color.semantic">color.semantic (mappings only)</option>
+              <option value="typography.family">typography.family</option>
+              <option value="typography.scale">typography.scale</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bld-modal__actions">
+          <button type="button" class="bld-btn bld-btn--ghost" data-modal-dismiss="import">Cancel</button>
+          <button type="button" class="bld-btn" id="ds-import-dev" title="Apply staged tokens in-memory (preview only, no CC paste). Visual mode + hex-list pastes supported.">Try it (dev preview)</button>
+          <button type="button" class="bld-btn bld-btn--primary" id="ds-import-submit">Build CC prompt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CC prompt result modal -->
+  <div class="bld-modal" id="ds-prompt-modal" hidden role="dialog" aria-labelledby="ds-prompt-title">
+    <div class="bld-modal__backdrop" data-modal-dismiss="prompt"></div>
+    <div class="bld-modal__panel bld-modal__panel--wide" role="document">
+      <header class="bld-modal__head">
+        <h2 class="bld-modal__title" id="ds-prompt-title">Paste into Claude Code</h2>
+        <button type="button" class="bld-modal__close" data-modal-dismiss="prompt" aria-label="Close">×</button>
+      </header>
+      <div class="bld-modal__body">
+        <p class="bld-modal__hint">Copy this and paste it into a Claude Code conversation in your project directory. CC will update <code>src/tokens.css</code> and the relevant <code>system/*.md</code> docs per <code>system/tokens-import.md</code>.</p>
+        <pre class="bld-prompt" id="ds-prompt-text"></pre>
+        <div class="bld-modal__actions">
+          <button type="button" class="bld-btn bld-btn--ghost" id="ds-prompt-back">Back to editor</button>
+          <button type="button" class="bld-btn bld-btn--primary" id="ds-prompt-copy">Copy to clipboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </main>
+
+  <script src="theme.js" defer></script>
+  <script src="brand.js" defer></script>
+  <script src="dev-tokens.js" defer></script>
+  <script src="library.js" defer></script>
+  <script src="tokens.js" defer></script>
+  <script src="primitives.js" defer></script>
+  <script src="settings.js" defer></script>
+  <script src="builder.js" defer></script>
+  <script src="sidebar-collapse.js" defer></script>
+  <script src="loom-router.js" defer></script>
+  <script src="onboarding.js" defer></script>
+</body>
+</html>

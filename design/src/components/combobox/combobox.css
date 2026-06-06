@@ -1,0 +1,80 @@
+[data-loom="combobox"] {
+  display: inline-flex;
+  flex-direction: column;
+  width: 20rem;
+  font-family: var(--font-body);
+  font-size: var(--type-body-s);
+}
+
+[data-loom="combobox"] .cb-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: 2.5rem;
+  padding: 0 var(--space-3);
+  background: var(--background);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-button);
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+  color: var(--text1);
+}
+
+[data-loom="combobox"] .cb-field i { color: var(--text2); }
+[data-loom="combobox"] .cb-field input {
+  border: 0;
+  outline: 0;
+  background: transparent;
+  flex: 1;
+  color: var(--text1);
+  font: inherit;
+}
+
+[data-loom="combobox"] .cb-count {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  color: var(--text2);
+  letter-spacing: 0.04em;
+}
+
+[data-loom="combobox"] .cb-menu {
+  margin: var(--space-1) 0 0;
+  padding: 4px;
+  list-style: none;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+[data-loom="combobox"] .cb-menu li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 6px;
+  color: var(--text1);
+  cursor: pointer;
+}
+
+[data-loom="combobox"] .cb-menu li i { color: var(--text2); font-size: 1rem; }
+[data-loom="combobox"] .cb-menu li[aria-selected="true"] { background: var(--surface1); }
+[data-loom="combobox"] .cb-menu li mark { background: transparent; color: var(--accent-text); font-weight: 600; }
+
+[data-loom="combobox"] .cb-menu li:hover { background: var(--surface1); }
+[data-loom="combobox"] .cb-empty {
+  padding: var(--space-4);
+  text-align: center;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+}
+
+[data-loom="combobox"][data-state="closed"] .cb-field {
+  border-color: var(--border-visible);
+  box-shadow: none;
+}
+[data-loom="combobox"][data-state="closed"] .cb-menu { display: none; }

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sandbox — Loomling</title>
+  <link rel="icon" type="image/svg+xml" href="loomling-lettermark.svg">
+  <script>(function(){try{var t=localStorage.getItem("loomling:theme:v1");if(t==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}}())</script>
+  <link rel="stylesheet" href="library.css">
+  <link rel="stylesheet" href="../src/tokens.css">
+</head>
+<body data-page="sandbox">
+  <header class="lib-header">
+    <div class="lib-header__inner">
+      <a class="lib-brand" href="index.html" aria-label="Loomling Loom home">
+        <img class="lib-brand__user-logo" alt="" hidden>
+        <span class="lib-brand__sep" aria-hidden="true" hidden>|</span>
+        <span class="lib-brand__mark" aria-hidden="true"></span>
+        <span class="lib-brand__project" data-project-name>—</span>
+      </a>
+      <nav class="lib-tabs" aria-label="Loom views">
+        <a class="lib-tab is-active" href="index.html">Library</a>
+        <a class="lib-tab" href="tokens.html">System</a>
+        <a class="lib-tab" href="builder.html">Builder</a>
+        <a class="lib-tab" href="settings.html">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="sb-main" id="sb-main">
+    <!-- Back link target is set in sandbox.js based on whether the entry
+         is a primitive (→ System page section) or a user-authored
+         catalog item (→ Library page). -->
+    <a class="sb-back" id="sb-back" href="index.html" aria-label="back">
+      <span aria-hidden="true">←</span> <span id="sb-back-label">back</span>
+    </a>
+
+    <div class="sb-error" id="sb-error" hidden></div>
+
+    <section class="sb-piece" id="sb-piece" hidden>
+      <header class="sb-piece__head">
+        <div class="sb-piece__title-row">
+          <h1 class="sb-piece__title" id="sb-title">—</h1>
+          <button
+            type="button"
+            class="sb-copy-link"
+            id="sb-copy-link"
+            aria-label="Copy slug"
+            title="Copy slug">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path>
+            </svg>
+          </button>
+          <span class="sb-copy-toast" id="sb-copy-toast" aria-live="polite"></span>
+          <div class="sb-piece__head-actions" id="sb-piece-actions">
+            <button type="button" class="sb-action" id="sb-designcheck-btn" hidden>Run design check</button>
+            <button type="button" class="sb-action" id="sb-critique-btn" hidden>Critique</button>
+            <button type="button" class="sb-action sb-action--danger" id="sb-discard-btn" hidden>Discard changes</button>
+            <button type="button" class="sb-action sb-action--primary" id="sb-approve-btn" hidden>Approve</button>
+          </div>
+        </div>
+        <div class="sb-piece__meta">
+          <span class="lib-badge" id="sb-badge">—</span>
+          <span class="sb-piece__category" id="sb-category">—</span>
+          <span class="sb-snapshot-chip" id="sb-snapshot-chip" hidden>
+            <span aria-hidden="true">●</span>
+            <span id="sb-snapshot-chip-text">—</span>
+          </span>
+        </div>
+      </header>
+
+      <aside class="sb-pending-alert" id="sb-pending-alert" hidden>
+        <div class="sb-pending-alert__label">Changes since last approval</div>
+        <p class="sb-pending-alert__summary" id="sb-pending-summary">—</p>
+      </aside>
+
+      <section class="sb-stage" aria-label="Preview">
+        <div class="sb-stage__toolbar">
+          <div class="sb-toolbar-group" role="group" aria-label="State">
+            <span class="sb-toolbar-group__label">State</span>
+            <div class="sb-pills" id="sb-states"></div>
+          </div>
+          <div class="sb-toolbar-group" role="group" aria-label="Breakpoint">
+            <span class="sb-toolbar-group__label">Breakpoint</span>
+            <div class="sb-pills" id="sb-breakpoints"></div>
+          </div>
+          <div class="sb-toolbar-group" role="group" aria-label="Version" id="sb-version-group" hidden>
+            <span class="sb-toolbar-group__label">Version</span>
+            <div class="sb-pills" id="sb-versions">
+              <button type="button" class="sb-pill is-active" data-version="draft">Draft</button>
+              <button type="button" class="sb-pill" data-version="approved">Approved</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="sb-stage__frame" id="sb-stage-frame">
+          <div class="sb-stage__measure" id="sb-measure" data-mode="fluid">
+            <span class="sb-measure__prefix" id="sb-measure-prefix">Fluid ·</span>
+            <input
+              class="sb-measure__input"
+              id="sb-measure-input"
+              type="text"
+              inputmode="numeric"
+              aria-label="Viewport width in pixels"
+              size="4">
+            <span class="sb-measure__suffix">px</span>
+            <span class="sb-measure__scale" id="sb-measure-scale"></span>
+          </div>
+          <div class="sb-stage__viewport" id="sb-viewport">
+            <div class="sb-stage__scaler" id="sb-scaler">
+              <iframe
+                id="sb-iframe"
+                title="Sandbox preview"
+                sandbox="allow-scripts allow-same-origin"></iframe>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="sb-content" id="sb-content" aria-label="Content" hidden>
+        <div class="sb-content__head">
+          <h2 class="sb-content__title">Content</h2>
+          <button
+            type="button"
+            class="sb-content__clear"
+            id="sb-content-clear"
+            disabled
+            aria-label="Clear all content overrides">Clear all</button>
+        </div>
+        <p class="sb-content__hint">Edit a field to override the state's default. Clear a field to revert. Your edits persist when you switch states.</p>
+        <div class="sb-content__fields" id="sb-content-fields"></div>
+      </section>
+
+      <section class="sb-meta" aria-label="Metadata">
+        <h2 class="sb-meta__title">Anatomy</h2>
+        <dl class="sb-meta__list">
+          <dt>Slug</dt>
+          <dd><code id="sb-slug">—</code></dd>
+          <dt>File</dt>
+          <dd><code id="sb-file-path">—</code></dd>
+          <dt>Preview</dt>
+          <dd><code id="sb-preview-path">—</code></dd>
+          <dt>Added</dt>
+          <dd id="sb-added">—</dd>
+          <dt>States</dt>
+          <dd id="sb-state-list">—</dd>
+          <dt>Notes</dt>
+          <dd id="sb-notes">—</dd>
+        </dl>
+      </section>
+    </section>
+  </main>
+
+  <!-- Discard prompt modal — shown when user clicks "Discard changes" on
+       an awaiting-approval element. Restores the _approved/ snapshot. -->
+  <div class="bld-modal" id="sb-discard-modal" hidden role="dialog" aria-labelledby="sb-discard-title">
+    <div class="bld-modal__backdrop" data-discard-dismiss></div>
+    <div class="bld-modal__panel bld-modal__panel--wide" role="document">
+      <header class="bld-modal__head">
+        <h2 class="bld-modal__title" id="sb-discard-title">Discard changes</h2>
+        <button type="button" class="bld-modal__close" data-discard-dismiss aria-label="Close">×</button>
+      </header>
+      <div class="bld-modal__body">
+        <p class="bld-modal__hint">Paste this into a fresh Claude Code conversation. CC will restore the snapshot at <code>_approved/</code>, flip status back to <strong>approved</strong>, and delete the snapshot folder per <code>CLAUDE.md §14</code>.</p>
+        <pre class="bld-prompt" id="sb-discard-prompt"></pre>
+        <div class="bld-modal__actions">
+          <button type="button" class="bld-btn bld-btn--ghost" data-discard-dismiss>Cancel</button>
+          <button type="button" class="bld-btn bld-btn--primary" id="sb-discard-copy">Copy to clipboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Approve prompt modal — shown when user clicks "Approve" on any draft.
+       Runs the category's checklist + flips status + where-used scan. -->
+  <div class="bld-modal" id="sb-approve-modal" hidden role="dialog" aria-labelledby="sb-approve-title">
+    <div class="bld-modal__backdrop" data-approve-dismiss></div>
+    <div class="bld-modal__panel bld-modal__panel--wide" role="document">
+      <header class="bld-modal__head">
+        <h2 class="bld-modal__title" id="sb-approve-title">Approve</h2>
+        <button type="button" class="bld-modal__close" data-approve-dismiss aria-label="Close">×</button>
+      </header>
+      <div class="bld-modal__body">
+        <p class="bld-modal__hint">Paste this into a fresh Claude Code conversation. CC will run the category's approval checklist, flip status to <strong>approved</strong>, and surface the where-used scan per <code>CLAUDE.md §6</code>.</p>
+        <pre class="bld-prompt" id="sb-approve-prompt"></pre>
+        <div class="bld-modal__actions">
+          <button type="button" class="bld-btn bld-btn--ghost" data-approve-dismiss>Cancel</button>
+          <button type="button" class="bld-btn bld-btn--primary" id="sb-approve-copy">Copy to clipboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Design check modal — advisory, flag-never-block (CLAUDE.md §22, system/design-check.md).
+       Available on any open element; reads the rendered preview, never blocks. -->
+  <div class="bld-modal" id="sb-designcheck-modal" hidden role="dialog" aria-labelledby="sb-designcheck-title">
+    <div class="bld-modal__backdrop" data-designcheck-dismiss></div>
+    <div class="bld-modal__panel bld-modal__panel--wide" role="document">
+      <header class="bld-modal__head">
+        <h2 class="bld-modal__title" id="sb-designcheck-title">Run design check</h2>
+        <button type="button" class="bld-modal__close" data-designcheck-dismiss aria-label="Close">×</button>
+      </header>
+      <div class="bld-modal__body">
+        <p class="bld-modal__hint">Paste this into a fresh Claude Code conversation. CC scans the <strong>rendered</strong> preview against <code>.loomling/design-check.json</code> and reports advisory findings. It <strong>flags, never blocks</strong> — your taste decides (<code>system/design-check.md</code>).</p>
+        <pre class="bld-prompt" id="sb-designcheck-prompt"></pre>
+        <div class="bld-modal__actions">
+          <button type="button" class="bld-btn bld-btn--ghost" data-designcheck-dismiss>Cancel</button>
+          <button type="button" class="bld-btn bld-btn--primary" id="sb-designcheck-copy">Copy to clipboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Critique modal — advisory, read-only second opinion (CLAUDE.md §23, system/critique.md).
+       Available on any open element; produces a chat report, never edits. -->
+  <div class="bld-modal" id="sb-critique-modal" hidden role="dialog" aria-labelledby="sb-critique-title">
+    <div class="bld-modal__backdrop" data-critique-dismiss></div>
+    <div class="bld-modal__panel bld-modal__panel--wide" role="document">
+      <header class="bld-modal__head">
+        <h2 class="bld-modal__title" id="sb-critique-title">Critique</h2>
+        <button type="button" class="bld-modal__close" data-critique-dismiss aria-label="Close">×</button>
+      </header>
+      <div class="bld-modal__body">
+        <p class="bld-modal__hint">Paste this into a fresh Claude Code conversation. CC reviews the <strong>rendered</strong> element against your own brand (<code>system/voice.md</code>, <code>system/*.md</code>, <code>project.json</code>) and reports prioritized issues. It's <strong>read-only</strong> — no files written, no <code>PRODUCT.md</code> created (<code>system/critique.md</code>).</p>
+        <pre class="bld-prompt" id="sb-critique-prompt"></pre>
+        <div class="bld-modal__actions">
+          <button type="button" class="bld-btn bld-btn--ghost" data-critique-dismiss>Cancel</button>
+          <button type="button" class="bld-btn bld-btn--primary" id="sb-critique-copy">Copy to clipboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="theme.js" defer></script>
+  <script src="brand.js" defer></script>
+  <script src="dev-tokens.js" defer></script>
+  <script src="sandbox.js" defer></script>
+</body>
+</html>

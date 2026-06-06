@@ -1,26 +1,13 @@
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import About from "@/components/About";
-import SelectedWork from "@/components/SelectedWork";
-import ServicesCTA from "@/components/ServicesCTA";
-import Testimonials from "@/components/Testimonials";
-import ClientLogos from "@/components/ClientLogos";
-import CTABanner from "@/components/CTABanner";
-import Footer from "@/components/Footer";
-
+// Placeholder homepage. The old marketing site was removed (clean slate for the
+// Blueprint rebuild). This sits behind the password gate (src/proxy.ts), so only
+// an authenticated visitor sees it. Replaced by the real Blueprint homepage when
+// it's ported in from the Loomling workspace (design/).
 export default function Home() {
   return (
-    <>
-      {/* Navbar is absolute-positioned over the hero */}
-      <Navbar />
-      <Hero />
-      <About />
-      <SelectedWork />
-      <ServicesCTA />
-      <Testimonials />
-      <ClientLogos />
-      <CTABanner />
-      <Footer />
-    </>
+    <main className="flex min-h-screen items-center justify-center bg-neutral-950 px-6">
+      <p className="text-xs uppercase tracking-[0.25em] text-neutral-500">
+        Under construction
+      </p>
+    </main>
   );
 }

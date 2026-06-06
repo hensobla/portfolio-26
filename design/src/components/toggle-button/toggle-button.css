@@ -1,0 +1,48 @@
+[data-loom="toggle-button"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-button);
+  background: transparent;
+  color: var(--text2);
+  font-family: var(--font-body);
+  font-size: var(--type-body-s);
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+[data-loom="toggle-button"] i { font-size: 1rem; line-height: 1; }
+
+[data-loom="toggle-button"][aria-pressed="true"],
+[data-loom="toggle-button"][data-state="on"] {
+  background: var(--accent-subtle);
+  color: var(--accent-text);
+  border-color: var(--accent);
+}
+
+[data-loom="toggle-button"]:hover,
+[data-loom="toggle-button"][data-state="hover"] {
+  border-color: var(--text1);
+  color: var(--text1);
+}
+
+[data-loom="toggle-button"][aria-pressed="true"]:hover,
+[data-loom="toggle-button"][data-state="on"][data-state="hover"] {
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+[data-loom="toggle-button"]:focus-visible,
+[data-loom="toggle-button"][data-state="focused"] {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}
+
+[data-loom="toggle-button"][data-state="disabled"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

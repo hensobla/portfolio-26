@@ -1,0 +1,35 @@
+[data-loom="link"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--accent-text);
+  text-decoration: none;
+  font-family: var(--font-body);
+  font-size: var(--type-body-s);
+  font-weight: 600;
+  border-bottom: 1px solid transparent;
+  transition: border-color 120ms ease;
+}
+
+[data-loom="link"]:hover,
+[data-loom="link"][data-state="hover"] { border-bottom-color: var(--accent-text); }
+
+[data-loom="link"]:focus-visible,
+[data-loom="link"][data-state="focused"] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+[data-loom="link"]:visited,
+[data-loom="link"][data-state="visited"] {
+  color: var(--color-accent-700);
+}
+
+[data-loom="link"] i { font-size: 0.875rem; }
+
+[data-loom="link"][data-variant="inline"] {
+  font-weight: 400;
+  font-size: inherit;
+  color: var(--accent-text);
+}

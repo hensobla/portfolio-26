@@ -1,0 +1,21 @@
+[data-loom="breadcrumb"] ol {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+
+[data-loom="breadcrumb"] a {
+  color: var(--text2);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+
+[data-loom="breadcrumb"] a:hover { color: var(--text1); }
+[data-loom="breadcrumb"] a[aria-current="page"] { color: var(--text1); }
+[data-loom="breadcrumb"] .sep { color: var(--border-visible); }

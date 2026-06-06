@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Toggle Button — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2/src/regular/style.css">
+  <link rel="stylesheet" href="toggle-button.css"><script src="toggle-button.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+    .preview-frame { display: flex; align-items: center; justify-content: center; padding: var(--space-5); }
+  </style>
+</head>
+<body>
+  <div class="preview-frame" id="preview-frame"></div>
+  <script>
+    (function () {
+      const STATES = {
+        default:  { label: "Show drafts", on: false, state: null       },
+        on:       { label: "Show drafts", on: true,  state: null       },
+        disabled: { label: "Show drafts", on: false, state: "disabled" }
+      };
+      const params = new URLSearchParams(location.search);
+      const stateId = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+      function render() {
+        const pressed = baseState.on ? "true" : "false";
+        const stateAttr = baseState.state ? ` data-state="${baseState.state}"` : "";
+        document.getElementById("preview-frame").innerHTML =
+          `<button type="button" data-loom="toggle-button" aria-pressed="${pressed}"${stateAttr}>` +
+            `<i class="ph ph-eye" aria-hidden="true"></i>` +
+            `<span data-loom-slot="label">${escapeText(baseState.label || "")}</span>` +
+          `</button>`;
+      }
+      function escapeText(s) { return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"})[c]); }
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "toggle-button" }, "*"); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

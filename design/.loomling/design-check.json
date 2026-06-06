@@ -1,0 +1,22 @@
+{
+  "$comment": "Loomling-owned design-check rule set (CLAUDE.md §22, system/design-check.md). This file is the source of truth for WHAT the advisory design check evaluates. Edit it freely as taste evolves — no code change needed. CC runs these rules against the RENDERED preview, never raw source.",
+  "version": 1,
+  "posture": "moderate",
+  "altitude": "rendered",
+  "blocking": false,
+  "rules": [
+    { "id": "low-contrast",    "severity": "high", "enabled": true,  "fix": "manual/colorize", "note": "WCAG AA: body text 4.5:1, large/bold 3:1. Mirrors system/accessibility.md (hard rule there)." },
+    { "id": "skipped-heading", "severity": "high", "enabled": true,  "fix": "seo",     "note": "Heading level skip (h1->h3). Mirrors system/seo.md (hard rule there)." },
+    { "id": "broken-image",    "severity": "med",  "enabled": true,  "fix": null,      "note": "Discount intentional Loomling slots: [data-loom-slot][src=''] renders a placeholder by design (system/seo.md §image discipline). Only flag genuinely broken images in the rendered output." },
+    { "id": "text-overflow",   "severity": "med",  "enabled": true,  "fix": "adapt",   "note": "Content wider than its container / forced horizontal scroll." },
+    { "id": "cramped-padding", "severity": "low",  "enabled": true,  "fix": "layout",  "note": "Text flush against a bordered/colored edge." },
+    { "id": "tiny-text",       "severity": "low",  "enabled": true,  "fix": null,      "note": "Body text below ~12px." },
+    { "id": "line-length",     "severity": "low",  "enabled": true,  "fix": "layout",  "note": "Lines wider than ~80ch. Loomling caps via --measure (system/typography.md)." },
+    { "id": "gradient-text",   "severity": "med",  "enabled": true,  "fix": "quieter", "note": "background-clip:text gradient." },
+    { "id": "side-tab",        "severity": "med",  "enabled": true,  "fix": "quieter", "note": "Thick colored border on one side of a card (side-stripe)." },
+    { "id": "em-dash-overuse", "severity": "low",  "enabled": true,  "fix": "clarify", "note": "More than ~2 em-dashes in rendered body copy. Count RENDERED text only — never CSS custom properties." }
+  ],
+  "off": {
+    "$comment": "Everything not listed in `rules` is OFF by default (the user's 'taste is the highest authority' principle). Examples deliberately left off: overused-font, single-font, flat-type-hierarchy, cream-palette, ai-color-palette, hero-eyebrow-chip, repeated-section-kickers, numbered-section-markers, italic-serif-display, icon-tile-stack, monotonous-spacing, marketing-buzzword, aphoristic-cadence, bounce-easing, dark-glow, nested-cards. Move any of these into `rules` to enable; they become advisories, never blocks."
+  }
+}

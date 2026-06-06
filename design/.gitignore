@@ -1,0 +1,47 @@
+# macOS
+.DS_Store
+
+# Editor
+.vscode/
+.idea/
+
+# Node (appears post-stack)
+node_modules/
+.pnp.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs (post-stack)
+dist/
+build/
+.next/
+.nuxt/
+.svelte-kit/
+.astro/
+out/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+
+# Personal session state (not part of the Loomling template)
+HANDOFF.md
+
+# Brand-kit source artifact (seeded into src/tokens.css + src/fonts.css on
+# 2026-06-05, see ADR 0026). The Departure Mono woff2 is self-contained in
+# fonts.css, so this downloaded reference sheet isn't needed at runtime.
+brand-kit-blueprint.html
+
+# Figma wireframe reference exports (design refs, not site content)
+.figma-ref/
+
+# Transient Tokens Import proposals (Vibe mode writes here before commit).
+# Always deleted on Commit/Discard; gitignored so an in-flight proposal
+# never lands in version control by accident. The committed sibling,
+# .loomling/tokens.original.css (pre-import baseline), DOES get tracked.
+.loomling/tokens.proposed.css

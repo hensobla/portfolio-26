@@ -1,0 +1,31 @@
+[data-loom="empty-state"] {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-4);
+  max-width: 22rem;
+  font-family: var(--font-body);
+}
+
+[data-loom="empty-state"] > i {
+  font-size: 2.5rem;
+  color: var(--text2);
+  margin-bottom: var(--space-2);
+}
+
+[data-loom="empty-state"] .empty__title {
+  font-size: var(--type-body-l);
+  font-weight: 600;
+  color: var(--text1);
+  margin: 0;
+}
+
+[data-loom="empty-state"] .empty__text {
+  font-size: var(--type-body-s);
+  color: var(--text2);
+  line-height: var(--line-height-body);
+  margin: 0;
+  max-width: 30ch;
+}

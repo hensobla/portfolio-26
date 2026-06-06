@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Preview — Loomling</title>
+  <link rel="icon" type="image/svg+xml" href="loomling-lettermark.svg">
+  <link rel="stylesheet" href="../src/tokens.css">
+  <style>
+    :root { color-scheme: light; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--background);
+      color: var(--text1);
+      font-family: var(--font-body);
+      min-height: 100vh;
+    }
+    .loom-preview {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-5);
+    }
+    .loom-preview__inner { width: 100%; max-width: 1000px; }
+    .loom-preview__error {
+      font-family: var(--font-mono);
+      color: var(--text2);
+      font-size: var(--type-body-s);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="loom-preview">
+    <div class="loom-preview__inner" id="preview-target">
+      <p class="loom-preview__error" id="preview-error" hidden></p>
+    </div>
+  </div>
+
+  <script>
+    /* Reject any manifest path that doesn't match the on-disk convention.
+       See library/library.js for the canonical regex — kept inline here
+       because this page loads standalone and shares no scripts with the
+       rest of the Loom. Without this check, a hostile manifest entry could
+       smuggle `../../etc/secret.html` or an absolute URL into the URL
+       constructor / location.replace / fetch sinks below. */
+    function isSafeManifestPath(p) {
+      if (typeof p !== "string" || !p) return false;
+      if (p.includes("..") || p.startsWith("/") || /[\\:]/.test(p)) return false;
+      return /^src\/(components|modules|templates)\/[a-z0-9][a-z0-9-]*\/(_approved\/)?[a-zA-Z0-9._-]+\.(html|json|css|js)$/.test(p);
+    }
+
+    (async function () {
+      const params = new URLSearchParams(location.search);
+      const slug = params.get("entry");
+      const state = params.get("state") || "default";
+
+      if (!slug) {
+        return showError("preview.html requires ?entry=<slug>&state=<id>");
+      }
+
+      // Pull the manifest entry to find filePath
+      let manifest;
+      try {
+        const res = await fetch("manifest.json", { cache: "no-store" });
+        manifest = await res.json();
+      } catch (err) {
+        return showError("Could not load manifest.json (" + err.message + ")");
+      }
+
+      const entry = (manifest.entries || []).find((e) => e.slug === slug);
+      if (!entry) return showError(`No manifest entry with slug "${slug}"`);
+
+      // If the entry has its own preview.html, redirect to it (carrying state).
+      if (entry.previewPath && isSafeManifestPath(entry.previewPath)) {
+        const ownPreview = "../" + entry.previewPath;
+        // Avoid an infinite redirect if previewPath equals this file.
+        if (!ownPreview.endsWith("/library/preview.html")) {
+          const url = new URL(ownPreview, location.href);
+          url.searchParams.set("entry", slug);
+          url.searchParams.set("state", state);
+          location.replace(url.toString());
+          return;
+        }
+      }
+
+      // Fallback: try to inline the piece's HTML (uncommon — usually the
+      // piece's own preview.html is used). Path validation matches the gate
+      // primitives.js applies for the same innerHTML sink.
+      if (!isSafeManifestPath(entry.filePath)) {
+        return showError("Refused: entry.filePath is outside the schema-permitted layout.");
+      }
+      try {
+        const html = await fetch("../" + entry.filePath).then((r) => r.text());
+        document.getElementById("preview-target").innerHTML = html;
+      } catch (err) {
+        showError("Could not load " + entry.filePath + " (" + err.message + ")");
+      }
+    })();
+
+    function showError(msg) {
+      const el = document.getElementById("preview-error");
+      el.textContent = msg;
+      el.hidden = false;
+    }
+  </script>
+</body>
+</html>

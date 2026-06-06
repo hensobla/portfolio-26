@@ -1,0 +1,50 @@
+[data-loom="switch"] {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--type-body-s);
+  color: var(--text1);
+  cursor: pointer;
+}
+
+[data-loom="switch"] .switch__track {
+  width: 2.25rem;
+  height: 1.25rem;
+  background: var(--border-visible);
+  border-radius: 999px;
+  position: relative;
+  transition: background 120ms ease;
+  flex-shrink: 0;
+}
+
+[data-loom="switch"] .switch__thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 1rem;
+  height: 1rem;
+  background: var(--background);
+  border-radius: 50%;
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.2);
+  transition: left 120ms ease;
+}
+
+[data-loom="switch"] .switch__track[data-on="true"] { background: var(--accent); }
+[data-loom="switch"] .switch__track[data-on="true"] .switch__thumb { left: calc(2.25rem - 1rem - 2px); }
+
+[data-loom="switch"]:hover .switch__track:not([data-on="true"]),
+[data-loom="switch"][data-state="hover"] .switch__track:not([data-on="true"]) {
+  background: var(--text3);
+}
+
+[data-loom="switch"]:hover .switch__track[data-on="true"],
+[data-loom="switch"][data-state="hover"] .switch__track[data-on="true"] {
+  background: var(--accent-hover);
+}
+
+[data-loom="switch"][data-state="focused"] .switch__track {
+  box-shadow: 0 0 0 3px var(--accent-subtle);
+}
+
+[data-loom="switch"][data-state="disabled"] { opacity: 0.4; cursor: not-allowed; }

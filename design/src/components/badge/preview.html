@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>Badge — preview</title><link rel="stylesheet" href="../../../src/tokens.css"><link rel="stylesheet" href="badge.css"><style>html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); } .preview-frame { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: var(--space-3); padding: var(--space-5); }</style></head>
+<body>
+  <div class="preview-frame">
+    <span data-loom="badge"><span class="badge__dot"></span><span>Draft</span></span>
+    <span data-loom="badge" data-tone="info"><span class="badge__dot"></span><span>In review</span></span>
+    <span data-loom="badge" data-tone="success"><span class="badge__dot"></span><span>Active</span></span>
+    <span data-loom="badge" data-tone="warning"><span class="badge__dot"></span><span>Away</span></span>
+    <span data-loom="badge" data-tone="error"><span class="badge__dot"></span><span>Suspended</span></span>
+  </div>
+  <script>try { parent.postMessage({ type: "loom:ready", slug: "badge" }, "*"); } catch (_) {}</script>
+</body>
+</html>

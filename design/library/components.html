@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Components — Loomling</title>
+  <link rel="icon" type="image/svg+xml" href="loomling-lettermark.svg">
+  <script>(function(){try{var t=localStorage.getItem("loomling:theme:v1");if(t==="dark")document.documentElement.setAttribute("data-theme","dark");}catch(e){}}())</script>
+  <script>(function(){try{if(localStorage.getItem("loomling:sidebar:collapsed:v1")==="true")document.documentElement.setAttribute("data-sidebar-collapsed","true");}catch(e){}}())</script>
+  <link rel="stylesheet" href="library.css">
+  <link rel="stylesheet" href="../src/tokens.css">
+  <link rel="stylesheet"
+        href="https://unpkg.com/@phosphor-icons/web@2.1.2/src/regular/style.css"
+        integrity="sha384-6p9AefaqUhEVheRlj1mpAkbngHXy9mbYMrIdcIt4Jlc9lOLIablJq3bBsLOjGwZ7"
+        crossorigin="anonymous">
+</head>
+<body data-page="components">
+  <header class="lib-header">
+    <div class="lib-header__inner">
+      <a class="lib-brand" href="index.html" aria-label="Loomling Loom home">
+        <img class="lib-brand__user-logo" alt="" hidden>
+        <span class="lib-brand__sep" aria-hidden="true" hidden>|</span>
+        <span class="lib-brand__mark" aria-hidden="true"></span>
+        <span class="lib-brand__project" data-project-name>—</span>
+      </a>
+      <nav class="lib-tabs" aria-label="Loom views">
+        <a class="lib-tab" href="index.html">Library</a>
+        <a class="lib-tab" href="tokens.html">System</a>
+        <a class="lib-tab is-active" href="components.html">Components</a>
+        <a class="lib-tab" href="builder.html">Builder</a>
+        <a class="lib-tab" href="settings.html">Settings</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="lib-main" id="main-content">
+    <h1 class="sr-only">Components</h1>
+    <aside class="lib-side" aria-label="Sections">
+      <button
+        class="lib-side__collapse"
+        id="lib-side-collapse"
+        type="button"
+        aria-pressed="false"
+        data-tooltip="Collapse sidebar">
+        <i class="ph ph-sidebar-simple" aria-hidden="true"></i>
+        <span class="sr-only">Collapse sidebar</span>
+      </button>
+      <button
+        class="lib-side__toggle"
+        id="lib-side-toggle"
+        type="button"
+        aria-expanded="false"
+        aria-controls="lib-side-nav">
+        <span class="lib-side__toggle-label" id="lib-side-toggle-label">Actions</span>
+        <span class="lib-side__toggle-caret" aria-hidden="true">▾</span>
+      </button>
+      <nav class="lib-side__nav" id="lib-side-nav">
+        <div class="lib-side__group-title">Components</div>
+        <a class="lib-side__link" href="#actions" data-tooltip="Actions"><i class="ph ph-cursor-click lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Actions</span></a>
+        <a class="lib-side__link" href="#inputs" data-tooltip="Inputs"><i class="ph ph-cursor-text lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Inputs</span></a>
+        <a class="lib-side__link" href="#data-display" data-tooltip="Data Display"><i class="ph ph-table lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Data Display</span></a>
+        <a class="lib-side__link" href="#navigation" data-tooltip="Navigation"><i class="ph ph-list lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Navigation</span></a>
+        <a class="lib-side__link" href="#feedback" data-tooltip="Feedback"><i class="ph ph-info lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Feedback</span></a>
+        <a class="lib-side__link" href="#overlays" data-tooltip="Overlays"><i class="ph ph-frame-corners lib-side__icon" aria-hidden="true"></i><span class="lib-side__label">Overlays</span></a>
+      </nav>
+    </aside>
+
+    <section class="lib-content">
+      <section class="ds-section" id="actions">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Actions</h2>
+          <span class="lib-section__meta" data-primitive-count="action">—</span>
+        </div>
+        <p class="ds-note">Buttons, icon buttons, toggles, segmented controls, dropdowns. Starter primitives — restyle, replace, or extend in <code>src/components/</code>.</p>
+        <div class="ds-primitives" data-cat="action"></div>
+      </section>
+
+      <section class="ds-section" id="inputs">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Inputs</h2>
+          <span class="lib-section__meta" data-primitive-count="input">—</span>
+        </div>
+        <p class="ds-note">Text, textarea, select, checkbox, radio, switch, slider, date picker, combobox. All share the same 40px height, 10px corner, and focus treatment.</p>
+        <div class="ds-primitives" data-cat="input"></div>
+      </section>
+
+      <section class="ds-section" id="data-display">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Data Display</h2>
+          <span class="lib-section__meta" data-primitive-count="data-display">—</span>
+        </div>
+        <p class="ds-note">Cards, avatars, badges, tags, tables, skeletons. Status labels (Active / Away / Suspended) lock to a single variant project-wide.</p>
+        <div class="ds-primitives" data-cat="data-display"></div>
+      </section>
+
+      <section class="ds-section" id="navigation">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Navigation</h2>
+          <span class="lib-section__meta" data-primitive-count="nav">—</span>
+        </div>
+        <p class="ds-note">Tabs, breadcrumbs, pagination, nav menus, links. Active state is always <code>--accent</code> — the single signal the user follows.</p>
+        <div class="ds-primitives" data-cat="nav"></div>
+      </section>
+
+      <section class="ds-section" id="feedback">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Feedback</h2>
+          <span class="lib-section__meta" data-primitive-count="feedback">—</span>
+        </div>
+        <p class="ds-note">Alerts, toasts, progress, spinners, empty states. Brief, specific, never apologetic.</p>
+        <div class="ds-primitives" data-cat="feedback"></div>
+      </section>
+
+      <section class="ds-section" id="overlays">
+        <div class="ds-section__head">
+          <h2 class="ds-section__title">Overlays</h2>
+          <span class="lib-section__meta" data-primitive-count="overlay">—</span>
+        </div>
+        <p class="ds-note">Modals, popovers, tooltips, accordions. Visual shape only — focus traps and positioning logic ship as a future polish pass.</p>
+        <div class="ds-primitives" data-cat="overlay"></div>
+      </section>
+    </section>
+  </main>
+
+  <script src="theme.js" defer></script>
+  <script src="brand.js" defer></script>
+  <script src="dev-tokens.js" defer></script>
+  <script src="library.js" defer></script>
+  <script src="tokens.js" defer></script>
+  <script src="primitives.js" defer></script>
+  <script src="settings.js" defer></script>
+  <script src="builder.js" defer></script>
+  <script src="sidebar-collapse.js" defer></script>
+  <script src="loom-router.js" defer></script>
+  <script src="onboarding.js" defer></script>
+</body>
+</html>

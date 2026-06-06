@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Navigation — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="../../components/button-primary/button-primary.css">
+  <link rel="stylesheet" href="navigation.css">
+  <script src="../../loader.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+  </style>
+</head>
+<body>
+  <div id="preview-frame"></div>
+  <script>
+    (function () {
+      const STATES = {
+        default:          { brand: "Brandmark", links: "Work\nAbout\nJournal",     activeIndex: -1, ctaLabel: "Start a project", state: null              },
+        "with-active-link": { brand: "Brandmark", links: "Work\nAbout\nJournal",   activeIndex: 1,  ctaLabel: "Start a project", state: null              },
+        "mobile-stacked":   { brand: "Brandmark", links: "Work\nAbout\nJournal",   activeIndex: -1, ctaLabel: "Start a project", state: "mobile-stacked" }
+      };
+
+      const params = new URLSearchParams(location.search);
+      const stateId = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+
+      let overrides = {};
+
+      function render() {
+        const props = { ...baseState, ...overrides };
+        const stateAttr = props.state ? ` data-state="${escapeAttr(props.state)}"` : "";
+        const linkLabels = String(props.links || "")
+          .split(/\r?\n/)
+          .map((line) => line.trim())
+          .filter(Boolean);
+        const linkItems = linkLabels
+          .map((label, i) => {
+            const active = i === props.activeIndex ? " data-active" : "";
+            return `<li><a href="#"${active}>${escapeText(label)}</a></li>`;
+          })
+          .join("");
+        // The mobile dropdown panel mirrors the same links + CTA so user
+        // overrides flow through. navigation.js toggles visibility.
+        const panelItems = linkLabels
+          .map((label) => `<li><a href="#">${escapeText(label)}</a></li>`)
+          .join("");
+
+        document.getElementById("preview-frame").innerHTML =
+          `<nav data-loom-module="navigation" aria-label="Primary"${stateAttr}>` +
+            `<div class="nav__inner">` +
+              `<a class="nav__brand" data-loom-slot="brand" href="#">${escapeText(props.brand || "")}</a>` +
+              `<ul class="nav__links" data-loom-slot="links">${linkItems}</ul>` +
+              `<button class="nav__menu" type="button" aria-label="Open menu" aria-expanded="false">` +
+                `<span class="nav__menu-icon" aria-hidden="true"><span></span><span></span><span></span></span>` +
+                `<span class="nav__menu-label">Menu</span>` +
+              `</button>` +
+              `<div class="nav__cta">` +
+                `<button type="button" data-loom="button-primary">` +
+                  `<span data-loom-slot="cta-label">${escapeText(props.ctaLabel || "")}</span>` +
+                `</button>` +
+              `</div>` +
+            `</div>` +
+            `<div class="nav__panel" hidden>` +
+              `<ul class="nav__panel-links">${panelItems}</ul>` +
+              `<div class="nav__panel-cta">` +
+                `<button type="button" data-loom="button-primary">` +
+                  `<span>${escapeText(props.ctaLabel || "")}</span>` +
+                `</button>` +
+              `</div>` +
+            `</div>` +
+          `</nav>`;
+        // Re-init in case navigation.js loaded before this render finished
+        // (it auto-inits on DOMContentLoaded; subsequent re-renders need
+        // a manual nudge so the new button gets aria-expanded + aria-controls).
+        window.LoomNavigation?.init();
+      }
+
+      function escapeAttr(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]);
+      }
+      function escapeText(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"})[c]);
+      }
+
+      window.addEventListener("message", (e) => {
+        // Reject cross-origin senders — content overrides should only come
+        // from the composing parent (Sandbox, Builder, composed template).
+        if (e.origin !== location.origin) return;
+        if (!e.data || e.data.type !== "loom:content") return;
+        // Map slot ids to render props
+        const v = e.data.values || {};
+        overrides = {};
+        if ("brand" in v) overrides.brand = v.brand;
+        if ("links" in v) overrides.links = v.links;
+        if ("cta-label" in v) overrides.ctaLabel = v["cta-label"];
+        render();
+      });
+
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "navigation" }, location.origin); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

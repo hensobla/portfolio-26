@@ -1,0 +1,872 @@
+{
+  "$schema": "../.loomling/schema/manifest.schema.json",
+  "version": 1,
+  "project": {
+    "name": "portfolio-26",
+    "stack": "next"
+  },
+  "categories": [
+    { "id": "components", "title": "Components", "dir": "src/components" },
+    { "id": "modules",    "title": "Modules",    "dir": "src/modules" },
+    { "id": "templates",  "title": "Templates",  "dir": "src/templates" }
+  ],
+  "entries": [
+    {
+      "name": "Eyebrow",
+      "slug": "eyebrow",
+      "category": "components",
+      "status": "removed",
+      "filePath": "src/components/eyebrow/eyebrow.html",
+      "previewPath": "src/components/eyebrow/preview.html",
+      "states": [
+        { "id": "default",      "label": "Default" },
+        { "id": "accent",       "label": "Accent tone" },
+        { "id": "long-content", "label": "Long content" }
+      ],
+      "tags": ["text", "label", "migrated"],
+      "slots": [
+        {
+          "id": "label",
+          "type": "text",
+          "label": "Label text",
+          "default": "Section label",
+          "hint": "The eyebrow's inner text."
+        }
+      ],
+      "addedAt": "2026-05-19",
+      "removedAt": "2026-05-22",
+      "notes": "Migrated to typography role on 2026-05-22 — see system/typography.md § Eyebrow. Source files removed; manifest entry retained per CLAUDE.md §11. Previously approved 2026-05-20. Consumers (homepage-hero, blog-post) now apply the --eyebrow-* tokens via their own scoped CSS classes."
+    },
+    {
+      "name": "Button — Primary",
+      "slug": "button-primary",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/button-primary/button-primary.html",
+      "previewPath": "src/components/button-primary/preview.html",
+      "states": [
+        { "id": "default",  "label": "Default"  },
+        { "id": "hover",    "label": "Hover"    },
+        { "id": "disabled", "label": "Disabled" },
+        { "id": "loading",  "label": "Loading"  }
+      ],
+      "tags": ["primitive", "action", "button"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Button label", "default": "Get started", "hint": "Inner text of the button." }
+      ],
+      "addedAt": "2026-05-20",
+      "notes": "Starter primitive. Approved 2026-05-20. Filled accent button using drift-round-1 tokens (--accent-hover, --accent-disabled, --radius-button, --button-padding-*). Pressed + focused states added 2026-05-22 as part of the primitive library polish. Used in navigation, homepage-hero, blog-post."
+    },
+    {
+      "name": "Button — Secondary",
+      "slug": "button-secondary",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/button-secondary/button-secondary.html",
+      "previewPath": "src/components/button-secondary/preview.html",
+      "states": [
+        { "id": "default",  "label": "Default"  },
+        { "id": "hover",    "label": "Hover"    },
+        { "id": "pressed",  "label": "Pressed"  },
+        { "id": "focused",  "label": "Focused"  },
+        { "id": "disabled", "label": "Disabled" },
+        { "id": "loading",  "label": "Loading"  }
+      ],
+      "tags": ["primitive", "action", "button"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Button label", "default": "Learn more", "hint": "Inner text of the button." }
+      ],
+      "addedAt": "2026-05-20",
+      "notes": "Starter primitive. Approved as part of the primitive library set on 2026-05-22 (was draft 2026-05-20)."
+    },
+    {
+      "name": "Navigation",
+      "slug": "navigation",
+      "category": "modules",
+      "status": "draft",
+      "filePath": "src/modules/navigation/navigation.html",
+      "previewPath": "src/modules/navigation/preview.html",
+      "states": [
+        { "id": "default",          "label": "Default"            },
+        { "id": "with-active-link", "label": "With active link"   },
+        { "id": "mobile-stacked",   "label": "Mobile (hamburger)" }
+      ],
+      "tags": ["primitive", "nav", "layout"],
+      "slots": [
+        { "id": "brand",     "type": "text", "label": "Brand text",                 "default": "Brandmark" },
+        { "id": "links",     "type": "text", "label": "Nav links (one per line)",   "default": "Work\nAbout\nJournal" },
+        { "id": "cta-label", "type": "text", "label": "CTA label",                  "default": "Start a project" }
+      ],
+      "addedAt": "2026-05-20",
+      "description": "Site header — brand mark, link list, CTA button, and mobile hamburger drawer. Dual-typed: edits to this entry hit both the System primitive AND the Library module.",
+      "notes": "Depends on draft component button-primary. Hamburger menu wired in navigation.js (document-level click delegation, ARIA/Escape/outside-click handling, .nav__panel mirrors slot values). Works in the Sandbox, the Page Builder canvas, and any composed/hand-written template that loads navigation.js."
+    },
+    {
+      "name": "Homepage hero",
+      "slug": "homepage-hero",
+      "category": "modules",
+      "status": "removed",
+      "removedAt": "2026-06-05",
+      "filePath": "src/modules/homepage-hero/homepage-hero.html",
+      "previewPath": "src/modules/homepage-hero/preview.html",
+      "states": [
+        { "id": "default",       "label": "Default"        },
+        { "id": "no-image",      "label": "No image"       },
+        { "id": "long-headline", "label": "Long headline"  }
+      ],
+      "tags": ["hero", "marketing"],
+      "slots": [
+        { "id": "eyebrow",   "type": "text",  "label": "Eyebrow",      "default": "Now in beta" },
+        { "id": "headline",  "type": "text",  "label": "Headline",     "default": "Move fast without breaking your system." },
+        { "id": "body",      "type": "text",  "label": "Body",         "default": "Loomling gives you the discipline of a mature design system on day one." },
+        { "id": "cta-label", "type": "text",  "label": "CTA label",    "default": "Get started" },
+        { "id": "image",     "type": "image", "label": "Hero image",   "hint": "Renders at 4:3 in a rounded card. Leave empty for a placeholder." }
+      ],
+      "headings": [
+        { "slot": "headline", "role": "primary" }
+      ],
+      "addedAt": "2026-05-20",
+      "notes": "Removed 2026-06-05 during library cleanup — keeping only navigation + footer to start the portfolio fresh. Source files (incl. _approved/ snapshot) deleted. Previously a draft hero depending on button-primary + the eyebrow role."
+    },
+    {
+      "name": "Footer",
+      "slug": "footer",
+      "category": "modules",
+      "status": "draft",
+      "filePath": "src/modules/footer/footer.html",
+      "previewPath": "src/modules/footer/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" },
+        { "id": "minimal", "label": "Minimal" },
+        { "id": "wide",    "label": "Wide (4 columns)" }
+      ],
+      "tags": ["primitive", "nav", "layout"],
+      "slots": [
+        { "id": "brand",     "type": "text", "label": "Brand text",      "default": "Brandmark" },
+        { "id": "tagline",   "type": "text", "label": "Tagline",         "default": "Built with Loomling." },
+        { "id": "col-1",     "type": "text", "label": "Column 1 (HTML)", "hint": "Heading + list HTML. Replaces the entire column." },
+        { "id": "col-2",     "type": "text", "label": "Column 2 (HTML)", "hint": "Heading + list HTML." },
+        { "id": "col-3",     "type": "text", "label": "Column 3 (HTML)", "hint": "Heading + list HTML." },
+        { "id": "copyright", "type": "text", "label": "Copyright",       "default": "© 2026 Brandmark." }
+      ],
+      "addedAt": "2026-05-20",
+      "description": "Site footer — brand block, columns of links, copyright row. Dual-typed: edits to this entry hit both the System primitive AND the Library module.",
+      "notes": "No component dependencies. Wide state adds a fourth column in preview only."
+    },
+    {
+      "name": "Blog post",
+      "slug": "blog-post",
+      "category": "templates",
+      "status": "removed",
+      "removedAt": "2026-06-05",
+      "filePath": "src/templates/blog-post/composition.json",
+      "previewPath": "src/templates/blog-post/preview.html",
+      "states": [
+        { "id": "default",    "label": "Default"    },
+        { "id": "long-form",  "label": "Long form"  },
+        { "id": "with-cover", "label": "With cover" }
+      ],
+      "tags": ["article", "marketing", "composed"],
+      "slots": [],
+      "addedAt": "2026-05-20",
+      "notes": "Converted to composed template on 2026-05-25 (CLAUDE.md §4f) — composes navigation + blog-article + footer via iframes so module edits propagate automatically. Template-level states (default / long-form / with-cover) pass through to the blog-article module via URL ?state=. Article slots (title, author, body, cover, etc.) live on the blog-article module's Sandbox. Removed 2026-06-05 during library cleanup — keeping only navigation + footer to start the portfolio fresh. Source dir deleted (composed blog-article, now also removed)."
+    },
+    {
+      "name": "test-page",
+      "slug": "test-page",
+      "category": "templates",
+      "status": "removed",
+      "removedAt": "2026-06-05",
+      "filePath": "src/templates/test-page/composition.json",
+      "previewPath": "src/templates/test-page/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["composed"],
+      "slots": [],
+      "addedAt": "2026-05-20",
+      "notes": "First page built via the Page Builder. Declarative composition (ADR 0004): preview.html assembles navigation + homepage-hero + footer from composition.json at runtime, so module updates propagate automatically. Hero image ships as %LOCAL_IMAGE% — provide a real URL or asset path before publishing. Removed 2026-06-05 during library cleanup — keeping only navigation + footer to start the portfolio fresh. Source dir deleted (composed homepage-hero, now also removed)."
+    },
+    {
+      "name": "Button — Ghost",
+      "slug": "button-ghost",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/button-ghost/button-ghost.html",
+      "previewPath": "src/components/button-ghost/preview.html",
+      "states": [
+        { "id": "default",  "label": "Default"  },
+        { "id": "hover",    "label": "Hover"    },
+        { "id": "pressed",  "label": "Pressed"  },
+        { "id": "focused",  "label": "Focused"  },
+        { "id": "disabled", "label": "Disabled" }
+      ],
+      "tags": ["primitive", "action", "button"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Button label", "default": "Learn more", "hint": "Inner text of the button." }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Borderless, transparent-on-default button — used for tertiary actions and overflow menus."
+    },
+    {
+      "name": "Button — Destructive",
+      "slug": "button-destructive",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/button-destructive/button-destructive.html",
+      "previewPath": "src/components/button-destructive/preview.html",
+      "states": [
+        { "id": "default",  "label": "Default"  },
+        { "id": "hover",    "label": "Hover"    },
+        { "id": "pressed",  "label": "Pressed"  },
+        { "id": "focused",  "label": "Focused"  },
+        { "id": "disabled", "label": "Disabled" }
+      ],
+      "tags": ["primitive", "action", "button"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Button label", "default": "Delete project", "hint": "Inner text of the button." }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Uses --error for the fill — for irreversible destructive actions only."
+    },
+    {
+      "name": "Icon Button",
+      "slug": "icon-button",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/icon-button/icon-button.html",
+      "previewPath": "src/components/icon-button/preview.html",
+      "states": [
+        { "id": "default",  "label": "Default"  },
+        { "id": "hover",    "label": "Hover"    },
+        { "id": "focused",  "label": "Focused"  },
+        { "id": "disabled", "label": "Disabled" },
+        { "id": "primary",  "label": "Primary variant" }
+      ],
+      "tags": ["primitive", "action"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. 36×36 square holding a single Phosphor glyph. Default is ghost; data-variant=\"primary\" fills with --accent."
+    },
+    {
+      "name": "Toggle Button",
+      "slug": "toggle-button",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/toggle-button/toggle-button.html",
+      "previewPath": "src/components/toggle-button/preview.html",
+      "states": [
+        { "id": "default",  "label": "Off"      },
+        { "id": "on",       "label": "On"       },
+        { "id": "disabled", "label": "Disabled" }
+      ],
+      "tags": ["primitive", "action"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Toggle label", "default": "Show drafts" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. toggle-button.js flips aria-pressed on click; ON uses --accent-subtle bg + --accent border. Dispatches loom:toggle (detail.pressed:boolean)."
+    },
+    {
+      "name": "Segmented Control",
+      "slug": "segmented-control",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/segmented-control/segmented-control.html",
+      "previewPath": "src/components/segmented-control/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "action"],
+      "slots": [
+        { "id": "seg-1", "type": "text", "label": "Segment 1", "default": "All"      },
+        { "id": "seg-2", "type": "text", "label": "Segment 2", "default": "Active"   },
+        { "id": "seg-3", "type": "text", "label": "Segment 3", "default": "Archived" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. segmented-control.js switches aria-selected on click; dispatches loom:change (detail.index, detail.value). 3–4 segments max."
+    },
+    {
+      "name": "Dropdown Menu",
+      "slug": "dropdown-menu",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/dropdown-menu/dropdown-menu.html",
+      "previewPath": "src/components/dropdown-menu/preview.html",
+      "states": [
+        { "id": "default", "label": "Default (open)" }
+      ],
+      "tags": ["primitive", "action"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Open-state panel with menuitem buttons, dividers, keyboard shortcuts, and a destructive-toned item. dropdown-menu.js provides the declarative anchor pattern: data-loom-dropdown-trigger=\"<id>\" on the trigger element. Dispatches loom:menu-select (detail.label, detail.tone) and closes on item click / outside click / Escape."
+    },
+    {
+      "name": "Text Input",
+      "slug": "input-text",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/input-text/input-text.html",
+      "previewPath": "src/components/input-text/preview.html",
+      "states": [
+        { "id": "default",  "label": "Default"  },
+        { "id": "focused",  "label": "Focused"  },
+        { "id": "error",    "label": "Error"    },
+        { "id": "disabled", "label": "Disabled" }
+      ],
+      "tags": ["primitive", "input"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Label",       "default": "Project name" },
+        { "id": "input", "type": "text", "label": "Placeholder", "default": "Untitled"     }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. 40px height, 10px corner, focus ring uses --accent."
+    },
+    {
+      "name": "Textarea",
+      "slug": "textarea",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/textarea/textarea.html",
+      "previewPath": "src/components/textarea/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" },
+        { "id": "focused", "label": "Focused" }
+      ],
+      "tags": ["primitive", "input"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Label",       "default": "Notes" },
+        { "id": "input", "type": "text", "label": "Placeholder", "default": "Add a note…" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. min-height 96px, resize vertical, same border/focus treatment as input-text."
+    },
+    {
+      "name": "Select",
+      "slug": "select",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/select/select.html",
+      "previewPath": "src/components/select/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" },
+        { "id": "focused", "label": "Focused" }
+      ],
+      "tags": ["primitive", "input"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Label", "default": "Engagement" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Native <select> with custom chevron via Phosphor — keeps screen reader semantics."
+    },
+    {
+      "name": "Checkbox",
+      "slug": "checkbox",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/checkbox/checkbox.html",
+      "previewPath": "src/components/checkbox/preview.html",
+      "states": [
+        { "id": "default",       "label": "Unchecked"     },
+        { "id": "checked",       "label": "Checked"       },
+        { "id": "indeterminate", "label": "Indeterminate" },
+        { "id": "disabled",      "label": "Disabled"      }
+      ],
+      "tags": ["primitive", "input"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Label", "default": "Send weekly digest" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. checkbox.js toggles on click + Space/Enter; aria-checked synced. Pure-CSS checkmark + dash (no Unicode glyphs). Dispatches loom:change (detail.checked:boolean).|Starter primitive. checkbox.js toggles on click + Space/Enter; aria-checked synced. Pure-CSS checkmark + dash (no Unicode glyphs). Dispatches loom:change (detail.checked:boolean).|Starter primitive. checkbox.js toggles on click + Space/Enter; aria-checked synced. Pure-CSS checkmark + dash (no Unicode glyphs). Dispatches loom:change (detail.checked:boolean)."
+    },
+    {
+      "name": "Radio Group",
+      "slug": "radio-group",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/radio-group/radio-group.html",
+      "previewPath": "src/components/radio-group/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "input"],
+      "slots": [
+        { "id": "legend", "type": "text", "label": "Legend", "default": "Theme" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. radio-group.js selects on click + Space/Enter + ArrowUp/Down/Left/Right between options. 5px accent border ring (no inner dot — cleaner at small sizes). Dispatches loom:change (detail.index, detail.value)."
+    },
+    {
+      "name": "Switch",
+      "slug": "switch",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/switch/switch.html",
+      "previewPath": "src/components/switch/preview.html",
+      "states": [
+        { "id": "default", "label": "Off" },
+        { "id": "on",      "label": "On"  }
+      ],
+      "tags": ["primitive", "input"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Label", "default": "Push notifications" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Track flips to --accent on data-on=\"Starter primitive. checkbox.js toggles on click + Space/Enter; aria-checked synced. Pure-CSS checkmark + dash (no Unicode glyphs). Dispatches loom:change (detail.checked:boolean).\"; thumb slides via transition."
+    },
+    {
+      "name": "Slider",
+      "slug": "slider",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/slider/slider.html",
+      "previewPath": "src/components/slider/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "input"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Label", "default": "Opacity" },
+        { "id": "value", "type": "text", "label": "Value", "default": "62%"     }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Pointer + keyboard drag via slider.js (arrows = ±1, shift+arrow = ±10, Home/End = boundaries)."
+    },
+    {
+      "name": "Date Picker",
+      "slug": "date-picker",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/date-picker/date-picker.html",
+      "previewPath": "src/components/date-picker/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "input"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. date-picker.js handles month navigation (prev/next carets) and single-date selection. Range selection is the next polish pass."
+    },
+    {
+      "name": "Combobox",
+      "slug": "combobox",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/combobox/combobox.html",
+      "previewPath": "src/components/combobox/preview.html",
+      "states": [
+        { "id": "default", "label": "Filtering" }
+      ],
+      "tags": ["primitive", "input"],
+      "slots": [
+        { "id": "query", "type": "text", "label": "Query value", "default": "mo" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. combobox.js handles live filter, <mark> highlighting, and ArrowUp/Down/Enter/Escape keyboard nav. Listen for the loom:combobox-select event to react to picks."
+    },
+    {
+      "name": "Card",
+      "slug": "card",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/card/card.html",
+      "previewPath": "src/components/card/preview.html",
+      "states": [
+        { "id": "default",  "label": "Default"  },
+        { "id": "hover",    "label": "Hover"    },
+        { "id": "selected", "label": "Selected" }
+      ],
+      "tags": ["primitive", "data-display"],
+      "slots": [
+        { "id": "media", "type": "image", "label": "Media",   "hint": "Optional cover image. Placeholder gradient when empty." },
+        { "id": "meta",  "type": "text",  "label": "Eyebrow", "default": "CLIENT · ACME" },
+        { "id": "title", "type": "text",  "label": "Title",   "default": "Brand system refresh" },
+        { "id": "text",  "type": "text",  "label": "Body",    "default": "Identity, site, and motion package shipping May 24." }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. 12px radius, 1px border, no shadow. Selected state uses --accent border + inset shadow."
+    },
+    {
+      "name": "Avatar",
+      "slug": "avatar",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/avatar/avatar.html",
+      "previewPath": "src/components/avatar/preview.html",
+      "states": [
+        { "id": "default", "label": "Default (32px)" },
+        { "id": "sm",      "label": "Small (24px)"   },
+        { "id": "lg",      "label": "Large (48px)"   },
+        { "id": "accent",  "label": "Accent variant" }
+      ],
+      "tags": ["primitive", "data-display"],
+      "slots": [
+        { "id": "initials", "type": "text", "label": "Initials", "default": "DM" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Initials in mono. data-size={sm|lg} and data-variant=\"accent\" for variants."
+    },
+    {
+      "name": "Badge",
+      "slug": "badge",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/badge/badge.html",
+      "previewPath": "src/components/badge/preview.html",
+      "states": [
+        { "id": "default", "label": "Neutral" },
+        { "id": "info",    "label": "Info"    },
+        { "id": "success", "label": "Success" },
+        { "id": "warning", "label": "Warning" },
+        { "id": "error",   "label": "Error"   }
+      ],
+      "tags": ["primitive", "data-display"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Label", "default": "Active" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Pill-shaped status indicator. Locked label-to-variant convention — Active is always success, Away is always warning, Suspended is always error."
+    },
+    {
+      "name": "Tag",
+      "slug": "tag",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/tag/tag.html",
+      "previewPath": "src/components/tag/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" },
+        { "id": "accent",  "label": "Accent"  },
+        { "id": "hover",   "label": "Hover"   }
+      ],
+      "tags": ["primitive", "data-display"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Label", "default": "BRANDING" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. 10px radius (matches button), mono text. Use --tone=\"accent\" for the featured variant."
+    },
+    {
+      "name": "Data Table",
+      "slug": "data-table",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/data-table/data-table.html",
+      "previewPath": "src/components/data-table/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "data-display"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. data-table.js handles row selection (click) and column sort (click header — cycles asc → desc → none). Dispatches loom:row-select (detail.row, detail.selected, detail.cells) and loom:sort-change (detail.column, detail.direction). Inline status pills follow the locked label-to-variant rule from Badge."
+    },
+    {
+      "name": "Skeleton",
+      "slug": "skeleton",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/skeleton/skeleton.html",
+      "previewPath": "src/components/skeleton/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "data-display"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Shimmer animation between --surface2 and --border-visible. Use sparingly — prefer empty-state over skeleton when the page has copy to share."
+    },
+    {
+      "name": "Tabs",
+      "slug": "tabs",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/tabs/tabs.html",
+      "previewPath": "src/components/tabs/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "nav"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. tabs.js switches aria-selected on click; ArrowLeft/Right/Home/End move focus. Underline-style tabs; active uses --accent bottom border. Dispatches loom:tab-change (detail.index, detail.label)."
+    },
+    {
+      "name": "Breadcrumb",
+      "slug": "breadcrumb",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/breadcrumb/breadcrumb.html",
+      "previewPath": "src/components/breadcrumb/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "nav"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Mono, lowercase, slash separators. Current item marked via aria-current=\"page\"."
+    },
+    {
+      "name": "Pagination",
+      "slug": "pagination",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/pagination/pagination.html",
+      "previewPath": "src/components/pagination/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "nav"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. pagination.js switches aria-current on click; prev/next step ±1 within the numbered set. Current page uses --accent fill. Dispatches loom:page-change (detail.page:int)."
+    },
+    {
+      "name": "Nav Menu",
+      "slug": "nav-menu",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/nav-menu/nav-menu.html",
+      "previewPath": "src/components/nav-menu/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "nav"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. nav-menu.js switches aria-current on click (prevents default for # hrefs). Active item uses --surface2 — not accent fill, since accent is reserved for CTAs. Dispatches loom:nav-change (detail.label, detail.href)."
+    },
+    {
+      "name": "Link",
+      "slug": "link",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/link/link.html",
+      "previewPath": "src/components/link/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" },
+        { "id": "hover",   "label": "Hover"   }
+      ],
+      "tags": ["primitive", "action"],
+      "slots": [
+        { "id": "label", "type": "text", "label": "Label", "default": "Read the case study" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Inline accent link. Hover adds underline."
+    },
+    {
+      "name": "Alert",
+      "slug": "alert",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/alert/alert.html",
+      "previewPath": "src/components/alert/preview.html",
+      "states": [
+        { "id": "default", "label": "Info"    },
+        { "id": "success", "label": "Success" },
+        { "id": "warning", "label": "Warning" },
+        { "id": "error",   "label": "Error"   }
+      ],
+      "tags": ["primitive", "feedback"],
+      "slots": [
+        { "id": "title", "type": "text", "label": "Title", "default": "2 new comments on hero v3.2" },
+        { "id": "text",  "type": "text", "label": "Body",  "default": "Elise left feedback at 0:14." }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. alert.js dismisses on close-button click with fade-out. Cancel via preventDefault on loom:alert-dismiss to keep the alert visible. Four severity levels via data-tone. Body copy stays specific — name the file, the user, the timestamp."
+    },
+    {
+      "name": "Toast",
+      "slug": "toast",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/toast/toast.html",
+      "previewPath": "src/components/toast/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "feedback"],
+      "slots": [
+        { "id": "text",   "type": "text", "label": "Text",   "default": "Project archived" },
+        { "id": "action", "type": "text", "label": "Action", "default": "UNDO"             }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. toast.js wires the action button + optional data-timeout auto-dismiss. Dynamic API: LoomToast.show({ text, action, timeout }) / LoomToast.hide(el). Inverted (--text1 bg, --background fg). Action click dispatches loom:toast-action."
+    },
+    {
+      "name": "Progress",
+      "slug": "progress",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/progress/progress.html",
+      "previewPath": "src/components/progress/preview.html",
+      "states": [
+        { "id": "default",       "label": "Determinate"   },
+        { "id": "indeterminate", "label": "Indeterminate" }
+      ],
+      "tags": ["primitive", "feedback"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Bar variant only — ring/circle is a future polish pass. Set --variant=\"indeterminate\" for the marching style."
+    },
+    {
+      "name": "Spinner",
+      "slug": "spinner",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/spinner/spinner.html",
+      "previewPath": "src/components/spinner/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" },
+        { "id": "sm",      "label": "Small"   },
+        { "id": "lg",      "label": "Large"   }
+      ],
+      "tags": ["primitive", "feedback"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Accent stroke on a --surface2 ring. Three sizes via data-size."
+    },
+    {
+      "name": "Empty State",
+      "slug": "empty-state",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/empty-state/empty-state.html",
+      "previewPath": "src/components/empty-state/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "feedback"],
+      "slots": [
+        { "id": "title",  "type": "text", "label": "Title",  "default": "No reels yet on this project" },
+        { "id": "text",   "type": "text", "label": "Body",   "default": "Start a motion brief and we'll thread the first cuts here when they're ready for review." },
+        { "id": "action", "type": "text", "label": "Action", "default": "Brief a reel" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Composes with button-primary for the action. Default voice is direct — never apologize for empty data."
+    },
+    {
+      "name": "Modal",
+      "slug": "modal",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/modal/modal.html",
+      "previewPath": "src/components/modal/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "overlay"],
+      "slots": [
+        { "id": "title", "type": "text", "label": "Title", "default": "Ship the brand system?" },
+        { "id": "text",  "type": "text", "label": "Body",  "default": "This pushes identity, site, and motion live at 09:00 PT." }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. modal.js provides LoomModal.open(panel) / LoomModal.close(panel) with backdrop, focus trap, Escape-to-close, and backdrop-click-to-close. Declarative bindings: data-loom-modal-open=\"<id>\" on the trigger, data-loom-modal-close inside the panel. Composes with button-primary + button-ghost."
+    },
+    {
+      "name": "Popover",
+      "slug": "popover",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/popover/popover.html",
+      "previewPath": "src/components/popover/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "overlay"],
+      "slots": [
+        { "id": "title", "type": "text", "label": "Title", "default": "Why this project landed" },
+        { "id": "text",  "type": "text", "label": "Body",  "default": "Founder and design lead were already aligned." }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. popover.js anchors the panel to a trigger element via data-loom-popover-trigger=\"<id>\". Click outside or press Escape to dismiss. Side override via data-loom-popover-side on the trigger."
+    },
+    {
+      "name": "Tooltip",
+      "slug": "tooltip",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/tooltip/tooltip.html",
+      "previewPath": "src/components/tooltip/preview.html",
+      "states": [
+        { "id": "default", "label": "Top"    },
+        { "id": "bottom",  "label": "Bottom" },
+        { "id": "left",    "label": "Left"   },
+        { "id": "right",   "label": "Right"  }
+      ],
+      "tags": ["primitive", "overlay"],
+      "slots": [
+        { "id": "text", "type": "text", "label": "Text", "default": "⌘K to search" }
+      ],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Inverted color (--text1 bg). 4-direction arrow via data-side. tooltip.js powers the dynamic hover behavior: add data-loom-tooltip=\"text\" + optional data-loom-tooltip-side=\"top|bottom|left|right\" to any element. The static [data-loom=\"tooltip\"] markup is the visual demo and isn't touched by the script."
+    },
+    {
+      "name": "Accordion",
+      "slug": "accordion",
+      "category": "components",
+      "status": "approved",
+      "filePath": "src/components/accordion/accordion.html",
+      "previewPath": "src/components/accordion/preview.html",
+      "states": [
+        { "id": "default", "label": "Default" }
+      ],
+      "tags": ["primitive", "overlay"],
+      "slots": [],
+      "addedAt": "2026-05-22",
+      "notes": "Starter primitive. Native <details>/<summary>. Caret rotates 90° on open."
+    },
+    {
+      "name": "Blog article",
+      "slug": "blog-article",
+      "category": "modules",
+      "status": "removed",
+      "removedAt": "2026-06-05",
+      "filePath": "src/modules/blog-article/blog-article.html",
+      "previewPath": "src/modules/blog-article/preview.html",
+      "states": [
+        { "id": "default",    "label": "Default"    },
+        { "id": "long-form",  "label": "Long form"  },
+        { "id": "with-cover", "label": "With cover" }
+      ],
+      "tags": ["article", "content"],
+      "slots": [
+        { "id": "category", "type": "text",  "label": "Category eyebrow", "default": "Essay" },
+        { "id": "title",    "type": "text",  "label": "Article title",    "default": "Why we stopped versioning the design system" },
+        { "id": "author",   "type": "text",  "label": "Author",           "default": "Avery Quinn" },
+        { "id": "date",     "type": "text",  "label": "Date",             "default": "May 20, 2026" },
+        { "id": "cover",    "type": "image", "label": "Cover image",      "hint": "16:9 image. Only displayed in the 'with-cover' state." },
+        { "id": "body",     "type": "text",  "label": "Body",             "hint": "Plain text becomes <p> blocks split on blank lines." }
+      ],
+      "headings": [
+        { "slot": "title", "role": "primary" }
+      ],
+      "addedAt": "2026-05-25",
+      "notes": "Extracted from the blog-post template on 2026-05-25 (CLAUDE.md §4f). The article body lives here so any template composing blog-article inherits edits automatically. Three states: default (one-column reading width), long-form (extra body content, wider span at lg), with-cover (renders the 16:9 cover image). Removed 2026-06-05 during library cleanup — keeping only navigation + footer to start the portfolio fresh. Source files deleted."
+    },
+    {
+      "name": "Home",
+      "slug": "home",
+      "category": "templates",
+      "status": "draft",
+      "filePath": "src/templates/home/home.html",
+      "previewPath": "src/templates/home/preview.html",
+      "states": [
+        { "id": "default", "label": "Centered" },
+        { "id": "top",     "label": "Grouped top" },
+        { "id": "bottom",  "label": "Grouped bottom" }
+      ],
+      "tags": ["page", "portfolio", "home"],
+      "slots": [
+        { "id": "name",     "type": "text", "label": "Name",     "default": "Blake Henson" },
+        { "id": "bio-lead", "type": "text", "label": "Bio lead", "default": "I design how things get built and bought." },
+        { "id": "bio-text", "type": "text", "label": "Bio",      "default": "Commerce and ownership experiences for physical products." }
+      ],
+      "headings": [
+        { "slot": "name", "role": "primary" }
+      ],
+      "addedAt": "2026-06-05",
+      "notes": "Portfolio homepage — incremental build to the Figma 'June 2026' wireframe (BLOCK A, file fqfwIkPzFHLw4FcEePUeiW, nodes 2021:3 resting / 2021:78 open; refs in .figma-ref/, gitignored). Piece 1 = resting state: name top-left, bio bottom-left, tabbed 'My Projects' FOLDER on the right (manila-tab metaphor, line-work on cream). Intentionally a HAND-WRITTEN template (not the composed/iframed pattern) because the planned takeover animation must move name + folder within one DOM. Vanilla; no stack triggered. Next: folder polish/tab-slant + open state (folder grows, name→nav-logo, P1–P4 tabs spread, title + body + 2×2 image grid), then the takeover animation (new motion category, drift-C)."
+    }
+  ]
+}

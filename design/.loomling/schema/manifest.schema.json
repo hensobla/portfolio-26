@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loomling.dev/schemas/manifest.schema.json",
+  "title": "Loomling manifest",
+  "description": "Catalog of every previewable piece in a Loomling project.",
+  "type": "object",
+  "required": ["version", "project", "categories", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "integer", "const": 1 },
+    "project": {
+      "type": "object",
+      "required": ["name", "stack"],
+      "additionalProperties": false,
+      "properties": {
+        "name":  { "type": ["string", "null"] },
+        "stack": { "type": ["string", "null"] }
+      }
+    },
+    "categories": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "dir"],
+        "additionalProperties": false,
+        "properties": {
+          "id":    { "type": "string", "enum": ["components", "modules", "templates"] },
+          "title": { "type": "string" },
+          "dir":   { "type": "string" }
+        }
+      }
+    },
+    "entries": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/entry" }
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "required": ["name", "slug", "category", "status", "filePath", "previewPath", "states", "addedAt"],
+      "additionalProperties": false,
+      "properties": {
+        "name":        { "type": "string", "minLength": 1 },
+        "slug":        { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+        "category":    { "type": "string", "enum": ["components", "modules", "templates"] },
+        "status":      { "type": "string", "enum": ["draft", "approved", "removed"] },
+        "filePath":    { "type": "string" },
+        "previewPath": { "type": "string" },
+        "states": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "label"],
+            "additionalProperties": false,
+            "properties": {
+              "id":    { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+              "label": { "type": "string" }
+            }
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "slots": {
+          "type": "array",
+          "description": "Editable content slots surfaced in the sandbox view. Each slot's value is delivered to the piece's preview.html via postMessage { type: 'loom:content', values: { [id]: value } }.",
+          "items": {
+            "type": "object",
+            "required": ["id", "type", "label"],
+            "additionalProperties": false,
+            "properties": {
+              "id":      { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+              "type":    { "type": "string", "enum": ["text", "image"] },
+              "label":   { "type": "string" },
+              "default": { "type": "string" },
+              "hint":    { "type": "string" }
+            }
+          }
+        },
+        "headings": {
+          "type": "array",
+          "description": "Structural heading declarations. The composing layer (composed template renderer or Page Builder canvas) walks the composition and assigns the correct heading level per instance, pushing it via the loom:content channel as the reserved key '_heading-level'. See CLAUDE.md §16.",
+          "items": {
+            "type": "object",
+            "required": ["slot", "role"],
+            "additionalProperties": false,
+            "properties": {
+              "slot": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "The content slot ID whose element receives the assigned heading tag." },
+              "role": { "type": "string", "enum": ["primary", "secondary"], "description": "'primary' = this heading is the module's main title; the composing layer assigns h1, h2, h3... in order across primary headings in the composition. 'secondary' = subordinate to the most recent primary; receives the next level down." }
+            }
+          }
+        },
+        "addedAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+        },
+        "removedAt": {
+          "type": "string",
+          "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+          "description": "ISO date the element was removed (status flipped to 'removed'). Populated by CC at removal. Surfaced in the Settings → Archive view. Omit for non-removed entries."
+        },
+        "notes": { "type": "string" },
+        "description": {
+          "type": "string",
+          "description": "One-line public-facing description shown in surface-level cards (e.g., the System page chrome card). Optional. Distinct from `notes` (which is CC-facing context). Keep under ~120 chars."
+        },
+        "changeSummary": {
+          "type": "string",
+          "description": "One-line plain-English description of pending edits when this element is awaiting re-approval. Populated by CC at edit time (CLAUDE.md §14 step 2); cleared by CC at approval (CLAUDE.md §6 step 5). Surfaced as an alert above the Sandbox preview."
+        }
+      }
+    }
+  }
+}
