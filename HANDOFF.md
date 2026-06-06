@@ -1,82 +1,97 @@
-# Handoff — Live site gated; Blueprint design system built in Loomling (`design/`)
+# Handoff — home template: folder-takeover animation (WIP)
 
 **Updated:** 2026-06-05
-**Branch:** `main` (clean; everything committed + pushed)
-**Session length:** Long. Big architectural pivot + a multi-iteration homepage build.
+**Branch:** `main`
+**Session length:** Long. GSAP adoption → entrance animation → critique + fixes → folder-takeover v1 → tab-outline polish.
 
-> Supersedes the previous handoff ("Design system foundation shipped", 2026-05-17). That session's content is in git history. The design system it described was **deleted this session.**
+> ⚠️ **WIP — design choices are LOGGED, NOT FINALIZED.** The user explicitly asked that this session's design decisions on the `home` page be recorded but **not** ratified into the system. So: **no new ADRs were written** for the takeover/tab/typography choices, and the `system/motion.md` "State transitions" section was marked **PROVISIONAL / WIP (not ratified)**. When `home` is eventually approved, revisit and formalize (ADR + de-provisionalize motion.md). Don't treat any of tonight's home-page design as settled doctrine.
+>
+> Supersedes the prior handoff (Loomling pivot, 2026-06-05, committed in `f932a84`) — that content is in git history.
 
 ## Current goal
 
-Build the personal portfolio's look & feel in the **Loomling** workspace (`design/`) under the new **"Blueprint"** brand, while the **live site stays a password gate** ("coming soon") until ready. Loomling's design system is the source of truth and will **override**/replace the app's old one (ADR 0027). Active build thread: the **homepage** (`design/src/templates/home`).
+Build the portfolio homepage's **folder takeover**: clicking a project in the resting "My Projects" folder animates the page into a full-screen folder view. This is the long-planned drift-C "takeover animation" the manifest pointed at. v1 choreography + tab visuals are working; content/reverse/mobile remain.
 
 ## State right now
 
-- **Live site = password gate.** `src/proxy.ts` redirects all routes → `/enter` unless authed. `/enter` is now a plain neutral password page (old "Teamollo" branding removed). Homepage `src/app/page.tsx` = "Under construction" placeholder behind the gate. **Production build passes** (`npm run build` ✓). Merged to `main` and pushed (commit `ca485fc`) → Vercel is deploying production.
-- **Old parent design system fully deleted** (`src/components/*`, `src/app/library/`, `src/app/p/`, `src/lib/sandbox-manifest.tsx`). Sanity studio (`/studio`, `src/sanity/`) kept, gated.
-- **Loomling homepage (resting state) is well-developed and looks good** — `design/src/templates/home/{home.html,home.css,preview.html}`, status `draft` in `design/library/manifest.json`. Has 3 layout states: `default` (Centered — chosen), `top`, `bottom` (kept for pivots).
-- **Not yet done:** the homepage **open state** (folder takeover) + its animation; publishing anything from Loomling into `src/` (no migration phases executed yet beyond the stack decision).
+Everything is **uncommitted** on `main` (see Git state). The Loom serves the work; verified live in the Claude Preview at desktop, tablet, and a mid-width.
+
+- **Resting view** (`home`, still `status: draft`): name (big, stacked on ≥1024, weight 400), bio, availability badge, and a "My Projects" folder whose tabs are a **stacked manila cascade** (4 SVG trapezoids, each inactive tab stepping down from its left neighbour; tab 1 default-active, opens into the body).
+- **Takeover** (click any project → `data-home-state="open"`): GSAP timeline runs —
+  1. name + bio fade out left (**availability badge stays** — it's nav now);
+  2. folder pins out of the grid and stretches to full **width**; the 4 trapezoid tabs animate from cascade → even spread, labels fade in;
+  3. folder grows to full **height** just after (two-beat: `expo.out` width → `power3.inOut` height);
+  4. "Blake Henson" types into a top-left **nav logo** (with the badge = the open nav).
+- **Works:** the full choreography, the SVG tab outlines (uniform 2px `non-scaling-stroke`, active tab drops its bottom edge to open in), reduced-motion path (jumps to end state), entrance animation on load.
+- **Open-folder body is empty** (placeholder). No real project content yet.
 
 ## What was done this session
 
-- **Loomling Fresh init** — `design/project.json` name=`portfolio-26`, purpose set, `initializedAt`=2026-06-05.
-- **Brand seed (ADR 0026)** — ported the "Blueprint" brand kit into `design/src/tokens.css`: warm-neutral + electric-blue ramps (exact hand-picked hexes preserved), light-default + `[data-theme="dark"]`, **accent split** into `--accent` (stable #2E4BFF fill) / `--accent-text` (#1B33C7 light, #5C78FF dark) / `--accent-fg` (cream on fills) + `--line`; fonts Archivo / Hanken Grotesk / Departure Mono via `design/src/fonts.css`; a letter-spacing scale. Migrated ~20 component CSS files to the new accent roles. Updated `design/system/color.md` + `typography.md`. (`brand-kit-blueprint.html` is gitignored.)
-- **Library cleanup** — removed all Loomling starter modules/templates except `navigation` + `footer` (manifest `status: removed`, source deleted).
-- **Homepage build (`design/src/templates/home`)** — iterated heavily to a Figma wireframe ("June 2026", BLOCK A, file `fqfwIkPzFHLw4FcEePUeiW`, nodes `2021:3` resting / `2021:78` open; PNG refs in `design/.figma-ref/`, gitignored): name + bio as one centered identity block (left), a **tabbed "My Projects" folder** on the right drawn as **SVG line-work** (trapezoid tabs, blueprint-blue `--line`, cascading down-right, lighter `--surface1` fill), faint **blueprint grid wash** background, refined typography (mono `MY PROJECTS` label + Hanken list), and a **mono "AVAILABLE FOR WORK" status with a pulsing green dot** (top-right). 3 layout states for comparison.
-- **Motion** — added a looping `.loom-pulse` utility (keyframe + reduced-motion off-switch) to `design/src/motion.css`; documented in `design/system/motion.md` (a new continuous-animation category).
-- **Architecture pivot** — declared the stack (`design/project.json` `stack:"next"`; mirrored to manifest) and wrote **ADR 0027**: Loomling overrides the app, publish-bridge defined (approved element → React `.tsx` + `.module.css` in `src/components`), phased migration. Added `.vercelignore` (excludes `design/` from deploy).
-- **Live-site gate + scrap** — recovered the forgotten password, made `/enter` plain, deleted the old site, replaced homepage with placeholder. Verified gate + auth in-browser (correct pw → 200, wrong → 401) and the prod build.
+- **Adopted GSAP** (already committed, `c969935` + ADR 0028): `gsap` + `@gsap/react` in the Next app; vendored `design/src/vendor/gsap.min.js` for the Loom; entrance animation.
+- **Critique of `home`** (read-only) → applied fixes: status badge stacks above name ≤medium / corner ≥1024; name bigger + weight 400 + first/last stacked ≥1024; removed the bio em-dash (now `:`); audience captured verbally (hiring managers — NOT yet written to `project.json`).
+- **Built folder takeover v1** — new `design/src/templates/home/home.js` (`window.HomeTemplate.init`), loaded by `preview.html`. Entrance moved into home.js.
+- **Tabs reworked twice:** SVG manila cascade → (interim) flat flex tabs → **SVG trapezoids** (current) after outline feedback.
+- **Marked `system/motion.md` "State transitions" PROVISIONAL** per the WIP constraint.
 
-## Key decisions and why
+## Key decisions and why (ALL PROVISIONAL — not ratified)
 
 | Decision | Rationale | Alternatives rejected |
 |---|---|---|
-| Keep Loomling's usage-based token vocab (`--background`/`--text1`/`--accent`), not the brand kit's `--paper`/`--text` | User: "paper isn't informative enough." Zero component renaming. | Adopt brand-kit names; align to the app's old `--paper`/`--ink`. |
-| Split accent into fill / accent-text / accent-fg | `#2E4BFF` fails AA as text in dark mode; the split keeps the vibrant fill stable AND text AA in both modes. | Single mode-variant accent (borderline 4.52:1, drops the stable-fill brand principle). |
-| Loomling **overrides** the app's design system (ADR 0027) | User chose it; one brand + one token vocab across design + prod. | Translate per element; converge by building in the app; keep two systems. |
-| Live site = password gate, scrap old site | User wants a "coming soon" facade, not ready for anyone. | Migrate Blueprint to the live homepage now (deferred — publish behind the gate later). |
-| Folder tabs as inline SVG, not CSS | CSS `clip-path` can't stroke the angled sides of a trapezoid cleanly; SVG gives crisp geometric line-work + animates well. | CSS skew/clip-path (borderless angled sides / messy overlap). |
-| Homepage canvas uses `aspect-ratio: 16/9` in the Sandbox, `100svh` only standalone | The Loom Sandbox auto-sizes the iframe to content; `100svh` there caused a measure→grow loop. `.home--standalone` (added by preview.html when top-level) gates the `svh`. | Plain `100svh` (infinite-growth bug). |
+| Hand-built GSAP timeline, **no Flip plugin** | User wants width-*then*-height as two distinct beats; Flip animates the whole delta at once | GSAP Flip |
+| **Manual flip**: pin folder `position:absolute`, tween left/top/width/height | Full control over the two beats | Tweening grid-template-columns (not cleanly tweenable) |
+| Neutralize `.home__explorer` positioning during takeover | Folder's absolute coords must resolve against the **root**, not the explorer column (caused an overshoot bug) | — |
+| **SVG trapezoid tabs** w/ `non-scaling-stroke` | Uniform 2px outline, no taper, per-edge control (active drops bottom). clip-path + inset `::before` gave a thick, tapering, non-removable rim | clip-path/`::before` rim (rejected after user feedback) |
+| Availability badge **stays as nav** | User: treat it as nav with the small logo; only name+bio leave | Fading the whole identity (hid the badge) |
+| Reserve a top nav strip (`--space-6`) above the open folder | Logo was colliding with tab 01 | — |
+| Name weight **400** | User's taste call | — (this is a DRIFT vs `typography.md` 700–900; **not** documented/ratified — only a code comment) |
 
 ## Approaches that didn't work
 
-- `min-height: 100svh` on the home root → **infinite height growth** in the Loom Sandbox (iframe auto-sizes to content). Fixed via the standalone-class gate above.
-- Body `margin-top` to reserve the folder's tab band → **margin-collapse** dropped the tabs onto the body. Fixed with `padding-top` on the folder.
-- Semi-transparent ("ghost") back tabs → crossing strokes looked messy; switched to opaque fills with full strokes, layered behind the body.
+- **clip-path trapezoid + inset `::before` for the rim** — can't make a uniform stroke (angled edges read thick, "tapers"), can't drop the bottom edge per-tab. Replaced with SVG.
+- **Folder pinned while `.home__explorer` stayed `position:relative`** — folder's `left/top` resolved against the explorer column → overshot off-screen right. Fixed by setting explorer `position:static` during takeover.
+- **Flat flex tabs (interim)** — lost the manila aesthetic; user wanted trapezoid + stacked back.
 
-## Files touched (highlights)
+## Files touched
 
-- **Live app — Modified:** `src/app/enter/page.tsx` (plain gate), `src/app/page.tsx` (placeholder), `CLAUDE.md` (rewritten to current architecture), `HANDOFF.md` (this).
-- **Live app — Created:** `.vercelignore` (excludes `design/`).
-- **Live app — Deleted:** `src/components/` (all), `src/app/library/`, `src/app/p/`, `src/lib/sandbox-manifest.tsx`.
-- **Design — Created/Modified:** `design/src/tokens.css`, `design/src/fonts.css`, `design/src/motion.css`, `design/src/templates/home/*`, `design/project.json`, `design/library/manifest.json`, `design/system/{color,typography,motion}.md`, `design/decisions/0026-*.md`, `design/decisions/0027-*.md`.
-- **Referenced (not modified):** `src/proxy.ts`, `src/app/api/auth/route.ts` (the gate logic), `design/CLAUDE.md` (Loomling operating contract — still valid).
-- **Stale (not yet cleaned):** root `system/*.md` (10 docs describing the deleted parent design system).
+- **Created:** `design/src/templates/home/home.js` — entrance + takeover (`HomeTemplate.init(root)`), tokens-driven, reduced-motion-guarded.
+- **Modified:** `design/src/templates/home/home.html` — added nav logo `<a class="home__logo">`; status moved inside `.home__identity`; SVG trapezoid tabs (4, tab 1 `is-active`).
+- **Modified:** `design/src/templates/home/home.css` — status as eyebrow (corner ≥1024); name sizes/weight/stacking; logo; SVG tab styles + stepped cascade; folder flex; open-state.
+- **Modified:** `design/src/templates/home/preview.html` — loads `home.js`, calls `HomeTemplate.init`; entrance moved out.
+- **Modified:** `design/system/motion.md` — "State transitions" section (marked **PROVISIONAL**).
+- **Modified:** `design/library/manifest.json` — `home` notes updated (takeover v1, tab approach). Still `status: draft`.
+- **Referenced:** `design/decisions/0028-adopt-gsap-animation-library.md` (GSAP adoption, already committed); `design/CLAUDE.md` §5/§14/§20 (drift + lifecycle rules).
 
 ## Git state
 
-`main` is clean and pushed (`origin/main` = `ca485fc`). Three commits this session: `db77e98` (Loomling workspace), `85308cb` (gate + scrap old site), `d807a09` (stack adoption + `.vercelignore`), merged via `ca485fc`. Branch `feat/loomling-design-workspace` also on origin.
+```
+ M design/library/manifest.json
+ M design/src/templates/home/home.css
+ M design/src/templates/home/home.html
+ M design/src/templates/home/preview.html
+ M design/system/motion.md
+?? design/src/templates/home/home.js
+```
 
-> Note: this `HANDOFF.md` rewrite + the `CLAUDE.md` rewrite are **uncommitted** working-tree changes (the handoff step doesn't commit). `design/HANDOFF.md` is gitignored.
+All uncommitted. NOT committed this session (handoff documents state; the user committed the GSAP work earlier in `c969935`).
 
 ## Immediate next steps
 
-1. **Verify Vercel production env vars** `AUTH_SECRET` + `SITE_PASSWORD` are set for Production (if `AUTH_SECRET` is missing, the gate is bypassed → site open). Then load the domain → should show the plain `PRIVATE` gate.
-2. **Resume the homepage in Loomling:** build the **open state** (folder grows to fill, name → top-left nav-logo, P1–P4 tabs spread, project detail = title + body + 2×2 image grid) as `data-home-state="open"` on the same DOM, then the **takeover animation** between resting↔open (a new motion category — drift-C). Serve with `cd design && npx http-server . -c-1`, preview at `…/src/templates/home/preview.html`.
-3. (Later) Execute the ADR 0027 migration to publish Blueprint into `src/` (tokens → fonts → homepage → components), behind the gate.
+1. **Open-folder content** — body is an empty placeholder; the manifest plan is "title + body + 2×2 image grid" per active project.
+2. **Reverse / close** — the logo click is a `location.reload()` stub; build a real close that animates back to resting.
+3. **Mobile / medium takeover** — geometry is desktop-tuned (uses root padding + a fixed nav strip); small screens need their own pass. (Resting layouts at all breakpoints are fine.)
+4. **Decide the provisional calls** when ready to finalize: name weight 400 (drift vs `typography.md`), the takeover motion category (ADR), active-tab fill tint, slant-scales-with-width.
 
 ## Open questions / blockers
 
-- Remove Sanity (`/studio` + `src/sanity/`) for a true clean slate, or keep it for a future CMS? (Left in, gated.)
-- Clean up / delete the stale root `system/*.md` legacy docs?
-- When to flip the live site from gate → real Blueprint homepage.
+- **Name-weight drift** unresolved: `typography.md` says Archivo display 700–900; code uses 400 (comment only). Needs path B (amend doc) or revert — deferred.
+- **Audience** (hiring managers) given verbally but **not** written to `project.json.answers` / removed from `deferred`, and the three **voice adjectives** in `system/voice.md` are still un-filled. Offer to capture when resuming copy work.
+- Active-tab fill is `--background` (a hair lighter than the body `--surface1`) — confirm if that subtle tint is wanted.
 
 ## Gotchas for the next session
 
-- **Two design systems' vocabularies differ.** Loomling = `--background`/`--text1`/`--accent`; the app's old `globals.css` = `--paper`/`--ink`/`--primary` + `--text-mono-xs` etc. The migration (ADR 0027) ports Loomling's into the app; don't mix them.
-- **The Loom Sandbox auto-sizes its iframe to content — never use raw `vh`/`svh` in a previewed piece** (infinite-growth loop). Gate viewport height behind a standalone class like `home` does.
-- **Loom previews must be served from `design/`** (not `design/library/`), over `http://` (not `file://`) — they fetch `../src/tokens.css` + `manifest.json`.
-- **The preview MCP is bound to the Next app (port 3000).** It can verify `src/` changes (e.g., `/enter`), but **cannot** reach the Loom on `:8765` (it re-pins to its origin). Verify Loomling visually via the served URL by hand / screenshots from the user.
-- **Production gate fails open** if `AUTH_SECRET` is unset in Vercel (see step 1).
-- **Departure Mono is a pixel font** — only for short mono labels at ~11px; long strings fall back to Hanken (see `design/system/typography.md`).
-- Root `CLAUDE.md` now points to `design/`; the root `system/*.md` docs are legacy (removed system).
+- **Serve the Loom from `design/`** (server root must be `design/`), else `loader.js`'s absolute `/src/...` fetches 404. Preview config: `.claude/launch.json` → `loomling-static` (http-server on `design`, port 8765). `.claude/launch.json` is gitignored.
+- **`home` is hand-written** and `preview.html` runtime-fetches `home.html`; `loader.js` does NOT auto-load template JS, so `home.js` is loaded explicitly via a `<script>` in `preview.html`.
+- **GSAP bypasses the CSS `--motion-*`→1ms reduced-motion collapse** — every GSAP path must guard `prefers-reduced-motion` itself (home.js does).
+- **Takeover anchoring:** the folder is pinned `position:absolute` relative to the ROOT; this only works because the takeover sets `.home__explorer` to `position:static`. Keep that.
+- `home` is `status: draft`, so edits do **not** need the §14 snapshot ceremony (yet). Once approved, they will.
+- Don't finalize tonight's design choices without the user — that was an explicit instruction this session.
