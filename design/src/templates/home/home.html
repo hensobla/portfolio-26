@@ -1,41 +1,73 @@
 <div data-loom-template="home" class="home" data-home-state="resting">
-  <p class="home__status">
-    <span class="home__status-dot" aria-hidden="true"><span class="home__status-ping loom-pulse"></span></span>
-    Available for work
-  </p>
+  <!-- Top-left nav logo: empty in the resting view; "Blake Henson" types in during the takeover. -->
+  <a class="home__logo" href="#" aria-label="Blake Henson — home"></a>
 
   <header class="home__identity">
-    <h1 class="home__name" data-loom-slot="name">Blake Henson</h1>
+    <!-- Availability badge: eyebrow above the name at every breakpoint (never collides with the folder). -->
+    <p class="home__status">
+      <span class="home__status-dot" aria-hidden="true"><span class="home__status-ping loom-pulse"></span></span>
+      Available for work
+    </p>
+    <!-- Two parts so the name can stack (first over last) on large screens; one line below 1024px. -->
+    <h1 class="home__name" data-loom-slot="name"><span class="home__name-first">Blake</span> <span class="home__name-last">Henson</span></h1>
     <div class="home__bio">
       <p class="home__bio-lead" data-loom-slot="bio-lead">I design how things get built and bought.</p>
-      <p class="home__bio-text" data-loom-slot="bio-text">Commerce and ownership experiences for physical products — the web as the exploded diagram of a thing you can't hold yet, every part labelled, every join shown.</p>
+      <p class="home__bio-text" data-loom-slot="bio-text">Commerce and ownership experiences for physical products: the web as the exploded diagram of a thing you can't hold yet, every part labelled, every join shown.</p>
     </div>
   </header>
 
   <aside class="home__explorer" aria-label="Projects">
     <div class="home__folder">
-      <!-- back tabs sit BEHIND the body, cascading down-right: tops step down a
-           little, bottoms stay on the folder line. Side inset scales with each
-           tab's height so every tab shares the SAME side angle. -->
-      <svg class="home__tabs home__tabs--back" viewBox="0 0 160 40" preserveAspectRatio="xMinYMax meet" aria-hidden="true" focusable="false">
-        <path class="home__tab" d="M36 40 L43.2 14 L138.8 14 L146 40" />
-        <path class="home__tab" d="M20 40 L28.6 9 L121.4 9 L130 40" />
-      </svg>
+      <!-- One tab per project, present in BOTH views. Compact: numbered shapes across the
+           narrow folder. Open: they spread with the folder (flex:1) and reveal labels,
+           and become clickable. -->
+      <div class="home__tabs" role="tablist" aria-label="Projects">
+        <!-- Each tab is an SVG trapezoid: fill (cream) + edge (top + two sides) +
+             base (bottom). non-scaling-stroke keeps the outline a uniform 2px at
+             any size. The active tab hides its base so it opens into the body. -->
+        <button class="home__tab is-active" type="button" role="tab" data-index="0">
+          <svg class="home__tab-shape" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <path class="home__tab-fill" d="M0 40 L12 0 L88 0 L100 40 Z" />
+            <path class="home__tab-edge" d="M0 40 L12 0 L88 0 L100 40" />
+            <line class="home__tab-base" x1="0" y1="40" x2="100" y2="40" />
+          </svg>
+          <span class="home__tab-num">01</span><span class="home__tab-label">Project 1</span>
+        </button>
+        <button class="home__tab" type="button" role="tab" data-index="1">
+          <svg class="home__tab-shape" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <path class="home__tab-fill" d="M0 40 L12 0 L88 0 L100 40 Z" />
+            <path class="home__tab-edge" d="M0 40 L12 0 L88 0 L100 40" />
+            <line class="home__tab-base" x1="0" y1="40" x2="100" y2="40" />
+          </svg>
+          <span class="home__tab-num">02</span><span class="home__tab-label">Project 2</span>
+        </button>
+        <button class="home__tab" type="button" role="tab" data-index="2">
+          <svg class="home__tab-shape" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <path class="home__tab-fill" d="M0 40 L12 0 L88 0 L100 40 Z" />
+            <path class="home__tab-edge" d="M0 40 L12 0 L88 0 L100 40" />
+            <line class="home__tab-base" x1="0" y1="40" x2="100" y2="40" />
+          </svg>
+          <span class="home__tab-num">03</span><span class="home__tab-label">Project 3</span>
+        </button>
+        <button class="home__tab" type="button" role="tab" data-index="3">
+          <svg class="home__tab-shape" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <path class="home__tab-fill" d="M0 40 L12 0 L88 0 L100 40 Z" />
+            <path class="home__tab-edge" d="M0 40 L12 0 L88 0 L100 40" />
+            <line class="home__tab-base" x1="0" y1="40" x2="100" y2="40" />
+          </svg>
+          <span class="home__tab-num">04</span><span class="home__tab-label">Project 4</span>
+        </button>
+      </div>
 
       <div class="home__folder-body">
         <h2 class="home__folder-title">My Projects</h2>
         <ul class="home__list">
-          <li><button class="home__item" type="button">Project 1</button></li>
-          <li><button class="home__item" type="button">Project 2</button></li>
-          <li><button class="home__item" type="button">Project 3</button></li>
-          <li><button class="home__item" type="button">Project 4</button></li>
+          <li><button class="home__item" type="button" data-index="0">Project 1</button></li>
+          <li><button class="home__item" type="button" data-index="1">Project 2</button></li>
+          <li><button class="home__item" type="button" data-index="2">Project 3</button></li>
+          <li><button class="home__item" type="button" data-index="3">Project 4</button></li>
         </ul>
       </div>
-
-      <!-- active tab: front, highest, opens into the body (no bottom edge). -->
-      <svg class="home__tabs home__tabs--front" viewBox="0 0 160 40" preserveAspectRatio="xMinYMax meet" aria-hidden="true" focusable="false">
-        <path class="home__tab" d="M4 40 L14 4 L104 4 L114 40" />
-      </svg>
     </div>
   </aside>
 </div>

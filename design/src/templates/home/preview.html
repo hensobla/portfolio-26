@@ -8,8 +8,10 @@
   <link rel="stylesheet" href="home.css">
   <script src="../../loader.js" defer></script>
   <!-- GSAP (opt-in, vendored — ADR 0028). Loaded sync so window.gsap is ready
-       by the time the async template fetch resolves. -->
+       by the time the async template fetch resolves. home.js (entrance +
+       takeover) loads right after, exposing window.HomeTemplate.init(root). -->
   <script src="../../vendor/gsap.min.js"></script>
+  <script src="home.js"></script>
   <style>
     html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
   </style>
@@ -36,45 +38,11 @@
             // page). Inside the Loom Sandbox iframe (self !== top) the iframe
             // auto-sizes to content, so 100svh would loop — size to content.
             if (window.self === window.top) root.classList.add("home--standalone");
-            playEntrance(root);
+            // Entrance + takeover wiring live in home.js (window.HomeTemplate).
+            if (window.HomeTemplate) window.HomeTemplate.init(root);
           }
           try { parent.postMessage({ type: "loom:ready", slug: "home" }, location.origin); } catch (_) {}
         });
-
-      // --- GSAP entrance (ADR 0028) -----------------------------------------
-      // First GSAP-driven motion in the Loom. Tokens-driven + reduced-motion
-      // guarded per system/motion.md. GSAP bypasses the CSS --motion-*→1ms
-      // collapse, so reduced motion is handled here EXPLICITLY: we skip the
-      // timeline entirely and the markup stays in its natural (visible) state.
-      function playEntrance(root) {
-        if (!window.gsap) return; // vendored file missing → content stays visible
-        const reduce = window.matchMedia &&
-          window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        if (reduce) return;
-
-        // Read durations from the motion token scale rather than hardcoding.
-        const cs = getComputedStyle(document.documentElement);
-        const sec = (name, fallback) => {
-          const raw = cs.getPropertyValue(name).trim();        // e.g. "300ms" / "0.5s"
-          if (raw.endsWith("ms")) return parseFloat(raw) / 1000;
-          if (raw.endsWith("s")) return parseFloat(raw);
-          return fallback;
-        };
-        const standard = sec("--motion-standard", 0.3);
-        const slow = sec("--motion-slow", 0.5);
-        // Easings map to the token intent: --ease-out → power2.out,
-        // --ease-spring (slight overshoot) → back.out.
-        const easeOut = "power2.out";
-        const easeSpring = "back.out(1.5)";
-
-        const q = (sel) => root.querySelector(sel);
-        const tl = window.gsap.timeline({ defaults: { ease: easeOut } });
-        tl.from(root.querySelector(".home__status"), { autoAlpha: 0, y: -6, duration: standard })
-          .from(root.querySelector(".home__name"), { autoAlpha: 0, y: 18, duration: standard }, "-=0.10")
-          .from(root.querySelectorAll(".home__bio > *"), { autoAlpha: 0, y: 12, duration: standard, stagger: 0.08 }, "-=0.12")
-          .from(root.querySelector(".home__folder"), { autoAlpha: 0, y: 24, scale: 0.96, transformOrigin: "50% 100%", duration: slow, ease: easeSpring }, "-=0.18");
-        void q; // reserved for later interactive states
-      }
     })();
   </script>
 </body>

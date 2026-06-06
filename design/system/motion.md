@@ -104,6 +104,25 @@ The `.loom-pulse` class (in `motion.css`) animates an expanding, fading ring (`l
 
 Because it loops, it is **not** token-duration-driven — so the reduced-motion block disables `.loom-pulse` explicitly (`animation: none !important`) rather than relying on the 1ms collapse.
 
+## State transitions — the folder takeover (GSAP)
+
+> **Status: PROVISIONAL / WIP (not ratified).** The `home` template is still a work in progress. This section logs the approach taken so far so it isn't lost, but it is **not** a finalized system rule and **no ADR has been ratified** for it yet. Treat it as a description of current experimentation; revisit and formalize (or revise) once `home` is approved. Do not propagate this pattern to other elements as settled doctrine until then.
+
+Added 2026-06-05. The first **state-transition** motion — a category beyond the one-shot reveals and the pulse loop — so its introduction is a drift-C (this section + an ADR once finalized, per CLAUDE.md §20). It is GSAP-driven (ADR 0028), lives in `src/templates/home/home.js`, and runs only on an explicit user action, never on load.
+
+The pattern (home "folder takeover"): clicking a project animates the homepage from its resting two-column layout into a full-screen folder —
+
+1. the name + bio fade out to the left (the availability badge stays — it becomes nav);
+2. the folder is pinned out of the grid and stretches to full **width**; the trapezoidal tabs animate from their compact cascade to an even spread, labels fading in;
+3. immediately after, the folder grows to fill the **height** (a deliberate two-beat width-then-height expansion);
+4. the name types into a top-left nav logo (which, with the badge, forms the open-state nav).
+
+Rules for state-transition motion:
+
+- **Tokens for timing.** Durations come from the `--motion-*` scale (`slow`, `slower`); eases use GSAP's advanced built-ins (`expo.out`, `power3.inOut`, `back.out`) mapped to the token intent. No CustomEase plugin (it would need vendoring per ADR 0028).
+- **Reduced motion is explicit.** GSAP bypasses the CSS 1ms collapse, so the handler checks `prefers-reduced-motion` and jumps straight to the end state.
+- **Triggered, never automatic.** State transitions fire on user action only.
+
 ## Reduced motion
 
 `@media (prefers-reduced-motion: reduce)` in `motion.css` does two things:
