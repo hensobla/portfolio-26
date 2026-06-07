@@ -158,82 +158,71 @@
   flex-direction: column;
 }
 
-/* Tab bar: one trapezoidal line-work tab per project, drawn as SVG so the
-   outline is a UNIFORM 2px (non-scaling-stroke) that never tapers and can drop
-   its bottom edge per-tab. Compact = a stacked cascade (each inactive tab steps
-   slightly DOWN from its left neighbour, manila look). Open = the takeover
-   spreads them across the full-width folder (home.js tweens left/top/width/height)
-   and reveals labels. Tabs are absolutely positioned in BOTH states so the
-   spread is a pure position tween. */
+/* Tab bar: the buttons are TRANSPARENT click targets + labels only. Every cream
+   fill and blue stroke is painted by .home__folder-art (home.js buildFolder) as
+   ordered fill+stroke paths, so overlapping tabs occlude correctly (a front tab's
+   fill masks the one behind) while every corner stays a clean miter. The buttons
+   sit ABOVE the art (z-index) so labels read on top of the painted fills. Compact
+   = an overlapping manila cascade (each tab steps right, peeking from behind its
+   left neighbour); open = home.js spreads them to fill. */
 .home__tabs {
   position: relative;
-  z-index: 2;
+  z-index: 3;                      /* labels above the art (z 1) + body (z 2) */
   width: 100%;
   height: var(--space-6);
-  margin-bottom: -2px;             /* tabs sit on the body's top border */
 }
 
 .home__tab {
   position: absolute;
   top: 0;
-  width: calc(var(--space-7) * 2.5);
+  width: calc(var(--space-8) + var(--space-5));   /* compact: ~88px, num only */
   height: var(--space-6);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-2);
-  padding: 0 var(--space-4);
+  display: flex;
+  align-items: stretch;
   background: transparent;
   border: 0;
+  padding: 0;
   color: var(--text3);
   font-family: var(--eyebrow-family);
   font-size: var(--eyebrow-size);
   letter-spacing: var(--eyebrow-tracking);
   text-transform: var(--eyebrow-transform);
   white-space: nowrap;
-  overflow: hidden;
   pointer-events: none;            /* compact: the list is the interactive surface */
   cursor: pointer;
 }
 
-/* the trapezoid shape sits behind the label */
-.home__tab-shape {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-  z-index: 0;
+/* the label sits within the trapezoid's flat top, clear of the slants */
+.home__tab-rail {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;         /* centre the label in the flat top */
+  gap: var(--space-2);
+  padding: 0 var(--space-5);       /* = slant + breathing, keeps the label off the caps */
+  background: transparent;         /* fill is painted by the art layer */
 }
-.home__tab-fill { fill: var(--surface1); }
-.home__tab-edge,
-.home__tab-base {
-  fill: none;
-  stroke: var(--line);
-  stroke-width: 2;
-  vector-effect: non-scaling-stroke;   /* uniform 2px at any size — no taper */
-  stroke-linejoin: miter;
-  stroke-linecap: square;
-}
-/* active tab opens into the body: no bottom edge (its fill masks the body border) */
-.home__tab.is-active .home__tab-base { display: none; }
-.home__tab.is-active .home__tab-fill { fill: var(--background); }
 
-.home__tab-num,
 .home__tab-label {
   position: relative;
-  z-index: 1;                      /* above the shape */
   opacity: 0;                      /* hidden compact; GSAP reveals on takeover */
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
-.home__tab-num { flex: none; }
-.home__tab-label { overflow: hidden; text-overflow: ellipsis; }
+/* the 01/02/03 numbers are hidden for now (kept in markup for later) */
+.home__tab-num { display: none; }
 
-/* compact cascade — leftmost on top; each inactive tab steps down + peeks right.
-   Bottoms stay aligned (top + height = --space-6), so reducing height drops the
-   top edge. Step = --space-2 / 2 (4px), token-derived. */
-.home__tab:nth-child(1) { left: 0;                        top: 0; height: var(--space-6); z-index: 4; }
-.home__tab:nth-child(2) { left: var(--space-5);           top: calc(var(--space-2) / 2);     height: calc(var(--space-6) - var(--space-2) / 2);     z-index: 3; }
-.home__tab:nth-child(3) { left: calc(var(--space-5) * 2); top: var(--space-2);               height: calc(var(--space-6) - var(--space-2));         z-index: 2; }
-.home__tab:nth-child(4) { left: calc(var(--space-5) * 3); top: calc(var(--space-2) * 1.5);   height: calc(var(--space-6) - var(--space-2) * 1.5);   z-index: 1; }
+/* compact manila cascade — leftmost on top, each tab steps right; bottoms stay on
+   the body line while the TOPS stagger so each tab sits slightly LOWER than the one
+   to its left (high on the left → low on the right). The art layer occludes the
+   hidden parts; the slant angle stays constant (home.js derives it from each tab's
+   height). Right step = --space-7 (still < tab width, so they overlap), vertical
+   step = --space-1. */
+.home__tab:nth-child(1) { left: 0;                        top: 0;                        height: var(--space-6);                            z-index: 4; }
+.home__tab:nth-child(2) { left: var(--space-7);           top: var(--space-1);           height: calc(var(--space-6) - var(--space-1));     z-index: 3; }
+.home__tab:nth-child(3) { left: calc(var(--space-7) * 2); top: calc(var(--space-1) * 2); height: calc(var(--space-6) - var(--space-1) * 2); z-index: 2; }
+.home__tab:nth-child(4) { left: calc(var(--space-7) * 3); top: calc(var(--space-1) * 3); height: calc(var(--space-6) - var(--space-1) * 3); z-index: 1; }
 
 [data-home-state="open"] .home__tab { pointer-events: auto; }
 [data-home-state="open"] .home__tab:hover { color: var(--accent-text); }
@@ -245,13 +234,49 @@
   outline-offset: calc(-1 * var(--focus-ring-offset));
 }
 
+/* The folder ART — home.js paints body fill + per-tab fill/stroke + the woven
+   body/active-tab outline here, in z-order. No viewBox (1 unit = 1px), so
+   stroke-width 2 is always exactly 2px: no scaling, no distortion. Behind the
+   labels + body content; clicks pass through. */
+.home__folder-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;               /* edge strokes are centred on the folder edge */
+  pointer-events: none;
+  z-index: 1;
+}
+.home__art-body { fill: var(--surface1); stroke: none; }
+/* per-tab FILL (occludes the tab behind it); extends a hair below the baseline so
+   a front tab fully buries the one behind — no slant tips peeking through */
+/* tab fills (incl. the active tab) all match the body — the active tab reads as one
+   surface with the body in BOTH states; it's distinguished by opening in + the
+   accent label, not a tint */
+.home__art-fill { fill: var(--surface1); stroke: none; }
+/* per-tab STROKE — slant/top/slant only, exactly on the baseline (no foot) */
+.home__art-stroke {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2;
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
+}
+.home__art-outline {
+  fill: none;
+  stroke: var(--line);
+  stroke-width: 2;
+  stroke-linejoin: miter;
+  stroke-linecap: butt;
+}
+
 .home__folder-body {
   position: relative;
-  z-index: 1;
+  z-index: 2;                      /* content above the art fills */
   flex: 1;                         /* fill the folder when it grows tall (open) */
   padding: var(--space-7);
-  background: var(--surface1);     /* whole folder structure is the lighter surface */
-  border: 2px solid var(--line);   /* sharp rectangle — no border-radius */
+  background: transparent;         /* body fill is painted by the art layer */
+  /* perimeter stroke also painted by .home__folder-art */
 }
 
 .home__folder-title {
