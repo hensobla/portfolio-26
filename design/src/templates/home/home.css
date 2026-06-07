@@ -130,6 +130,25 @@
   }
 }
 
+/* OPEN state: the availability badge is the right-hand half of the nav (the logo
+   types in on the left). Below 1024px it normally sits as an eyebrow in the identity
+   flow — but once the folder takes over and the identity fades, that places it on top
+   of the logo. Pin it to the top-right corner in the open state at every width so the
+   nav reads as logo · badge after expansion too. (≥1024px already does this.) */
+/* identity goes static when open so the absolute badge anchors to the root corner,
+   not the (faded) identity column */
+[data-home-state="open"] .home__identity { position: static; }
+[data-home-state="open"] .home__status {
+  position: absolute;
+  top: var(--space-6);
+  right: var(--space-6);
+  align-self: auto;
+  z-index: 4;                        /* above the expanded folder, with the logo */
+}
+@media (min-width: 768px) {
+  [data-home-state="open"] .home__status { top: var(--space-7); right: var(--space-7); }
+}
+
 .home__bio { max-width: var(--measure); }
 
 .home__bio-lead {
@@ -325,6 +344,219 @@
   outline: var(--focus-ring);
   outline-offset: var(--focus-ring-offset);
   border-radius: 2px;
+}
+
+/* ---------- open-folder content: per-project case studies ----------
+   The resting view is the project index (.home__folder-nav). The open view
+   stacks one case-study panel per project, absolutely filling the folder body
+   so it doesn't fight the (fading) nav for flow. The active tab decides which
+   panel shows (home.js setActive). Panels only exist in the open state. */
+.home__panels { display: none; }
+
+[data-home-state="open"] .home__panels {
+  display: block;
+  position: absolute;
+  inset: 0;                        /* fill the folder body (over its padding) */
+  overflow: hidden;                /* each panel scrolls internally */
+  z-index: 1;                      /* above the faded nav, within the body */
+  /* Query container so panel content responds to the FOLDER's width, not the
+     viewport — the open folder can be any width (and resizes live), so its grid
+     should break on its own size. The shot grid below maps system/space.md's
+     column counts through @container at the same breakpoints. */
+  container: panel / inline-size;
+}
+
+.home__panel {
+  display: none;
+  height: 100%;
+  overflow-y: auto;                /* case studies are taller than the folder */
+  padding: var(--space-7);
+  /* thin fade at the top + bottom so content never appears to touch the folder
+     edges — it dissolves into the surface as it scrolls past the line */
+  --panel-fade: var(--space-5);
+  -webkit-mask-image: linear-gradient(to bottom,
+    transparent 0, #000 var(--panel-fade),
+    #000 calc(100% - var(--panel-fade)), transparent 100%);
+          mask-image: linear-gradient(to bottom,
+    transparent 0, #000 var(--panel-fade),
+    #000 calc(100% - var(--panel-fade)), transparent 100%);
+}
+.home__panel.is-active { display: block; }
+.home__panel:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: calc(-1 * var(--focus-ring-offset));
+}
+
+/* meta line: mono kicker with an accent figure number */
+.home__panel-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0;
+  font-family: var(--eyebrow-family);
+  font-size: var(--eyebrow-size);
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
+  color: var(--text3);
+}
+.home__panel-no { color: var(--accent-text); }
+
+.home__panel-title {
+  margin: var(--space-3) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--type-display-m);
+  font-weight: 400;                /* matches the .home__name display weight */
+  line-height: var(--line-height-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--text1);
+}
+
+.home__panel-lead {
+  margin: var(--space-4) 0 0;
+  max-width: var(--measure);
+  font-size: var(--type-body-l);
+  font-weight: 500;
+  line-height: var(--line-height-body);
+  color: var(--text1);
+}
+
+/* spec row: dimensioned labels, technical-drawing flavor */
+.home__specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  margin: var(--space-6) 0 0;
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+.home__specs > div { display: flex; flex-direction: column; gap: var(--space-1); }
+.home__specs dt {
+  font-family: var(--eyebrow-family);
+  font-size: var(--eyebrow-size);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
+  color: var(--text3);
+}
+.home__specs dd {
+  margin: 0;
+  font-size: var(--type-body-s);
+  color: var(--text1);
+}
+
+.home__panel-body {
+  max-width: var(--measure);
+  margin: var(--space-6) 0 0;
+}
+.home__panel-body p {
+  margin: 0;
+  font-size: var(--type-body);
+  line-height: var(--line-height-body);
+  color: var(--text2);
+}
+.home__panel-body p + p { margin-top: var(--space-4); }
+
+/* Shot grid — follows system/space.md's responsive column counts (4 / 8 / 12),
+   but driven by the PANEL's width via @container (see .home__panels). The grid
+   exposes the system's column tracks; each shot spans a share of them so the tiles
+   tile cleanly at every breakpoint: 1-up (4-col) → 2-up (8-col) → 4-up (12-col).
+   --panel-cols / --panel-gap / --shot-span re-map below; defaults = xs. */
+.home__panel-grid {
+  --panel-cols: var(--grid-cols-xs);   /* 4 */
+  --panel-gap:  var(--grid-gap-xs);
+  --shot-span:  4;                      /* span all 4 → 1 per row */
+  display: grid;
+  grid-template-columns: repeat(var(--panel-cols), minmax(0, 1fr));
+  gap: var(--panel-gap);
+  margin: var(--space-7) 0 0;
+}
+.home__shot { margin: 0; grid-column: span var(--shot-span); }
+
+/* sm: still 4 cols (system), tiles stay 1-up on phones */
+@container panel (min-width: 480px) {
+  .home__panel-grid { --panel-cols: var(--grid-cols-sm); --panel-gap: var(--grid-gap-sm); --shot-span: 4; }
+}
+/* md: 8 cols → tiles span 4 → 2-up */
+@container panel (min-width: 768px) {
+  .home__panel-grid { --panel-cols: var(--grid-cols-md); --panel-gap: var(--grid-gap-md); --shot-span: 4; }
+}
+/* lg+: 12 cols → tiles span 3 → 4-up */
+@container panel (min-width: 1024px) {
+  .home__panel-grid { --panel-cols: var(--grid-cols-lg); --panel-gap: var(--grid-gap-lg); --shot-span: 3; }
+}
+.home__shot-frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background-color: var(--surface1);
+  /* faint blueprint grid wash inside the frame */
+  background-image:
+    linear-gradient(to right,  var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: var(--space-5) var(--space-5);
+  background-position: center;
+  border: 1px solid var(--border-visible);
+  overflow: hidden;
+}
+.home__shot-no {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  font-family: var(--eyebrow-family);
+  font-size: var(--eyebrow-size);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
+  color: var(--text3);
+}
+.home__shot-cap {
+  margin-top: var(--space-2);
+  font-size: var(--type-body-s);
+  color: var(--text2);
+}
+
+/* prototype frame: accent-bordered so it reads as the interactive piece */
+.home__proto { margin: var(--space-6) 0 0; }
+.home__proto-frame {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  background-color: var(--surface1);
+  background-image:
+    linear-gradient(to right,  var(--border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: var(--space-6) var(--space-6);
+  background-position: center;
+  border: 1px solid var(--accent);
+}
+.home__proto-play {
+  display: grid;
+  place-items: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: 50%;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-size: var(--type-body);
+  line-height: 1;
+}
+.home__proto-cap {
+  font-family: var(--eyebrow-family);
+  font-size: var(--eyebrow-size);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
+  color: var(--text3);
+}
+
+/* Narrow panel (below the md breakpoint): tighten padding + step the title down so
+   the case study stays legible when the folder is small. Container-driven to match
+   the grid above — it tracks the folder's width, not the viewport. */
+@container panel (max-width: 767px) {
+  .home__panel { padding: var(--space-5); }
+  .home__panel-title { font-size: var(--type-display-s); }
+  .home__specs { gap: var(--space-5); }
 }
 
 /* ---------- top-left nav logo (types in during the takeover) ---------- */

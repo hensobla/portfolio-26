@@ -4,6 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Home — preview</title>
+  <!-- Warm the Google Fonts origins so the serialized @import chain in fonts.css
+       (tokens.css → fonts.css → googleapis → gstatic .woff2) starts its TLS handshake
+       in parallel with CSS download instead of after it. Preview-only — the Next port
+       self-hosts via next/font and drops this whole chain. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="../../../src/tokens.css">
   <link rel="stylesheet" href="home.css">
   <script src="../../loader.js" defer></script>

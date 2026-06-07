@@ -1,104 +1,155 @@
-# Handoff — home folder tabs (rebuilt) + OS-following dark mode
+# Handoff — home open-folder case studies + responsiveness + perf scaffolding
 
-**Updated:** 2026-06-06
-**Branch:** `main`
-**Session length:** Long. Tab-rendering rebuilt ~5 times → hover-lift → click-plunge interaction; plus OS-following dark mode (ADR 0029).
+**Updated:** 2026-06-07
+**Branch:** `main` (this session's work lands via `home/panel-content-and-perf` → merge → push)
+**Session length:** Long. Built the open-folder case-study panels, then iterated on edge-fades, clipping, responsiveness, a container-query grid, and lazy media loading.
 
-> ⚠️ **The `home` template is still `status: draft` and its design is PROVISIONAL / not ratified** (continuing the prior session's constraint). The full tab/interaction design is LOGGED in the `home` manifest note + this handoff, but **no ADR was written for it** — only the dark-mode change (a drift-C, system-level decision) got ADR 0029. Don't treat the tab choices as settled doctrine; revisit + formalize when `home` is approved.
->
-> Supersedes the prior handoff (folder-takeover WIP, 2026-06-05, committed in `b7172a0`) — that content is in git history. The takeover choreography it described still exists and works; this session reworked the **tab rendering + tab interactions** on top of it.
+> ⚠️ **`home` is still `status: draft` and PROVISIONAL.** Project names, all copy, the
+> case-study structure, and the shot/prototype frames are **placeholder**. Don't ratify
+> without the user. The `home` manifest entry `notes` is the authoritative running log.
+> Supersedes the prior handoff (folder tabs + dark mode, committed in `f5dcb0e`) — its open
+> items that are still open are carried into "Immediate next steps" below.
 
 ## Current goal
 
-Polish the portfolio homepage's "My Projects" folder (in `design/src/templates/home/`) — specifically the manila tab visuals and the open-folder tab interactions — and make the whole design system respect the OS light/dark setting. The folder + takeover animation already existed; this stretch was about making the tabs look right and feel satisfying to interact with.
+Fill the open folder body with real case-study content per project and make the expanded
+folder behave: never clip, fade at the edges, stay responsive after expansion, and load
+project media lazily so it scales when the content gets heavy (real images + prototype
+embeds). All four were done this session as **placeholder + scaffolding**; next is real
+content, the close/reverse animation, and the mobile-takeover pass.
 
 ## State right now
 
-Everything below is **uncommitted on `main`** (see Git state). Verified live in the Claude Preview (loomling-static server, port 8765) at `http://localhost:8765/src/templates/home/preview.html`, in both light and dark, no console errors.
+Verified live in Claude Preview (`loomling-static`, port **8765**) at
+`http://localhost:8765/src/templates/home/preview.html`, light + dark, no console errors.
 
-- **Tab rendering is now a single JS-painted SVG "art layer"** (`home.js` `buildFolder()` → `<svg class="home__folder-art">`). It paints, in z-order: body fill → per-tab fill+stroke (back-to-front so a front tab's fill masks the one behind → correct overlap occlusion) → the woven body-perimeter + active-tab outline on top. One SVG, no `viewBox` (1 unit = 1px), so stroke is always exactly 2px — no distortion, every corner a real miter join. The tab `<button>`s are now just transparent click targets + labels.
-- **Compact (resting):** overlapping manila cascade — tabs step right by `--space-7`, stagger vertically (high on the left → low on the right; active/primary tab tallest), active tab fill = body color (no tint), opens into the body.
-- **Open (expanded):** tabs sized to their label (label-width, not full-width spread), a touch bigger (~40px tall), labels centered + clear of the caps, 01/02/03 numbers hidden (`display:none`, kept in markup). The "nav" band (availability badge + typed-in "Blake Henson" logo) reserves `--space-8` so the folder doesn't butt against it.
-- **Hover-lift (open, inactive tabs):** hovering lifts the tab ~6px as a rigid translation, and **vertical "folder body" sides grow down to the folder edge** so it reads as a folder peeking from behind the open one (not a floating trapezoid). `power2.out`, `--motion-fast`.
-- **Click (open):** a 2-phase GSAP timeline — **plunge DOWN past rest** (to `-OVER` = `--space-2` below the line, `power2.in`; the tab clips at the folder edge and narrows into the slot, undistorted), **the page commits at the LOWEST point** (`setActive`), then **springs back up** (`back.out(1.7)`, `--motion-standard`) and snaps open. Throughout the plunge+spring the woven outline leaves a **flat gap under the active tab** so the newly-selected tab has **no bottom border** (reads as opening into the body) while the others keep theirs.
-- **Dark mode:** the whole site now follows `prefers-color-scheme` (OS) with the explicit `[data-theme]` toggle as an override. The homepage flips correctly because it references semantic tokens only.
+- **Per-project case-study panels exist** (`design/src/templates/home/home.html`). Projects
+  renamed P1–P4 → **Ledger / Crate / Atlas / Manifold** (tab labels + resting list + panels
+  in sync). Each panel: mono meta line (accent figure no · role · year) → display title →
+  lead → dimensioned spec row (Role/Team/Timeline/Surface `<dl>`) → 2 body paragraphs (capped
+  at `--measure`) → a shot grid → a prototype frame.
+- **Tab → panel switching works.** `home.js` `setActive(i)` toggles `.home__panel.is-active`
+  + the `hidden` attr + resets `scrollTop`; `revealPanel(i)` fades the active panel in
+  (scheduled into the open timeline at `beat·1.1` and on every tab-switch).
+- **Edge fades:** `.home__panel` has a `mask-image` top+bottom linear-gradient
+  (`--panel-fade = --space-5`) so content dissolves at the folder edges as it scrolls.
+- **Clip fix:** the open tab strip grows to the open tab height (`gsap.set(tabsWrap, {height: tabH})`)
+  so the folder body starts exactly at the woven folder-top line (was ~8px too high → content
+  rode over the tabs).
+- **Responsive after expansion:** `home.js` `fitOpenFolder()` + a rAF-throttled `window`
+  `resize` listener re-fit the pinned-open folder to the current viewport (an `opening` flag
+  guards against fighting the open timeline). The nav availability badge now pins top-right in
+  the open state at **all** widths (was colliding with the typed-in logo below 1024px).
+- **Shot grid follows `space.md` by PANEL width (ADR 0030):** `.home__panels` is a CSS
+  container (`container: panel / inline-size`); `.home__panel-grid` re-maps `--panel-cols` /
+  `--panel-gap` from the system `--grid-cols-*` / `--grid-gap-*` tokens via `@container` at
+  480/768/1024; `.home__shot` spans tracks → **1-up → 2-up → 4-up**.
+- **Lazy media (ADR 0031):** each panel's heavy media (`.home__panel-grid` + `.home__proto`)
+  lives in an inert `<template class="home__panel-media">`; `home.js` `hydrateMedia(i)` clones
+  it in on **intent** — activation OR `pointerenter`/`focus` on the project's tab or resting
+  list item. Verified: **0 live grids at rest**, hover hydrates only that project, others stay
+  inert.
 
 ## What was done this session
 
-- **Rebuilt the folder tabs ~5 times** (lineage, all in `design/src/templates/home/`):
-  1. Diagnosed the original tab distortion = one fixed `viewBox="0 0 100 40"` SVG stretched with `preserveAspectRatio="none"` (uneven stroke + width-dependent slant angle).
-  2. Flex trapezoid: fixed-aspect SVG corner caps + CSS-bordered rail. Fixed distortion but had corner **notches** where SVG strokes met CSS borders at non-90°.
-  3. Single continuous SVG outline path (`buildOutline`): clean joints, but couldn't occlude overlapping tabs → had to make resting non-overlapping.
-  4. **Ordered fill+stroke art layer (current):** overlap occludes correctly AND joints stay clean. Brought the overlapping cascade back.
-  5. Fixed a partial-foot bug (inactive feet peeking under the active fill) by splitting per-tab fill (extends below baseline) from stroke (open, no foot).
-- **Tab tweaks:** wider compact spread (`--space-7` step), bigger open tabs (~40px), vertical stagger flipped to high-left→low-right, active fill = body (no tint), nav padding (`navH` → `--space-8`), open label kept at 11px (`--eyebrow-size`).
-- **Hover-lift** with the folder-behind illusion (vertical sides down to the folder edge).
-- **Click interaction**, iterated to the final spec: plunge down → page commits at lowest point → spring back up; gap under the active tab so it has no bottom border during the bounce.
-- **OS-following dark mode (drift-C):** added `@media (prefers-color-scheme: dark)` to `design/src/tokens.css` (duplicating the existing `[data-theme="dark"]` block), amended `system/dark-mode.md` §1/§9, wrote **ADR 0029**.
+- **`home.html`** — added the 4 case-study panels; renamed projects; wrapped each panel's
+  media in `<template class="home__panel-media">`; added `id`/`aria-controls`/`role=tabpanel`/
+  `aria-labelledby` wiring between tabs and panels.
+- **`home.css`** — panel typography/layout (meta, title, lead, `.home__specs`, body, shot
+  frames with blueprint grid-wash, accent-bordered prototype frame); top/bottom `mask-image`
+  fade; the `@container` column system + narrow-panel padding/title; open-state badge
+  top-right rule + `.home__identity` static when open.
+- **`home.js`** — `panelEls`; `setActive` panel toggle + `scrollTop` reset + `hydrateMedia`;
+  `revealPanel`; open-timeline panel reveal; tab-switch reveal (immediate + plunge-commit
+  paths); `fitOpenFolder` + resize listener + `opening` flag; tab-strip grow-to-`tabH` on open
+  (clip fix); `hydrateMedia` + intent-prefetch listeners on tabs and list items.
+- **`preview.html`** — `preconnect` to fonts.googleapis/gstatic.
+- **`manifest.json`** — brought the `home` `notes` running-log current; **fixed a pre-existing
+  invalid-JSON bug** (an unescaped `"presses into"` → `'presses into'`; the file now parses —
+  it had been breaking the Loom's Library/Sandbox `fetch().json()`).
+- **ADRs 0030 + 0031** written (`design/decisions/`).
 
 ## Key decisions and why
 
 | Decision | Rationale | Alternatives rejected |
 |---|---|---|
-| Tabs painted by a JS SVG **art layer** (`buildFolder`), not CSS/per-tab SVG | Only way to get BOTH overlap-occlusion (front fill masks back) AND clean mitered joints (incl. the active tab welded into the body perimeter) | Stretched single SVG (distorts); flex caps + CSS borders (corner notches); single global outline (can't occlude overlap) |
-| Hover-lift grows **vertical sides to the folder edge** | Sells the "folder behind the open one" illusion; a bare lifted trapezoid read as floating | Rigid float (user rejected: "clearly just a trapezoid") |
-| Click = plunge-down, **page commits at the lowest point**, spring up | User's explicit spec for a satisfying click | Immediate `setActive` on click (earlier ask, then revised); spring-then-`setActive`-on-complete |
-| Woven outline leaves a **gap under the active tab** while mid-click | So the newly-selected tab has no bottom border (reads as opening in) during the bounce | Straight woven line (gave every tab a bottom border at the lowest point — user flagged) |
-| OS-following dark mode via **`prefers-color-scheme` (drift-C, ADR 0029)** | User wants the site to follow the OS; tokens already had a full dark palette | Path A explicit-toggle-only (doesn't follow OS); `light-dark()` rewrite (too large); JS mirroring (needs JS, won't port) |
+| Shot grid via CSS `@container` keyed to `space.md` breakpoints (ADR 0030) | Open folder ≠ viewport and resizes live; must respond to the *panel's* width. Reuses system grid tokens so it literally follows `space.md` | Viewport `@media` (mis-predicts panel width); `auto-fit minmax` (can't honor the specific 4/8/12 counts); JS measurement (CSS is declarative, zero reflow) |
+| Each panel's media in an inert `<template>`, hydrated on intent (ADR 0031) | Content will get heavy (4 imgs + prototype × 4 projects); `<template>` guarantees *nothing* loads until cloned; hover/focus prefetch makes clicks feel instant | All-in-DOM + `loading=lazy` (inconsistent for hidden imgs, no `lazy` for embeds); `content-visibility` (render-only, foot-gun with scroll+mask+container query) |
+| Tab strip grows to `tabH` on open | Folder body then begins exactly at the woven folder-top line → no content clipping into tabs | Per-panel top inset (fragile, hard-codes the 8px) |
+| Badge pinned top-right in open state at all widths | Below 1024px it was an eyebrow in the identity flow → collided with the typed-in logo after takeover | Hiding the badge on narrow (drops content); leaving it (visible collision) |
 
-## Approaches that didn't work
+## Approaches that didn't work / consciously deferred
 
-- **`preserveAspectRatio="none"` stretched SVG tabs** — uneven stroke + slant angle varies with width. Root cause of the original complaint.
-- **Flex caps + CSS rail/body borders** — joints notch wherever an SVG stroke meets a CSS border at a non-90° angle (can't miter across elements). Chased 3 corners before abandoning.
-- **Single global outline path** — clean joints but a single stroked path can't occlude an overlapping hidden tab → forced a non-overlapping resting layout the user didn't want.
-- **Rigid floating lifted tab** — reads as a detached trapezoid, not a folder.
+- **`content-visibility: auto` on shot tiles** — render-only win, and a foot-gun stacked with
+  the panel's internal scroll + the edge mask + the container query (scroll-jump risk).
+  Deferred; revisit only if render (not bandwidth) becomes the bottleneck.
+- **Panel auto-scroll glitch** — the `tabindex="0"` panel auto-scrolled itself (became the
+  active scroll container), pushing meta/title out of view. Fixed by `scrollTop = 0` in
+  `setActive`.
 
 ## Files touched
 
-- **Modified:** `design/src/templates/home/home.js` — the big one. `buildFolder()` art-layer renderer (fill/stroke per tab incl. lift/sink geometry + woven outline with active-tab gap), `riseState`/`RISE`/`activeSettled`, hover-lift handlers, 2-phase click timeline.
-- **Modified:** `design/src/templates/home/home.css` — tab buttons now transparent; `.home__folder-art` + `.home__art-*` classes; compact cascade (overlap + stagger); open label/padding; hid `.home__tab-num`.
-- **Modified:** `design/src/templates/home/home.html` — tabs simplified to label-only buttons; `<svg class="home__folder-art">` replaces the old outline svg.
-- **Modified:** `design/src/tokens.css` — added the `@media (prefers-color-scheme: dark)` block (mirrors `[data-theme="dark"]`; **keep the two in sync**).
-- **Modified:** `design/system/dark-mode.md` — §1 (OS-following now on) + §9 (deferred item implemented) + the theme.js caveat.
-- **Modified:** `design/library/manifest.json` — `home` entry `notes` updated through every tab/interaction iteration (the authoritative running record of the design).
-- **Created:** `design/decisions/0029-os-following-dark-mode.md` — ADR.
+- **Created:** `design/decisions/0030-container-query-panel-grid.md`, `design/decisions/0031-template-deferred-panel-media.md`, `HANDOFF.md` (this file).
+- **Modified:** `design/src/templates/home/home.html`, `home.css`, `home.js`, `preview.html`; `design/library/manifest.json`.
 
-## Git state
+## Git state (before the handoff commits)
 
 ```
-On branch main  (up to date with origin/main)
+On branch main (up to date with origin/main)
  M design/library/manifest.json
  M design/src/templates/home/home.css
  M design/src/templates/home/home.html
  M design/src/templates/home/home.js
- M design/src/tokens.css
- M design/system/dark-mode.md
-?? design/decisions/0029-os-following-dark-mode.md
+ M design/src/templates/home/preview.html
 ```
 
-This handoff is being committed (branch → topical commits → merge to main → push) at the user's request this session.
+Per the user's `commit push merge` instruction, this session lands via a topic branch →
+topical commits → ADRs + handoff commit → merge to `main` → `git push` (remote:
+`github.com/hensobla/portfolio-26`).
 
 ## Immediate next steps
 
-1. **Open-folder content** — the folder body is still an empty placeholder. Manifest plan: per-project "title + body + 2×2 image grid". This is the biggest remaining piece.
-2. **Reverse / close** — the nav logo click is still a `location.reload()` stub; build a real close that animates the open folder back to the resting cascade.
-3. **Mobile / medium takeover** — geometry is desktop-tuned (root padding + the `navH` strip); small screens need their own pass. (Resting layouts at all breakpoints are fine.)
-4. **Decide the provisional calls when finalizing `home`** — tab slant angle (26.6°), stagger/spread steps, hidden numbers, name weight 400 (still a drift vs `typography.md` 700–900), the takeover motion category (ADR). Then de-provisionalize + write ADRs.
-5. **(Optional) Deployed-shell dark mode** — the Next.js gate/placeholder pages (`src/app/`) are Tailwind, not token-driven, so they don't follow the OS yet. The `tokens.css` rule ports to the app when `home` is published (ADR 0027).
+1. **Real case-study content** — replace placeholder copy + the FIG/prototype frames with real
+   screenshots (`<img loading="lazy" decoding="async" width height>` inside the `<template>`)
+   and real prototype embeds (click-to-load, `preload="none"`). The lazy-load mechanism is
+   already wired (ADR 0031).
+2. **Close / reverse animation** — the nav-logo click is still a `location.reload()` stub
+   (`home.js`, bottom of `wireTakeover`). Build a real close that animates the open folder back
+   to the resting cascade.
+3. **Mobile / medium takeover pass** — the panel content is responsive now, but the **tab
+   strip geometry** (4 tabs laid left-to-right) is still desktop-tuned and crowds below ~480px.
+   The takeover geometry (root padding + `navH` strip) also wants a small-screen pass.
+4. **De-provisionalize `home`** — settle tab angle (26.6°), stagger/spread, hidden numbers,
+   name weight 400, the 4-up desktop grid ceiling; then flip to approved + write the remaining
+   ADRs (tab look/interaction still has none).
 
 ## Open questions / blockers
 
-- **`home` design is provisional** — don't ratify the tab look/interaction without the user. Manifest note is the running log.
-- **Audience** (hiring managers) given verbally earlier but still **not** written to `project.json.answers`; the three **voice adjectives** in `system/voice.md` are still un-filled. Offer to capture when resuming copy work.
-- **Spring feel** is tuned to my taste (plunge `OVER`=`--space-2`, `back.out(1.7)`, `--motion-standard`). Easy dials if the user wants more/less.
+- **`home` is provisional** — don't ratify the look/interaction/content without the user.
+- **Audience** (hiring managers, said verbally) still not written to `project.json.answers`;
+  the three **voice adjectives** in `system/voice.md` are still un-filled. Offer to capture when
+  resuming copy work (the placeholder copy I wrote is my voice, not a ratified one).
+- **Desktop grid ceiling = 4-up.** Easy dial to 2-up (`lg+` `--shot-span: 6`) if 4 across feels
+  too dense once shots are real screenshots.
 
 ## Gotchas for the next session
 
-- **Serve the Loom from `design/`** — preview config `.claude/launch.json` → `loomling-static` (http-server on `design`, port 8765). It serves `/src/templates/home/preview.html`. The static server **dropped once mid-session** (a stray Next dev server appeared); if the preview shows `chrome-error://`, just `preview_start` `loomling-static` again. `.claude/launch.json` is gitignored.
-- **The tabs are 100% JS-rendered** — `home.js` `buildFolder()` paints the SVG from `offset*` geometry (transform-immune) on init (ResizeObserver + rAF), every takeover/animation frame (`onUpdate`), on `setActive`, and on hover/click. To change tab visuals you edit the path-building in `buildFolder`, not CSS. The `.home__art-*` CSS only sets fill/stroke colors + widths.
-- **Lift/sink geometry:** rise `> 0` = lifted (vertical sides up + folder-behind look); rise `< 0` = sunk (clips at the body line `TH`, base narrows by `|r|/2` because slant = height/2; nothing drawn below `TH`). Constant slant angle either way.
-- **`activeSettled`** (closure flag in `wireTakeover`) gates whether the active tab is drawn OPEN (woven into the body) vs mid-click (own stroke + a gap under it in the woven outline). It's `true` except during a click spring.
-- **GSAP bypasses the CSS reduced-motion collapse** — every GSAP path guards `prefers-reduced-motion` itself (the click/hover handlers check `reduce()`).
-- **Verifying spring animations** is hard from static screenshots — temporarily bump a phase `duration` (e.g. to 2–3s), capture, then restore. Or read the SVG path `d` / active-index via `preview_eval`.
-- **Dark mode duplicates the dark block** in `tokens.css` (`@media prefers-color-scheme` + `[data-theme="dark"]`) — vanilla CSS can't share one declaration across a media query + attribute selector. **Edit both** when changing dark values (commented in the file).
-- **`home` is `status: draft`** so edits don't need the §14 snapshot ceremony yet. Once approved, they will.
+- **Serve the Loom from `design/`** — preview config `.claude/launch.json` → `loomling-static`
+  (http-server on `design`, port 8765), serving `/src/templates/home/preview.html`. If the
+  preview shows `chrome-error://`, just `preview_start` `loomling-static` again. `launch.json`
+  is gitignored.
+- **`manifest.json` is loose JSON.** It previously contained an **unescaped double quote** that
+  broke `JSON.parse` (fixed this session). When editing the `notes` field, use **single quotes**
+  for inline quotes (the file's convention) and validate with
+  `node -e "JSON.parse(require('fs').readFileSync('design/library/manifest.json','utf8'))"`.
+- **Panel media is in `<template>`** — `panel.querySelector('.home__panel-grid')` returns `null`
+  until `hydrateMedia(i)` runs. That's by design (ADR 0031), not a bug.
+- **Container queries** drive the shot grid — to change tiles-per-row, edit the `@container`
+  blocks in `home.css`, not a viewport `@media`. The container is `.home__panels`.
+- **The folder is 100% JS-rendered** (carried from prior session) — `home.js buildFolder()`
+  paints the SVG tab/folder art from `offset*` geometry. To change tab visuals, edit the path
+  building in `buildFolder`, not CSS.
+- **Verifying spring/timeline animations** from static screenshots is hard — drive via
+  `preview_eval` (`.click()` then a `setTimeout` promise), or read state directly.
+- **Dark mode duplicates the dark block** in `tokens.css` (`@media prefers-color-scheme` +
+  `[data-theme="dark"]`) — edit both (ADR 0029).
