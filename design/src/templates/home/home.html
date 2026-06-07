@@ -22,40 +22,30 @@
            narrow folder. Open: they spread with the folder (flex:1) and reveal labels,
            and become clickable. -->
       <div class="home__tabs" role="tablist" aria-label="Projects">
-        <!-- Each tab is an SVG trapezoid: fill (cream) + edge (top + two sides) +
-             base (bottom). non-scaling-stroke keeps the outline a uniform 2px at
-             any size. The active tab hides its base so it opens into the body. -->
+        <!-- The tab buttons are now just transparent click targets + labels; ALL
+             the cream fills and blue strokes are painted by .home__folder-art
+             (see home.js buildFolder) so overlapping tabs occlude correctly AND
+             every corner stays a clean miter. The buttons sit ABOVE the art so
+             labels read on top of the painted fills. -->
         <button class="home__tab is-active" type="button" role="tab" data-index="0">
-          <svg class="home__tab-shape" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-            <path class="home__tab-fill" d="M0 40 L12 0 L88 0 L100 40 Z" />
-            <path class="home__tab-edge" d="M0 40 L12 0 L88 0 L100 40" />
-            <line class="home__tab-base" x1="0" y1="40" x2="100" y2="40" />
-          </svg>
-          <span class="home__tab-num">01</span><span class="home__tab-label">Project 1</span>
+          <span class="home__tab-rail">
+            <span class="home__tab-num">01</span><span class="home__tab-label">Project 1</span>
+          </span>
         </button>
         <button class="home__tab" type="button" role="tab" data-index="1">
-          <svg class="home__tab-shape" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-            <path class="home__tab-fill" d="M0 40 L12 0 L88 0 L100 40 Z" />
-            <path class="home__tab-edge" d="M0 40 L12 0 L88 0 L100 40" />
-            <line class="home__tab-base" x1="0" y1="40" x2="100" y2="40" />
-          </svg>
-          <span class="home__tab-num">02</span><span class="home__tab-label">Project 2</span>
+          <span class="home__tab-rail">
+            <span class="home__tab-num">02</span><span class="home__tab-label">Project 2</span>
+          </span>
         </button>
         <button class="home__tab" type="button" role="tab" data-index="2">
-          <svg class="home__tab-shape" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-            <path class="home__tab-fill" d="M0 40 L12 0 L88 0 L100 40 Z" />
-            <path class="home__tab-edge" d="M0 40 L12 0 L88 0 L100 40" />
-            <line class="home__tab-base" x1="0" y1="40" x2="100" y2="40" />
-          </svg>
-          <span class="home__tab-num">03</span><span class="home__tab-label">Project 3</span>
+          <span class="home__tab-rail">
+            <span class="home__tab-num">03</span><span class="home__tab-label">Project 3</span>
+          </span>
         </button>
         <button class="home__tab" type="button" role="tab" data-index="3">
-          <svg class="home__tab-shape" viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-            <path class="home__tab-fill" d="M0 40 L12 0 L88 0 L100 40 Z" />
-            <path class="home__tab-edge" d="M0 40 L12 0 L88 0 L100 40" />
-            <line class="home__tab-base" x1="0" y1="40" x2="100" y2="40" />
-          </svg>
-          <span class="home__tab-num">04</span><span class="home__tab-label">Project 4</span>
+          <span class="home__tab-rail">
+            <span class="home__tab-num">04</span><span class="home__tab-label">Project 4</span>
+          </span>
         </button>
       </div>
 
@@ -68,6 +58,14 @@
           <li><button class="home__item" type="button" data-index="3">Project 4</button></li>
         </ul>
       </div>
+
+      <!-- The folder ART: home.js buildFolder paints the whole thing here as
+           ordered fill+stroke paths (body fill, each tab back-to-front so a front
+           tab's fill masks the one behind it, then the woven body+active-tab
+           outline on top). One <path> per piece in a single SVG ⇒ overlap occludes
+           correctly AND every corner is a real miter join. Behind the labels +
+           body content; pointer-events:none so clicks pass through. -->
+      <svg class="home__folder-art" aria-hidden="true" focusable="false"></svg>
     </div>
   </aside>
 </div>

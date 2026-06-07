@@ -15,12 +15,16 @@ The contract:
 
 ## 1. Selector convention
 
-All dark-mode CSS is gated on `:root[data-theme="dark"]` (or `[data-theme="dark"]` for the iframe documents, where `:root` and `<html>` are the same element either way).
+The user's design system dark palette applies in **two** ways (ADR 0029):
 
-- Loomling chrome dark overrides live in `library/library.css` under `:root[data-theme="dark"]`.
-- User design system dark overrides live in `src/tokens.css` under `[data-theme="dark"]` (or `:root[data-theme="dark"]` — equivalent at runtime).
+1. **OS-following** — `@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { … } }`. The deployed site (and any standalone render of an element) respects the visitor's system light/dark setting with no JS. This is the default behavior.
+2. **Explicit toggle** — `[data-theme="dark"]` set on `<html>` (the Loom's sun/moon, or a future on-site toggle) **wins over** the OS preference. `[data-theme="light"]` forces light even under an OS-dark system.
 
-No media query (`prefers-color-scheme`) gate. The user's choice is explicit, not OS-driven. (Loomling can layer a `prefers-color-scheme` initial-default later if asked, but the v1 surface is the explicit toggle.)
+The two blocks in `src/tokens.css` carry identical values and **must be kept in sync** (vanilla CSS can't share one declaration across a media query + an attribute selector; a build step could dedupe later).
+
+Loomling chrome dark overrides still live in `library/library.css` under `:root[data-theme="dark"]` (toggle-only — the chrome is a tool, not OS-driven).
+
+> **Loom-preview caveat:** `library/theme.js` toggles dark by ADDING `[data-theme="dark"]` and "light" by REMOVING the attribute (it never writes `data-theme="light"`). Under an **OS-dark** system, toggling a Loom preview to *light* therefore leaves no attribute, so the `prefers-color-scheme` rule still renders it dark. Standalone previews (e.g. opening a template's `preview.html` directly) are unaffected. To make the Loom toggle fully authoritative under OS-dark, `theme.js` would need to write `data-theme="light"` explicitly (amends §2) — deferred until it bites.
 
 ## 2. Runtime architecture
 
@@ -122,6 +126,8 @@ When signal is mixed or weak, CC skips dark emission and surfaces the skip in th
 
 ## 9. Open / deferred
 
-- **No `prefers-color-scheme` default.** v1 always boots in light unless the user has toggled before. Could add OS-following as a fourth `project.json.darkMode` value (`"system"`) later.
+- **OS-following is now ON** (implemented 2026-06-06, ADR 0029). The site respects `prefers-color-scheme`; the explicit toggle overrides it (§1). The earlier "no media query / explicit-only" stance is superseded.
+- **`theme.js` light-under-OS-dark.** Not yet fixed — see the §1 caveat. The Loom's light toggle doesn't force light when the OS is dark, because theme.js never writes `data-theme="light"`. Fix when it bites.
+- **`project.json.darkMode` unchanged.** It still governs the **Loom toggle's** propagation (§4 matrix), independent of the new CSS-level OS-following. No `"system"` flag value was needed — OS-following lives in the tokens, not the flag.
 - **No per-element dark variants.** Components are expected to work in both themes via their token references. If a component needs theme-aware logic beyond tokens (e.g. swap an asset), that's a forward problem.
 - **Builder canvas frames** inherit propagation via the same iframe-injection path as Sandbox. Tested via theme.js's MutationObserver hook.
