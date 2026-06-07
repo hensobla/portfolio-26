@@ -276,17 +276,59 @@
 /* ============================================================
    Dark mode — semantic overrides
    ------------------------------------------------------------
-   Activated when <html data-theme="dark"> is set by the Loom's
-   sun/moon nav toggle. Override SEMANTIC tokens only — primitives
-   stay constant. The presence of this block is what tells Loomling
-   the user's design system supports dark mode (auto-detected by
-   library/theme.js).
+   The dark palette applies in TWO ways (see system/dark-mode.md §1):
+     1. OS-FOLLOWING (the deployed site / any standalone render):
+        @media (prefers-color-scheme: dark), unless an explicit light
+        theme is forced. This is what makes "respect system light/dark
+        mode" work with no JS.
+     2. EXPLICIT TOGGLE (the Loom's sun/moon, or a future site toggle):
+        <html data-theme="dark"> — wins over the OS preference.
+   Override SEMANTIC tokens only — primitives stay constant. The presence
+   of a [data-theme="dark"] block is also what tells Loomling the design
+   system supports dark mode (auto-detected by library/theme.js).
 
    The blueprint's dark family (ground / raised / ink) reads from the
    dark end of the warm ramp. The accent FILL stays #2E4BFF (stable);
    only accent TEXT and the line-work swap brighter for contrast.
-   See system/dark-mode.md + ADR 0026.
+
+   ⚠️ The two blocks below carry the SAME values — keep them in sync.
+   (Vanilla CSS can't share one declaration across a media query + an
+   attribute selector; a build step could dedupe later.)
+   See system/dark-mode.md + ADR 0026 + ADR 0029.
    ============================================================ */
+
+/* 1 — OS-following: dark when the system asks for it, unless forced light */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: var(--color-neutral-950);  /* ground */
+    --bg:         var(--background);
+    --surface1:   var(--color-neutral-900);  /* raised */
+    --surface2:   var(--color-neutral-800);  /* rule-dark */
+    --surface3:   var(--color-neutral-700);
+    --text1:      var(--color-neutral-100);  /* ink */
+    --text2:      var(--color-neutral-300);  /* ink-soft */
+    --text3:      var(--color-neutral-500);  /* ink-mute */
+    --text4:      var(--color-neutral-600);
+
+    --accent:      var(--color-accent-500);  /* #2E4BFF — STABLE fill */
+    --accent-text: var(--color-accent-400);  /* #5C78FF — 4.5:1 on ground */
+    --accent-fg:   var(--color-neutral-50);   /* cream — stays light on accent fills */
+    --line:        var(--color-accent-line);  /* #3A5BFF ink-line */
+
+    --border:         var(--color-neutral-800);  /* rule-dark */
+    --border-visible: var(--color-neutral-700);
+
+    --accent-hover:    var(--color-accent-300);  /* lighter on dark */
+    --accent-disabled: #2E3354;                   /* desaturated, dark-friendly */
+    --accent-subtle:   #18204A;                   /* deep low-chroma tint (NOT light) */
+
+    --success-bg: hsl(140 30% 16%);
+    --warning-bg: hsl(38 45% 18%);
+    --error-bg:   hsl(0 35% 18%);
+  }
+}
+
+/* 2 — explicit toggle: wins over the OS preference */
 [data-theme="dark"] {
   --background: var(--color-neutral-950);  /* ground */
   --bg:         var(--background);
@@ -308,11 +350,8 @@
 
   --accent-hover:    var(--color-accent-300);  /* lighter on dark */
   --accent-disabled: #2E3354;                   /* desaturated, dark-friendly */
+  --accent-subtle:   #18204A;                   /* deep low-chroma tint (NOT light) */
 
-  /* Accent-subtle in dark = deep, low-chroma tint (NOT light) */
-  --accent-subtle: #18204A;
-
-  /* Status colors keep their hue but get bg variants tuned for dark */
   --success-bg: hsl(140 30% 16%);
   --warning-bg: hsl(38 45% 18%);
   --error-bg:   hsl(0 35% 18%);
