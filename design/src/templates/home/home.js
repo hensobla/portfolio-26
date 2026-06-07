@@ -75,12 +75,14 @@
     const logo = root.querySelector(".home__logo");
     const items = Array.prototype.slice.call(root.querySelectorAll(".home__item"));
     const tabs = Array.prototype.slice.call(root.querySelectorAll(".home__tab"));
+    const panelEls = Array.prototype.slice.call(root.querySelectorAll(".home__panel"));
     const tabText = root.querySelectorAll(".home__tab-num, .home__tab-label");
     const tabsWrap = root.querySelector(".home__tabs");
     const artSvg = root.querySelector(".home__folder-art");
     const riseState = tabs.map(() => ({ v: 0 }));   // per-tab hover-lift (open state), px
     const RISE = px("--space-1", 4) * 1.5;          // ~6px — "a little bit"
     let open = false;
+    let opening = false;   // true only while the open timeline is running (so a resize mid-open doesn't fight it)
     // The active tab normally renders OPEN (woven into the body). During a click it
     // renders as a LIFTED folder while it springs down, then snaps open on settle.
     let activeSettled = true;
@@ -213,7 +215,40 @@
 
     function setActive(i) {
       tabs.forEach((t, j) => t.classList.toggle("is-active", j === i));
+      // Swap which case-study panel is shown (display via .is-active; the hidden
+      // attribute keeps inactive panels out of the a11y tree).
+      panelEls.forEach((p, j) => {
+        const on = j === i;
+        p.classList.toggle("is-active", on);
+        p.toggleAttribute("hidden", !on);
+        if (on) p.scrollTop = 0;   // always open a case study at the top
+      });
+      hydrateMedia(i);             // ensure the now-active project's media is in the DOM
       buildFolder();
+    }
+
+    // Fade the active project panel in (open state only). Reduced motion: no-op —
+    // setActive already display-swaps it, so it just appears.
+    function revealPanel(i) {
+      const p = panelEls[i];
+      if (!p || reduce()) return;
+      gsap.fromTo(p, { autoAlpha: 0, y: 12 },
+        { autoAlpha: 1, y: 0, duration: sec("--motion-standard", 0.3), ease: "power2.out", overwrite: true });
+    }
+
+    // Lazy media hydration. Each panel's heavy media (shots + prototype) lives in an
+    // inert <template class="home__panel-media"> — its content never loads or renders
+    // until cloned, so an unopened project costs nothing. We clone it in on INTENT:
+    // activating the project (open / tab-switch) OR hovering/focusing its tab or list
+    // item. That hover/focus call is the "load in the background immediately" hook —
+    // once the frames are real <img loading="lazy"> / prototype embeds, the fetch
+    // starts the instant the user signals interest, so the click feels instant.
+    function hydrateMedia(i) {
+      const panel = panelEls[i];
+      if (!panel || panel.dataset.hydrated) return;
+      const tpl = panel.querySelector("template.home__panel-media");
+      if (tpl && tpl.content) panel.appendChild(tpl.content.cloneNode(true));
+      panel.dataset.hydrated = "1";
     }
 
     // Rebuild on any geometry change: initial layout, the takeover tweens, and
@@ -222,6 +257,22 @@
       new ResizeObserver(buildFolder).observe(folder);
     }
     requestAnimationFrame(buildFolder);
+
+    // Keep the EXPANDED folder responsive: the open layout pins the folder to fixed
+    // pixels (geometry() at open time), so without this a window resize would leave
+    // it stranded at the old size. Re-fit to the current viewport (instant, no tween)
+    // whenever the window changes while open. The compact/resting state is a normal
+    // grid item and reflows on its own — this only re-fits the pinned open folder.
+    function fitOpenFolder() {
+      const g = geometry();
+      gsap.set(folder, { left: g.targetLeft, top: g.targetTop, width: g.targetW, height: g.targetH });
+      buildFolder();
+    }
+    let resizeRAF = 0;
+    window.addEventListener("resize", () => {
+      if (!open || opening || resizeRAF) return;   // skip mid-open; the timeline owns the box then
+      resizeRAF = requestAnimationFrame(() => { resizeRAF = 0; fitOpenFolder(); });
+    });
 
     // Folder's current position within the root + the full-canvas target.
     function geometry() {
@@ -287,6 +338,10 @@
         gsap.set([name, bio], { autoAlpha: 0 });
         gsap.set([list, title], { display: "none" });
         tabs.forEach((t, i) => gsap.set(t, { left: tabLeft(i), top: 0, width: tabW[i], height: tabH }));
+        // grow the tab strip to the open tab height so the folder body begins at the
+        // woven folder-top line (otherwise the body — and its scroll-clip — sits ~8px
+        // too high and content rides up over the tabs)
+        gsap.set(tabsWrap, { height: tabH });
         gsap.set(tabText, { opacity: 1 });
         logo.textContent = "Blake Henson";
         buildFolder();
@@ -297,8 +352,14 @@
       const beat = sec("--motion-slower", 0.8);
       const standard = sec("--motion-standard", 0.3);
 
+      // Hold the active panel hidden until the folder has grown to full size, then
+      // fade it in (scheduled below) so the content doesn't flash at small size.
+      if (panelEls[activeIndex]) gsap.set(panelEls[activeIndex], { autoAlpha: 0 });
+
       // onUpdate redraws the single outline every frame as the folder + tabs move.
-      const tl = gsap.timeline({ onUpdate: buildFolder });
+      // opening guards the resize re-fit so it doesn't fight the timeline mid-open.
+      opening = true;
+      const tl = gsap.timeline({ onUpdate: buildFolder, onComplete: () => { opening = false; } });
       // (1·edit) only the name + bio leave to the left; the status stays (nav)
       tl.to([name, bio], { autoAlpha: 0, x: -60, duration: fade, ease: "power2.in" }, 0)
         .to([list, title], { autoAlpha: 0, duration: standard, ease: "power1.out" }, 0)
@@ -308,15 +369,26 @@
       tabs.forEach((t, i) => {
         tl.to(t, { left: tabLeft(i), top: 0, width: tabW[i], height: tabH, duration: beat, ease: "expo.out" }, 0);
       });
+      // grow the tab strip in sync so the folder body starts at the woven folder-top
+      // line — keeps panel content (and its scroll-clip) from riding up over the tabs
+      tl.to(tabsWrap, { height: tabH, duration: beat, ease: "expo.out" }, 0);
       // (2) tab labels fade in as the tabs widen
       tl.to(tabText, { opacity: 1, duration: standard, ease: "power1.out" }, beat * 0.35)
         // (3) BEAT 2 — folder grows to fill the height, just after the width settles
         .to(folder, { top: g.targetTop, height: g.targetH, duration: beat, ease: "power3.inOut" }, beat * 0.8)
-        // (4) "Blake Henson" types in at the top
+        // (4) the active project's case study fades in once the folder is full-size
+        .add(() => revealPanel(activeIndex), beat * 1.1)
+        // (5) "Blake Henson" types in at the top
         .add(typeIn(logo, "Blake Henson", fade), beat * 1.2);
     }
 
-    items.forEach((btn, i) => btn.addEventListener("click", () => openFolder(i)));
+    items.forEach((btn, i) => {
+      btn.addEventListener("click", () => openFolder(i));
+      // hovering/focusing a project in the resting index is strong intent → prefetch
+      // its media so it's already loaded by the time the folder opens
+      btn.addEventListener("pointerenter", () => hydrateMedia(i));
+      btn.addEventListener("focus", () => hydrateMedia(i));
+    });
 
     // In the OPEN folder, inactive tabs LIFT on hover (a rigid rise — the trapezoid
     // translates up, top + base together, so it never distorts) and SPRING back down
@@ -324,6 +396,10 @@
     const fast = () => sec("--motion-fast", 0.18);
     tabs.forEach((tab, i) => {
       const liftable = () => open && !reduce() && !tab.classList.contains("is-active");
+      // prefetch on intent — hovering/focusing another tab while open means a switch
+      // is likely; get its media ready before the click lands
+      tab.addEventListener("pointerenter", () => hydrateMedia(i));
+      tab.addEventListener("focus", () => hydrateMedia(i));
       tab.addEventListener("mouseenter", () => {
         if (!liftable()) return;
         gsap.to(riseState[i], { v: RISE, duration: fast(), ease: "power2.out", overwrite: true, onUpdate: buildFolder });
@@ -336,7 +412,7 @@
         if (!open || tab.classList.contains("is-active")) return;
         // not lifted (touch / no hover) or reduced motion → open immediately, no spring
         if (reduce() || riseState[i].v < 0.5) {
-          activeSettled = true; riseState[i].v = 0; setActive(i); return;
+          activeSettled = true; riseState[i].v = 0; setActive(i); revealPanel(i); return;
         }
         // From its hover-lift the tab PLUNGES down past rest ("too far"); at that LOWEST
         // point the page commits to the new tab; then it SPRINGS back up to rest + opens.
@@ -346,7 +422,7 @@
           .to(riseState[i], {
             v: -OVER, duration: sec("--motion-fast", 0.18) * 0.75, ease: "power2.in",
             onUpdate: buildFolder,
-            onComplete: () => { activeSettled = false; setActive(i); }   // ← page updates at the lowest point
+            onComplete: () => { activeSettled = false; setActive(i); revealPanel(i); }   // ← page updates at the lowest point
           })
           .to(riseState[i], {
             v: 0, duration: sec("--motion-standard", 0.3), ease: "back.out(1.7)",

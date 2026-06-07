@@ -27,36 +27,149 @@
              (see home.js buildFolder) so overlapping tabs occlude correctly AND
              every corner stays a clean miter. The buttons sit ABOVE the art so
              labels read on top of the painted fills. -->
-        <button class="home__tab is-active" type="button" role="tab" data-index="0">
+        <button class="home__tab is-active" type="button" role="tab" id="home-tab-0" aria-controls="home-panel-0" data-index="0">
           <span class="home__tab-rail">
-            <span class="home__tab-num">01</span><span class="home__tab-label">Project 1</span>
+            <span class="home__tab-num">01</span><span class="home__tab-label">Ledger</span>
           </span>
         </button>
-        <button class="home__tab" type="button" role="tab" data-index="1">
+        <button class="home__tab" type="button" role="tab" id="home-tab-1" aria-controls="home-panel-1" data-index="1">
           <span class="home__tab-rail">
-            <span class="home__tab-num">02</span><span class="home__tab-label">Project 2</span>
+            <span class="home__tab-num">02</span><span class="home__tab-label">Crate</span>
           </span>
         </button>
-        <button class="home__tab" type="button" role="tab" data-index="2">
+        <button class="home__tab" type="button" role="tab" id="home-tab-2" aria-controls="home-panel-2" data-index="2">
           <span class="home__tab-rail">
-            <span class="home__tab-num">03</span><span class="home__tab-label">Project 3</span>
+            <span class="home__tab-num">03</span><span class="home__tab-label">Atlas</span>
           </span>
         </button>
-        <button class="home__tab" type="button" role="tab" data-index="3">
+        <button class="home__tab" type="button" role="tab" id="home-tab-3" aria-controls="home-panel-3" data-index="3">
           <span class="home__tab-rail">
-            <span class="home__tab-num">04</span><span class="home__tab-label">Project 4</span>
+            <span class="home__tab-num">04</span><span class="home__tab-label">Manifold</span>
           </span>
         </button>
       </div>
 
       <div class="home__folder-body">
-        <h2 class="home__folder-title">My Projects</h2>
-        <ul class="home__list">
-          <li><button class="home__item" type="button" data-index="0">Project 1</button></li>
-          <li><button class="home__item" type="button" data-index="1">Project 2</button></li>
-          <li><button class="home__item" type="button" data-index="2">Project 3</button></li>
-          <li><button class="home__item" type="button" data-index="3">Project 4</button></li>
-        </ul>
+        <!-- Resting view: the project index. Fades out on takeover (home.js). -->
+        <div class="home__folder-nav">
+          <h2 class="home__folder-title">My Projects</h2>
+          <ul class="home__list">
+            <li><button class="home__item" type="button" data-index="0">Ledger</button></li>
+            <li><button class="home__item" type="button" data-index="1">Crate</button></li>
+            <li><button class="home__item" type="button" data-index="2">Atlas</button></li>
+            <li><button class="home__item" type="button" data-index="3">Manifold</button></li>
+          </ul>
+        </div>
+
+        <!-- Open view: one case-study panel per project. The active tab selects
+             which shows (home.js setActive). Placeholder content for now —
+             rich text + a 2×2 shot grid + a prototype frame per project. -->
+        <div class="home__panels">
+          <article class="home__panel is-active" id="home-panel-0" role="tabpanel" tabindex="0" aria-labelledby="home-tab-0" data-index="0">
+            <p class="home__panel-meta"><span class="home__panel-no">01</span> Lead product designer · 2025</p>
+            <h2 class="home__panel-title">Ledger</h2>
+            <p class="home__panel-lead">A proof-of-ownership layer for physical goods — every product carries a living record from the factory floor to its third owner.</p>
+            <dl class="home__specs">
+              <div><dt>Role</dt><dd>Lead product designer</dd></div>
+              <div><dt>Team</dt><dd>2 designers · 4 engineers</dd></div>
+              <div><dt>Timeline</dt><dd>9 months</dd></div>
+              <div><dt>Surface</dt><dd>Web + iOS</dd></div>
+            </dl>
+            <div class="home__panel-body">
+              <p>Ledger started as a warranty tool and became the spine of the brand's resale program. I owned the end-to-end flow: claiming a product, transferring it, and reading its history as a single annotated timeline.</p>
+              <p>The hard part was making provenance feel tangible. We treated each record like an exploded diagram — every repair, every owner, every part swap labelled and placed in sequence, so trust came from legibility rather than a badge.</p>
+            </div>
+            <!-- Heavy media (shots + prototype) lives in an inert <template>: its
+                 contents don't parse-load or render, so this project costs nothing
+                 until it's opened or its tab is hovered (home.js hydrateMedia).
+                 When the frames become real <img loading="lazy" decoding="async">
+                 / prototype embeds, they won't fetch until the template is cloned. -->
+            <template class="home__panel-media">
+              <div class="home__panel-grid">
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 01</span></div><figcaption class="home__shot-cap">Claim flow</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 02</span></div><figcaption class="home__shot-cap">Ownership timeline</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 03</span></div><figcaption class="home__shot-cap">Transfer sheet</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 04</span></div><figcaption class="home__shot-cap">Service record</figcaption></figure>
+              </div>
+              <figure class="home__proto"><div class="home__proto-frame"><span class="home__proto-play" aria-hidden="true">▶</span><figcaption class="home__proto-cap">Ownership transfer — interactive walkthrough</figcaption></div></figure>
+            </template>
+          </article>
+
+          <article class="home__panel" id="home-panel-1" role="tabpanel" tabindex="0" aria-labelledby="home-tab-1" data-index="1" hidden>
+            <p class="home__panel-meta"><span class="home__panel-no">02</span> Product design lead · 2024</p>
+            <h2 class="home__panel-title">Crate</h2>
+            <p class="home__panel-lead">A checkout that ships inside the box — reorder, register, and resell a physical product from the packaging it arrived in.</p>
+            <dl class="home__specs">
+              <div><dt>Role</dt><dd>Product design lead</dd></div>
+              <div><dt>Team</dt><dd>1 designer · 3 engineers</dd></div>
+              <div><dt>Timeline</dt><dd>6 months</dd></div>
+              <div><dt>Surface</dt><dd>Web · QR entry</dd></div>
+            </dl>
+            <div class="home__panel-body">
+              <p>Crate collapses the post-purchase gap. A code on the box opens a pre-filled session that already knows the product, the buyer, and the warranty window — no account wall, no re-keying an address.</p>
+              <p>I designed the flow to degrade gracefully: a full configurator on desktop, a two-tap reorder on mobile, and a printed fallback card for when there's no signal on the warehouse floor.</p>
+            </div>
+            <template class="home__panel-media">
+              <div class="home__panel-grid">
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 01</span></div><figcaption class="home__shot-cap">Scan-to-open</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 02</span></div><figcaption class="home__shot-cap">Reorder sheet</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 03</span></div><figcaption class="home__shot-cap">Address recall</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 04</span></div><figcaption class="home__shot-cap">Receipt</figcaption></figure>
+              </div>
+              <figure class="home__proto"><div class="home__proto-frame"><span class="home__proto-play" aria-hidden="true">▶</span><figcaption class="home__proto-cap">Two-tap reorder — interactive walkthrough</figcaption></div></figure>
+            </template>
+          </article>
+
+          <article class="home__panel" id="home-panel-2" role="tabpanel" tabindex="0" aria-labelledby="home-tab-2" data-index="2" hidden>
+            <p class="home__panel-meta"><span class="home__panel-no">03</span> Design + prototyping · 2024</p>
+            <h2 class="home__panel-title">Atlas</h2>
+            <p class="home__panel-lead">An exploded-diagram product viewer — spin a thing apart, read every part, and add any of them to cart without leaving the drawing.</p>
+            <dl class="home__specs">
+              <div><dt>Role</dt><dd>Design + prototyping</dd></div>
+              <div><dt>Team</dt><dd>2 designers · 2 engineers</dd></div>
+              <div><dt>Timeline</dt><dd>4 months</dd></div>
+              <div><dt>Surface</dt><dd>Web · WebGL</dd></div>
+            </dl>
+            <div class="home__panel-body">
+              <p>Atlas turns the spec sheet into the storefront. Each component is a labelled node in a 3D explosion; tapping a label pulls the part, surfaces its price and lead time, and lets you swap it in place.</p>
+              <p>I prototyped the interaction in the browser first — drag to orbit, scroll to explode — then specced the handoff so engineering could drive it from the same parts manifest the factory already used.</p>
+            </div>
+            <template class="home__panel-media">
+              <div class="home__panel-grid">
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 01</span></div><figcaption class="home__shot-cap">Exploded view</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 02</span></div><figcaption class="home__shot-cap">Part label</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 03</span></div><figcaption class="home__shot-cap">Swap drawer</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 04</span></div><figcaption class="home__shot-cap">Cart overlay</figcaption></figure>
+              </div>
+              <figure class="home__proto"><div class="home__proto-frame"><span class="home__proto-play" aria-hidden="true">▶</span><figcaption class="home__proto-cap">Orbit + explode — interactive prototype</figcaption></div></figure>
+            </template>
+          </article>
+
+          <article class="home__panel" id="home-panel-3" role="tabpanel" tabindex="0" aria-labelledby="home-tab-3" data-index="3" hidden>
+            <p class="home__panel-meta"><span class="home__panel-no">04</span> Staff product designer · 2023</p>
+            <h2 class="home__panel-title">Manifold</h2>
+            <p class="home__panel-lead">A configurator for made-to-order hardware — every option a real constraint, every constraint shown before you commit.</p>
+            <dl class="home__specs">
+              <div><dt>Role</dt><dd>Staff product designer</dd></div>
+              <div><dt>Team</dt><dd>1 designer · 5 engineers</dd></div>
+              <div><dt>Timeline</dt><dd>11 months</dd></div>
+              <div><dt>Surface</dt><dd>Web · internal + buyer</dd></div>
+            </dl>
+            <div class="home__panel-body">
+              <p>Manifold replaced a 40-field spreadsheet order form. I modelled the product as a graph of compatible parts so the UI could grey out impossible combinations live instead of failing at the loading dock.</p>
+              <p>The design language borrowed from engineering drawings: monospace part numbers, dimensioned previews, and a running bill of materials that updated as you built — the price was never a surprise.</p>
+            </div>
+            <template class="home__panel-media">
+              <div class="home__panel-grid">
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 01</span></div><figcaption class="home__shot-cap">Option graph</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 02</span></div><figcaption class="home__shot-cap">Dimensioned preview</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 03</span></div><figcaption class="home__shot-cap">Live BOM</figcaption></figure>
+                <figure class="home__shot"><div class="home__shot-frame"><span class="home__shot-no">FIG. 04</span></div><figcaption class="home__shot-cap">Order summary</figcaption></figure>
+              </div>
+              <figure class="home__proto"><div class="home__proto-frame"><span class="home__proto-play" aria-hidden="true">▶</span><figcaption class="home__proto-cap">Build a unit — interactive configurator</figcaption></div></figure>
+            </template>
+          </article>
+        </div>
       </div>
 
       <!-- The folder ART: home.js buildFolder paints the whole thing here as
