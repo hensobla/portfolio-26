@@ -455,7 +455,7 @@
       if (reduce()) {
         gsap.set(folder, { left: g.targetLeft, top: g.targetTop, width: g.targetW, height: g.targetH });
         gsap.set([name, bio], { autoAlpha: 0 });
-        gsap.set([list, title], { display: "none" });
+        gsap.set([list, title], { autoAlpha: 0 });   // autoAlpha (not display:none) so the close measures the nav's resting space consistently
         tabs.forEach((t, i) => gsap.set(t, { left: tabLeft(i), top: 0, width: tabW[i], height: tabH }));
         // grow the tab strip to the open tab height so the folder body begins at the
         // woven folder-top line (otherwise the body — and its scroll-clip — sits ~8px
@@ -515,6 +515,12 @@
       const eCss = explorer.style.cssText;
       const wCss = tabsWrap.style.cssText;
       const tCss = tabs.map((t) => t.style.cssText);
+      // Measure against the RESTING layout, not the open one: the open state takes the
+      // resting nav OUT of flow (position:absolute) + min-height:0 on the body, so the
+      // folder-body would measure ~0-tall here and the collapse would land short, then
+      // jump taller at settle. Flip to resting for the read so the nav is back in flow.
+      const stateAttr = root.getAttribute("data-home-state");
+      root.setAttribute("data-home-state", "resting");
       ["position", "left", "top", "width", "height", "margin", "transform", "zIndex"]
         .forEach((p) => { folder.style[p] = ""; });
       explorer.style.position = "";
@@ -529,6 +535,7 @@
       explorer.style.cssText = eCss;
       tabsWrap.style.cssText = wCss;
       tabs.forEach((t, i) => { t.style.cssText = tCss[i]; });
+      if (stateAttr !== null) root.setAttribute("data-home-state", stateAttr);
       return { folderBox, tabBoxes, wrapH };
     }
 
@@ -729,7 +736,12 @@
         ? { left: tabs[viewed].offsetLeft, top: tabs[viewed].offsetTop, width: tabs[viewed].offsetWidth, height: tabs[viewed].offsetHeight }
         : null;
 
-      // resting target in VIEWPORT coords (fixed folder) + ALL tab cascade boxes.
+      // resting target in VIEWPORT coords (fixed folder) + ALL tab cascade boxes. Measure
+      // against the RESTING layout (flip the state attr): the open state takes the nav out
+      // of flow + min-height:0 on the body, so it'd measure ~0-tall and the collapse would
+      // land short then jump taller at settle (the iOS Safari "miscalc then snap" bug).
+      const stateAttr = root.getAttribute("data-home-state");
+      root.setAttribute("data-home-state", "resting");
       const fCss = folder.style.cssText, eCss = explorer.style.cssText, wCss = tabsWrap.style.cssText;
       const tCss = tabs.map((t) => t.style.cssText);
       ["position", "left", "top", "width", "height", "margin", "transform", "zIndex"].forEach((p) => { folder.style[p] = ""; });
@@ -741,6 +753,7 @@
       const wrapH = tabsWrap.offsetHeight;
       folder.style.cssText = fCss; explorer.style.cssText = eCss; tabsWrap.style.cssText = wCss;
       tabs.forEach((t, i) => { t.style.cssText = tCss[i]; });
+      if (stateAttr !== null) root.setAttribute("data-home-state", stateAttr);
 
       // Hand the woven single tab to idx0, drop the viewed tab to its cascade slot, hide
       // every label, and stop soloing — from here every frame paints a clean leftmost-woven
