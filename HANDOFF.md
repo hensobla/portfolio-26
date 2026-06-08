@@ -1,155 +1,89 @@
-# Handoff — home open-folder case studies + responsiveness + perf scaffolding
+# Handoff — home folder close animation + mobile full-screen view + responsive polish
 
 **Updated:** 2026-06-07
-**Branch:** `main` (this session's work lands via `home/panel-content-and-perf` → merge → push)
-**Session length:** Long. Built the open-folder case-study panels, then iterated on edge-fades, clipping, responsiveness, a container-query grid, and lazy media loading.
+**Branch:** lands via `home/mobile-view-and-close-anim` → merge → `main` → push (origin: `github.com/hensobla/portfolio-26`)
+**Session length:** Long. Built the desktop close/reverse animation, then the entire mobile full-screen project view + responsive breakpoint mode-switch, then a chain of polish fixes (animate-in timing, badge layout-shift, edge-to-edge, short-viewport overflow).
 
-> ⚠️ **`home` is still `status: draft` and PROVISIONAL.** Project names, all copy, the
-> case-study structure, and the shot/prototype frames are **placeholder**. Don't ratify
-> without the user. The `home` manifest entry `notes` is the authoritative running log.
-> Supersedes the prior handoff (folder tabs + dark mode, committed in `f5dcb0e`) — its open
-> items that are still open are carried into "Immediate next steps" below.
+> ⚠️ **`home` is still `status: draft` and PROVISIONAL** — names, copy, case-study structure, shot/prototype frames are all placeholder. Don't ratify without the user. **ADRs are being HELD** per the user's standing instruction (capture once the design is finalized, not mid-iteration). See memory `feedback_no_adrs_until_finalized`.
 
 ## Current goal
 
-Fill the open folder body with real case-study content per project and make the expanded
-folder behave: never clip, fade at the edges, stay responsive after expansion, and load
-project media lazily so it scales when the content gets heavy (real images + prototype
-embeds). All four were done this session as **placeholder + scaffolding**; next is real
-content, the close/reverse animation, and the mobile-takeover pass.
+Make the `home` template's open-folder takeover work across **all viewports**: a real **close/reverse** animation (desktop), a **mobile full-screen project view** (the folder grows to fill the screen with one tab + Back), and a **responsive mode-switch** at `--bp-md` so resizing while open adapts cleanly. All built + verified this session. Next requested feature (started reasoning, then user stopped): **tucked tabs behind the active tab + a mono dropdown arrow to switch projects** on mobile.
 
 ## State right now
 
-Verified live in Claude Preview (`loomling-static`, port **8765**) at
-`http://localhost:8765/src/templates/home/preview.html`, light + dark, no console errors.
+All working, verified in Claude Preview (`loomling-static`, port 8765, `/src/templates/home/preview.html`). Logic lives entirely in `design/src/templates/home/home.js` (`HomeTemplate.init` → `wireTakeover`) + `home.css`.
 
-- **Per-project case-study panels exist** (`design/src/templates/home/home.html`). Projects
-  renamed P1–P4 → **Ledger / Crate / Atlas / Manifold** (tab labels + resting list + panels
-  in sync). Each panel: mono meta line (accent figure no · role · year) → display title →
-  lead → dimensioned spec row (Role/Team/Timeline/Surface `<dl>`) → 2 body paragraphs (capped
-  at `--measure`) → a shot grid → a prototype frame.
-- **Tab → panel switching works.** `home.js` `setActive(i)` toggles `.home__panel.is-active`
-  + the `hidden` attr + resets `scrollTop`; `revealPanel(i)` fades the active panel in
-  (scheduled into the open timeline at `beat·1.1` and on every tab-switch).
-- **Edge fades:** `.home__panel` has a `mask-image` top+bottom linear-gradient
-  (`--panel-fade = --space-5`) so content dissolves at the folder edges as it scrolls.
-- **Clip fix:** the open tab strip grows to the open tab height (`gsap.set(tabsWrap, {height: tabH})`)
-  so the folder body starts exactly at the woven folder-top line (was ~8px too high → content
-  rode over the tabs).
-- **Responsive after expansion:** `home.js` `fitOpenFolder()` + a rAF-throttled `window`
-  `resize` listener re-fit the pinned-open folder to the current viewport (an `opening` flag
-  guards against fighting the open timeline). The nav availability badge now pins top-right in
-  the open state at **all** widths (was colliding with the typed-in logo below 1024px).
-- **Shot grid follows `space.md` by PANEL width (ADR 0030):** `.home__panels` is a CSS
-  container (`container: panel / inline-size`); `.home__panel-grid` re-maps `--panel-cols` /
-  `--panel-gap` from the system `--grid-cols-*` / `--grid-gap-*` tokens via `@container` at
-  480/768/1024; `.home__shot` spans tracks → **1-up → 2-up → 4-up**.
-- **Lazy media (ADR 0031):** each panel's heavy media (`.home__panel-grid` + `.home__proto`)
-  lives in an inert `<template class="home__panel-media">`; `home.js` `hydrateMedia(i)` clones
-  it in on **intent** — activation OR `pointerenter`/`focus` on the project's tab or resting
-  list item. Verified: **0 live grids at rest**, hover hydrates only that project, others stay
-  inert.
+- **Desktop close** works: click the typed-in "Blake Henson" logo → folder collapses back to the resting cascade, identity returns, logo un-types. Resets the woven tab to **idx0** (left-stacking).
+- **Mobile (<`--bp-md`/768px)**: tapping a project grows the folder to **full-screen** (pinned `position:fixed`), painting only the active project's tab + a "‹ Back" logo; Back collapses it. Resets to idx0-woven on rest (smooth, fades the cascade back in).
+- **Responsive**: resizing while open re-fits in-mode, or **switches modes** at 768px (desktop spread ↔ mobile full-screen).
+- **No console errors** at 375 / 1300×400 / 1300×820 / 390 widths.
 
 ## What was done this session
 
-- **`home.html`** — added the 4 case-study panels; renamed projects; wrapped each panel's
-  media in `<template class="home__panel-media">`; added `id`/`aria-controls`/`role=tabpanel`/
-  `aria-labelledby` wiring between tabs and panels.
-- **`home.css`** — panel typography/layout (meta, title, lead, `.home__specs`, body, shot
-  frames with blueprint grid-wash, accent-bordered prototype frame); top/bottom `mask-image`
-  fade; the `@container` column system + narrow-panel padding/title; open-state badge
-  top-right rule + `.home__identity` static when open.
-- **`home.js`** — `panelEls`; `setActive` panel toggle + `scrollTop` reset + `hydrateMedia`;
-  `revealPanel`; open-timeline panel reveal; tab-switch reveal (immediate + plunge-commit
-  paths); `fitOpenFolder` + resize listener + `opening` flag; tab-strip grow-to-`tabH` on open
-  (clip fix); `hydrateMedia` + intent-prefetch listeners on tabs and list items.
-- **`preview.html`** — `preconnect` to fonts.googleapis/gstatic.
-- **`manifest.json`** — brought the `home` `notes` running-log current; **fixed a pre-existing
-  invalid-JSON bug** (an unescaped `"presses into"` → `'presses into'`; the file now parses —
-  it had been breaking the Loom's Library/Sandbox `fetch().json()`).
-- **ADRs 0030 + 0031** written (`design/decisions/`).
+- **Desktop close animation** — `closeFolder()`, `settleResting()`, `restingMetrics()`, `typeOut()` in `home.js`; wired the logo click (was a `location.reload()` stub). Measures the resting target at close-time (clear inline pin → read reflowed layout → restore), reverses the open beats, crossfades the availability badge across the state flip. Resets active tab to idx0 so the resting cascade stacks left-top→right-bottom.
+- **Animate-IN timing fix** — identity (name+bio) now exits on `power2.out` over `beat*0.45` so it's gone by the time the folder fills the width (was lingering).
+- **Mobile full-screen view** — `openFolderMobile()`, `closeFolderMobile()`, `settleMobile()`, `mobileGeometry()`, `soloTabBox()`, `lockScroll/unlockScroll`, `isMobile()` (`root.clientWidth < --bp-md`, container-aware). Folder pinned `fixed` to the viewport (the stacked mobile page is taller than the screen), scroll locked while open. `buildFolder()` got a `mobileSolo` branch (paints only the active tab); `data-home-view="mobile"` attr drives CSS.
+- **Responsive mode-switch** — rewrote the `resize` handler: same-mode → `fitOpenFolder()`/`refitMobile()`; crossed breakpoint → `applyDesktopOpenLayout()` / `applyMobileOpenLayout()` (instant snap, reused as the reduced-motion targets too).
+- **Badge layout-shift fix** — the availability badge was `display:none` on mobile-open → popped into flow at close and shoved content down. Now `[data-home-view="mobile"] .home__status { position:static }` keeps it in flow (space always reserved) and JS fades it via `autoAlpha`.
+- **Mobile close occlusion fix** — keeping the *last-viewed* tab woven at rest broke the cascade (only the **frontmost/leftmost** tab can be woven without the tabs in front covering its opening). Now the close hands the woven single-tab to **idx0** and fades the rest of the cascade in.
+- **Spacing/edge** — bumped mobile top nav strip to `--space-8 + --space-4` (~80px, Back clears the tab); open folder is **edge-to-edge with a `--space-4` (16px) XS margin** on L/R/B (`edge` const in `mobileGeometry`).
+- **Short-viewport overflow fix** — the faded resting nav (`visibility:hidden`, still in flow) forced a min-content height on the folder body, so on short viewports the folder overflowed and the panel spilled past the tabs. Fixed: `[data-home-state="open"] .home__folder-nav { position:absolute }` + `.home__folder-body { min-height:0 }`, and `geometry()` clamps `targetH` to `Math.min(root.clientHeight, window.innerHeight)`.
+- Reduced narrow-container `.home__panel` padding `--space-5` → `--space-4`.
 
 ## Key decisions and why
 
 | Decision | Rationale | Alternatives rejected |
 |---|---|---|
-| Shot grid via CSS `@container` keyed to `space.md` breakpoints (ADR 0030) | Open folder ≠ viewport and resizes live; must respond to the *panel's* width. Reuses system grid tokens so it literally follows `space.md` | Viewport `@media` (mis-predicts panel width); `auto-fit minmax` (can't honor the specific 4/8/12 counts); JS measurement (CSS is declarative, zero reflow) |
-| Each panel's media in an inert `<template>`, hydrated on intent (ADR 0031) | Content will get heavy (4 imgs + prototype × 4 projects); `<template>` guarantees *nothing* loads until cloned; hover/focus prefetch makes clicks feel instant | All-in-DOM + `loading=lazy` (inconsistent for hidden imgs, no `lazy` for embeds); `content-visibility` (render-only, foot-gun with scroll+mask+container query) |
-| Tab strip grows to `tabH` on open | Folder body then begins exactly at the woven folder-top line → no content clipping into tabs | Per-panel top inset (fragile, hard-codes the 8px) |
-| Badge pinned top-right in open state at all widths | Below 1024px it was an eyebrow in the identity flow → collided with the typed-in logo after takeover | Hiding the badge on narrow (drops content); leaving it (visible collision) |
+| Mobile = folder **grows full-screen** (one tab + Back), not an overlay | On-brand (the folder metaphor), reuses the takeover geometry | "Option A" panel-overlay drill-down — built it first, user preferred the folder growing |
+| Resting cascade **always resets to idx0-woven** (desktop + mobile close) | Only the frontmost tab can be woven without occlusion artifacts (a middle-woven tab gets covered → broken hierarchy) | Keep last-viewed tab woven — looked broken (see screenshot the user flagged) |
+| Mobile folder pinned `position:fixed` + scroll-locked | The stacked mobile page is taller than the viewport; must size to the SCREEN, not the page | Absolute (root-relative) like desktop — overflowed |
+| Badge stays in flow on mobile, fades via opacity | `display:none` toggling caused a layout shift at close | — |
+| Open folder edge-to-edge with a 16px XS margin (not flush) | Flush clipped the centered 2px border; user wanted "XS amount of space" | True edge-to-edge (2px hairline) — user didn't love it |
 
-## Approaches that didn't work / consciously deferred
+## Approaches that didn't work
 
-- **`content-visibility: auto` on shot tiles** — render-only win, and a foot-gun stacked with
-  the panel's internal scroll + the edge mask + the container query (scroll-jump risk).
-  Deferred; revisit only if render (not bandwidth) becomes the bottleneck.
-- **Panel auto-scroll glitch** — the `tabindex="0"` panel auto-scrolled itself (became the
-  active scroll container), pushing meta/title out of view. Fixed by `scrollTop = 0` in
-  `setActive`.
+- **"Option A" mobile overlay** (panel pinned `fixed` over the resting view) — fully built + verified, then replaced when the user chose the folder-grows-full-screen approach.
+- **Last-viewed tab woven at rest on mobile** — broke the cascade occlusion (crossing strokes). Fixed by transferring the woven tab to idx0 on close.
+- **`display:none` badge on mobile-open** — caused the content-shift-down bug.
+- **Spawning a background task to write the ADR mid-edit** — it ran in the main tree and `git reset` clobbered uncommitted `home.js` edits (had to redo). See memory `feedback_no_spawn_task_mid_edit`.
 
 ## Files touched
 
-- **Created:** `design/decisions/0030-container-query-panel-grid.md`, `design/decisions/0031-template-deferred-panel-media.md`, `HANDOFF.md` (this file).
-- **Modified:** `design/src/templates/home/home.html`, `home.css`, `home.js`, `preview.html`; `design/library/manifest.json`.
+- **Modified:** `design/src/templates/home/home.js` (+413 lines) — close animation, mobile mode, responsive switch, all fixes above.
+- **Modified:** `design/src/templates/home/home.css` — open-state nav/body flow fixes, mobile chrome (`[data-home-view="mobile"]` rules: badge in-flow, back chevron, inactive-tab pointer-events), narrow panel padding.
+- **Modified:** `design/library/manifest.json` — home running-log note (close animation).
+- **Untracked (NOT committed):** `design/decisions/0032-home-folder-close-animation.md` — written prematurely during the clobbering incident; now **partially stale** (predates the mobile work + idx0-transfer). Left untracked per the hold-ADRs instruction. Decide at finalize: update + commit, or remove.
 
-## Git state (before the handoff commits)
+## Git state
 
 ```
 On branch main (up to date with origin/main)
  M design/library/manifest.json
  M design/src/templates/home/home.css
- M design/src/templates/home/home.html
  M design/src/templates/home/home.js
- M design/src/templates/home/preview.html
+?? design/decisions/0032-home-folder-close-animation.md
 ```
 
-Per the user's `commit push merge` instruction, this session lands via a topic branch →
-topical commits → ADRs + handoff commit → merge to `main` → `git push` (remote:
-`github.com/hensobla/portfolio-26`).
+`/handoff commit push merge` will: branch `home/mobile-view-and-close-anim`, commit the 3 modified files + this HANDOFF, merge `--no-ff` to `main`, push. `0032` stays untracked.
 
 ## Immediate next steps
 
-1. **Real case-study content** — replace placeholder copy + the FIG/prototype frames with real
-   screenshots (`<img loading="lazy" decoding="async" width height>` inside the `<template>`)
-   and real prototype embeds (click-to-load, `preload="none"`). The lazy-load mechanism is
-   already wired (ADR 0031).
-2. **Close / reverse animation** — the nav-logo click is still a `location.reload()` stub
-   (`home.js`, bottom of `wireTakeover`). Build a real close that animates the open folder back
-   to the resting cascade.
-3. **Mobile / medium takeover pass** — the panel content is responsive now, but the **tab
-   strip geometry** (4 tabs laid left-to-right) is still desktop-tuned and crowds below ~480px.
-   The takeover geometry (root padding + `navH` strip) also wants a small-screen pass.
-4. **De-provisionalize `home`** — settle tab angle (26.6°), stagger/spread, hidden numbers,
-   name weight 400, the 4-up desktop grid ceiling; then flip to approved + write the remaining
-   ADRs (tab look/interaction still has none).
+1. **Tucked tabs behind the active tab** (mobile open) — the user wants the other tabs "tightly tucked behind the active tab… the compact cascade but even more overlap." **Key constraint discovered:** only the frontmost (leftmost) tab can be woven cleanly, so to tuck others behind the *active* (which can be any index), either (a) reorder the SVG paint so the active fill paints last (`insertBefore` the active fill before `art.outline`), or (b) render the active as idx0 and relabel it. Currently mobile uses `mobileSolo` (paints only the active) — that flag would need to relax.
+2. **Mono down-arrow dropdown** (mobile) — a `▾` next to the tab that opens a project picker (the real switcher; tucked tabs are decorative). Use `--font-mono` (Departure Mono).
+3. **De-provisionalize `home`** — settle tab angle/stagger, real copy + screenshots (lazy mechanism wired, ADR 0031), then flip `draft`→approved and write the held ADRs.
 
 ## Open questions / blockers
 
-- **`home` is provisional** — don't ratify the look/interaction/content without the user.
-- **Audience** (hiring managers, said verbally) still not written to `project.json.answers`;
-  the three **voice adjectives** in `system/voice.md` are still un-filled. Offer to capture when
-  resuming copy work (the placeholder copy I wrote is my voice, not a ratified one).
-- **Desktop grid ceiling = 4-up.** Easy dial to 2-up (`lg+` `--shot-span: 6`) if 4 across feels
-  too dense once shots are real screenshots.
+- **`home` is provisional** — don't ratify look/interaction/content without the user.
+- **`0032` ADR** — keep (update) or delete? Held for now.
+- Audience + the three voice adjectives (`system/voice.md`) still un-filled (placeholder copy is my voice).
 
 ## Gotchas for the next session
 
-- **Serve the Loom from `design/`** — preview config `.claude/launch.json` → `loomling-static`
-  (http-server on `design`, port 8765), serving `/src/templates/home/preview.html`. If the
-  preview shows `chrome-error://`, just `preview_start` `loomling-static` again. `launch.json`
-  is gitignored.
-- **`manifest.json` is loose JSON.** It previously contained an **unescaped double quote** that
-  broke `JSON.parse` (fixed this session). When editing the `notes` field, use **single quotes**
-  for inline quotes (the file's convention) and validate with
-  `node -e "JSON.parse(require('fs').readFileSync('design/library/manifest.json','utf8'))"`.
-- **Panel media is in `<template>`** — `panel.querySelector('.home__panel-grid')` returns `null`
-  until `hydrateMedia(i)` runs. That's by design (ADR 0031), not a bug.
-- **Container queries** drive the shot grid — to change tiles-per-row, edit the `@container`
-  blocks in `home.css`, not a viewport `@media`. The container is `.home__panels`.
-- **The folder is 100% JS-rendered** (carried from prior session) — `home.js buildFolder()`
-  paints the SVG tab/folder art from `offset*` geometry. To change tab visuals, edit the path
-  building in `buildFolder`, not CSS.
-- **Verifying spring/timeline animations** from static screenshots is hard — drive via
-  `preview_eval` (`.click()` then a `setTimeout` promise), or read state directly.
-- **Dark mode duplicates the dark block** in `tokens.css` (`@media prefers-color-scheme` +
-  `[data-theme="dark"]`) — edit both (ADR 0029).
+- **Preview tab backgrounding freezes rAF → GSAP freezes mid-animation** (`document.hidden` pauses `requestAnimationFrame`; `gsap.ticker.frame` stops advancing, `onComplete` never fires, `opening`/`open` flags get stuck). Symptoms: animations stuck mid-progress, state stuck "open." **To verify logic anyway:** override `window.matchMedia` to force `prefers-reduced-motion: reduce` → open/close run synchronously via `gsap.set` (no rAF). End-state + geometry are then measurable. After a real `cc` restart the tab is visible and animations complete normally.
+- **`preview_resize` doesn't reliably fire a `resize` event into the iframe** — to test the responsive mode-switch, dispatch `window.dispatchEvent(new Event('resize'))` manually after resizing.
+- **Mobile vs desktop close differ:** desktop resets to idx0 at close *start*; mobile transfers the woven single-tab to idx0 and fades the cascade in. Don't unify them blindly.
+- **`buildFolder()` is shared** across resting/desktop/mobile and runs every animation frame (`onUpdate`). The `mobileSolo` flag gates the single-tab paint. The active tab's stroke is empty when woven (its outline comes from `art.outline`, painted last/frontmost).
+- **Dark mode** still duplicates the dark block in `tokens.css` (`@media prefers-color-scheme` + `[data-theme="dark"]`) — edit both (ADR 0029).
+- Serve the Loom from `design/` (`.claude/launch.json` → `loomling-static`, port 8765). If the preview shows a non-home URL, navigate to `http://localhost:8765/src/templates/home/preview.html`.
