@@ -353,6 +353,13 @@
    panel shows (home.js setActive). Panels only exist in the open state. */
 .home__panels { display: none; }
 
+/* In the open state the resting index is faded out — take it OUT of flow too, and let
+   the body flex-shrink. Otherwise the nav's min-content height keeps the folder-body
+   from shrinking on short viewports, so the folder overflows the screen and the panel
+   spills past its bounds. */
+[data-home-state="open"] .home__folder-nav { position: absolute; }
+[data-home-state="open"] .home__folder-body { min-height: 0; }
+
 [data-home-state="open"] .home__panels {
   display: block;
   position: absolute;
@@ -554,9 +561,34 @@
    the case study stays legible when the folder is small. Container-driven to match
    the grid above — it tracks the folder's width, not the viewport. */
 @container panel (max-width: 767px) {
-  .home__panel { padding: var(--space-5); }
+  .home__panel { padding: var(--space-4); }   /* tighter folder-body padding on small screens */
   .home__panel-title { font-size: var(--type-display-s); }
   .home__specs { gap: var(--space-5); }
+}
+
+/* ---------- MOBILE: a project grows the folder FULL-SCREEN (one tab + Back) ----------
+   Below --bp-md home.js grows the FOLDER to fill the viewport (minus a top nav strip),
+   painting only the active project's tab + a Back logo, instead of spreading all four
+   tabs (it sets [data-home-view="mobile"]). The case study fills the folder body via
+   the open-state rules above; these tweaks only handle the mobile nav chrome. */
+/* inactive tabs aren't painted on mobile (buildFolder solos the active one) — keep their
+   invisible buttons from catching taps in the top-left */
+[data-home-view="mobile"] .home__tab:not(.is-active) { pointer-events: none; }
+
+/* the open nav is just the Back logo — the availability badge is hidden via opacity
+   (home.js), NOT display, and stays in normal flow as the eyebrow so its layout space
+   is always reserved. Otherwise it would pop into flow at close and shove the content
+   down. (Override the open-state absolute pin so it keeps the resting eyebrow slot.) */
+[data-home-view="mobile"] .home__status {
+  position: static;
+  align-self: start;
+}
+
+/* a back chevron prefixed to the logo while open */
+[data-home-view="mobile"] .home__logo::before {
+  content: "\2039";                 /* ‹ */
+  margin-right: var(--space-2);
+  color: var(--accent);
 }
 
 /* ---------- top-left nav logo (types in during the takeover) ---------- */
