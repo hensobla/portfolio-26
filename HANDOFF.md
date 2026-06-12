@@ -1,89 +1,88 @@
-# Handoff — home folder close animation + mobile full-screen view + responsive polish
+# Handoff — home template polish: mobile open-row identity, open-animation jump fixes, name typography
 
-**Updated:** 2026-06-07 (rev 2 — added the close-height-jump fix)
-**Branch:** `main` (this turn's fix lands directly via `commit push`; prior session work already merged + pushed)
-**Session length:** Long. Built the desktop close/reverse animation, the mobile full-screen project view + responsive breakpoint mode-switch, then a chain of polish + bug fixes (animate-in timing, badge layout-shift, edge-to-edge, short-viewport overflow, and the close-height miscalc).
+**Updated:** 2026-06-11
+**Branch:** `main` (this session's work commits directly to `main` + pushes, per `design/CLAUDE.md` § Session continuity and the existing git history)
+**Session length:** Long. A continuous polish pass on the `home` template's open/close takeover (desktop + mobile) plus the identity typography. Heavy back-and-forth refining one detail at a time.
 
-> ⚠️ **`home` is still `status: draft` and PROVISIONAL** — names, copy, case-study structure, shot/prototype frames are all placeholder. Don't ratify without the user. **ADRs are being HELD** per the user's standing instruction (capture once the design is finalized, not mid-iteration). See memory `feedback_no_adrs_until_finalized`.
+> ⚠️ **`home` is still `status: draft` and PROVISIONAL** — copy, names, frames are placeholder. **ADRs are HELD** per the user's standing instruction (capture once finalized, not mid-iteration). See memory `feedback_no_adrs_until_finalized`. The untracked `design/decisions/0032-home-folder-close-animation.md` is now badly stale (predates everything below) — decide at finalize: rewrite or delete.
 
 ## Current goal
 
-Make the `home` template's open-folder takeover work across **all viewports**: a real **close/reverse** animation (desktop), a **mobile full-screen project view** (folder grows to fill the screen with one tab + Back), and a **responsive mode-switch** at `--bp-md` so resizing while open adapts cleanly. All built + verified. Next requested feature (user reasoned through it then **stopped** the work): **tucked tabs behind the active tab + a mono `▾` dropdown to switch projects** on mobile.
+Make the `home` open/close takeover feel polished and correct on **all viewports**, and refine the identity block. This session was a long string of small, specific fixes the user drove one at a time (mobile open-row layout, animation jumpiness, name size/alignment). All verified in Claude Preview. The next thread is most likely **de-provisionalizing `home`** (real content, flip `draft`→approved, write the held ADRs).
 
 ## State right now
 
-All working, verified in Claude Preview (`loomling-static`, port 8765, `/src/templates/home/preview.html`). Also live-tested by the user on an **iPhone Safari** via the Mac's LAN IP (`http://192.168.68.140:8765/src/templates/home/preview.html` — same-Wi-Fi only; server binds `*:8765`). Logic lives entirely in `design/src/templates/home/home.js` (`HomeTemplate.init` → `wireTakeover`) + `home.css`.
+All working, verified in Claude Preview (`loomling-static`, port 8765, at **`/src/templates/home/preview.html`** — NOT `home.html`). No console errors. Logic lives in `design/src/templates/home/home.js` (`wireTakeover`) + `home.css`. The open/close animations are smooth on both desktop and mobile (the collapse/"jump" is gone), and the mobile open view has a redesigned top row.
 
-- **Desktop close** collapses the folder back to the resting cascade, resets the woven tab to **idx0**.
-- **Mobile (<768px)**: tap a project → folder grows **full-screen** (`position:fixed`, scroll-locked) with one tab + "‹ Back"; Back collapses it (resets to idx0-woven, fades the cascade in).
-- **Responsive**: resize re-fits in-mode or **switches modes** at 768px.
-- **Just fixed (this turn):** the iOS "close miscalculates height then jumps" bug — the close now measures the resting height correctly (verified target == settled, 365==365 on desktop + mobile, zero jump).
-- **No console errors.**
+- **Mobile open view top row:** `BH` initials (left) → tab (shifted right to clear them) → mono `CLOSE ✕` (right), all centered on the tab row. The folder panel itself does NOT move; only the tab is offset.
+- **Name (identity):** one line at all breakpoints (forced break removed), sizes `m / l / xl` (mobile/≥768/≥1024 = 36/48/72px), optically left-aligned via `margin-left: -0.09em`.
+- **Open animation:** grows continuously from the folder's true resting box — no collapse/squash frame — on **both** `openFolder` (desktop) and `openFolderMobile`.
 
 ## What was done this session
 
-- **Desktop close animation** — `closeFolder()`, `settleResting()`, `restingMetrics()`, `typeOut()`; wired the logo click (was a `location.reload()` stub). Measures the resting target at close-time, crossfades the badge over the state flip, resets active to idx0 (left-top→right-bottom stacking).
-- **Animate-IN timing** — identity exits on `power2.out` over `beat*0.45` (gone by the time the folder fills the width).
-- **Mobile full-screen view** — `openFolderMobile/closeFolderMobile/settleMobile`, `mobileGeometry`, `soloTabBox`, `lockScroll/unlockScroll`, `isMobile()`; `buildFolder()` `mobileSolo` branch; `data-home-view="mobile"` drives CSS.
-- **Responsive mode-switch** — `resize` handler: same-mode `fitOpenFolder()`/`refitMobile()`; crossed-breakpoint `applyDesktopOpenLayout()`/`applyMobileOpenLayout()` (also the reduced-motion targets).
-- **Badge layout-shift fix** — badge kept in flow on mobile (`position:static`) + faded via `autoAlpha` (was `display:none` → popped content down on close).
-- **Mobile close occlusion fix** — woven single-tab transfers to **idx0** on close (only the frontmost tab weaves cleanly; a middle-woven tab gets covered → broken cascade).
-- **Spacing/edge** — mobile top nav strip `--space-8 + --space-4` (~80px); open folder edge-to-edge with a `--space-4` (16px) margin (`edge` const in `mobileGeometry`).
-- **Short-viewport overflow fix** — `[data-home-state="open"] .home__folder-nav { position:absolute }` + `.home__folder-body { min-height:0 }`; `geometry()` clamps `targetH` to `Math.min(root.clientHeight, window.innerHeight)`.
-- **Close-height-jump fix (this turn)** — the close was measuring the resting height *while still in the open state*, where the above short-viewport CSS collapses the body (nav out of flow) → measured ~136px → settle flipped to resting (nav in flow, ~365px) → **snap**. Fix: `restingMetrics()` and `closeFolderMobile()`'s inline measurement now temporarily set `data-home-state="resting"` during the read so the nav is in flow; also `openFolder()`'s reduced-motion branch now uses `autoAlpha:0` (not `display:none`) for `[list,title]` so the nav always has measurable resting space.
-- Narrow-container `.home__panel` padding `--space-5` → `--space-4`.
+- **Mobile open-row redesign** (`home.js` `openFolderMobile`/`applyMobileOpenLayout`/`closeFolderMobile`, `home.css`, `home.html`): name → `BH` initials on the tab row; new `.home__close` button; `soloTabBox(activeIndex, leftOffset)` + `initialsRowShift()` slide the tab right to clear the initials; `mobileGeometry` navH `80 → --space-5 (24)` to kill dead top space; initials **fade** (no typewriter) on mobile while desktop keeps the typewriter.
+- **`.home__close`** (`home.css` + `home.html`): viewport-`fixed`, `display:none` except `[data-home-view="mobile"]`, big touch target (`min-width/height: --space-7` + padding), GSAP fade in/out, level with the tab. Both the name (logo) and the close run the reverse animation on mobile.
+- **TH (body-top baseline) fix** (`home.js` `buildFolder`): was always `tabs[0]`; in mobile solo mode that clipped every non-first project's tab shorter (and crowded the close). Now uses the **active** tab in solo mode → all projects render uniform.
+- **"Open from the first tab's slot"** (`openFolderMobile`): every project opens from the front slot; the tab **grows in place** at its shifted open `x` (no horizontal slide — that slide was a source of jumpiness).
+- **Pop-up close tabs** (`closeFolderMobile` + `buildFolder` sink branch): cascade tabs rise from **behind** the panel instead of fading (see-through). Added a sink clip — `if (topR >= TH) { paint nothing }` — so sunk tabs are occluded by the panel, not poking through.
+- **Open-animation jump fix (the big one)** — applied to **BOTH** `openFolder` and `openFolderMobile`: (1) measure the folder's **resting box BEFORE** flipping `data-home-state="open"` (the open-state CSS sends the nav `position:absolute`, collapsing the folder); (2) pin/grow from that pre-collapse box; (3) call `buildFolder()` **synchronously after the pin** so the art doesn't flash the collapsed paint that `setActive` left.
+- **Intro spacing** (`home.css` `.home__panel` padding-top + `.home__specs` margin-top, base + `@container` narrow): airier editorial space around meta/title/lead; specs still peek below.
+- **List/title fade faster on open** (`home.js`, both open fns): `standard*0.5`, `power2.out`.
+- **Name typography** (`home.css`): removed the forced `Blake`/`Henson` stack (deleted `1024px .home__name-first { display:block }`); optical alignment `margin-left: -0.09em` (em ⇒ size-invariant; chosen via a temporary preview slider, now removed); sizes ended at `m/l/xl` (user bumped up to `l/xl/2xl` then reverted one step). `--type-display-2xl` was added then removed → `tokens.css` net-unchanged.
 
 ## Key decisions and why
 
 | Decision | Rationale | Alternatives rejected |
 |---|---|---|
-| Mobile = folder **grows full-screen** (one tab + Back) | On-brand folder metaphor; reuses the takeover geometry | "Option A" panel overlay — built it, user preferred the folder growing |
-| Resting cascade **always resets to idx0-woven** | Only the frontmost tab weaves without occlusion artifacts (middle-woven = broken hierarchy) | Keep last-viewed woven — looked broken |
-| Close **measures against the resting layout** (`data-home-state` flipped to `resting` during the read) | The open-state CSS takes the nav out of flow, so measuring there gives a too-short height → jump at settle | Measure in the open state (the bug) |
-| Mobile folder `position:fixed` + scroll-lock | Stacked mobile page is taller than the screen; size to the SCREEN, not the page | Absolute (root-relative) — overflowed |
-| Edge-to-edge with a 16px XS margin | Flush clipped the centered 2px border; user wanted "XS amount of space" | True flush — user didn't love it |
+| Grow open from the **pre-collapse** resting box + **sync repaint** | The open-state CSS collapses the folder (nav→absolute); measuring after pins the squashed box → visible jump | Measuring after the state flip (the bug) |
+| TH baseline = **active tab** in solo mode | `tabs[0]` clips non-first projects shorter in solo | Always `tabs[0]` (the bug) |
+| Tab **grows in place** (start at shifted open `x`) | An independent horizontal tab slide layered on the folder expand read as jumpy | Start at `x:0`, slide to shifted `x` |
+| Close tabs **pop up from behind** (riseState + sink-clip) | Opacity fade looked see-through | Opacity fade |
+| Optical align name via `margin-left: -0.09em` | Side-bearing is a constant fraction of em ⇒ one value works at any size | Per-size px tweaks; aligning to true margin (left name 1px proud) |
+| Commit working changes to `main` + push | `design/CLAUDE.md` protocol + git history both commit `home` work straight to `main`; user passed `commit push` | Feature branch |
 
 ## Approaches that didn't work
 
-- **"Option A" mobile overlay** (panel `fixed` over resting view) — built + verified, then replaced by the folder-grows-full-screen approach.
-- **Last-viewed tab woven at rest (mobile)** — broke cascade occlusion (crossing strokes); fixed via idx0-transfer.
-- **`display:none` badge on mobile-open** — caused content-shift-down.
-- **Spawning a background task to write the ADR mid-edit** — it ran in the main tree and `git reset` clobbered uncommitted `home.js`. See memory `feedback_no_spawn_task_mid_edit`.
+- **Chasing the close button's position** (viewport-fixed ↔ in-folder, doubled offsets) to fix a "flush on non-first project" bug — the real cause was the **TH-from-tabs[0]** bug (tab + folder-border geometry), not the close position. Reverted the churn.
+- **Assuming the open "jump" was horizontal** — it was the **vertical** nav-absolute collapse at frame 0. Confirmed by measuring folder height: resting 365 → frame-0 128 before the fix.
 
 ## Files touched
 
-- **Modified:** `design/src/templates/home/home.js` — all of the above; this turn: the close-height measurement state-flip + reduced-branch `autoAlpha`.
-- **Modified (already committed `3123a72`/`9b8f315`):** `home.css`, `manifest.json` — open-state nav/body flow fixes, mobile chrome rules, narrow padding.
-- **Untracked (NOT committed):** `design/decisions/0032-home-folder-close-animation.md` — written prematurely; now **partially stale** (predates the mobile work + idx0-transfer + height fix). Held per the no-ADRs instruction. Decide at finalize: update + commit, or remove.
+- **Modified:** `design/src/templates/home/home.js` — all the open/close/buildFolder logic above.
+- **Modified:** `design/src/templates/home/home.css` — `.home__close`, mobile open-row logo/tab, intro spacing, name typography + optical margin.
+- **Modified:** `design/src/templates/home/home.html` — added `.home__close` button; name spans now render inline (no forced break).
+- **Net-unchanged (added then reverted):** `design/src/tokens.css` (`--type-display-2xl`), `design/src/templates/home/preview.html` (temporary optical-alignment slider).
+- **Untracked, NOT committed (held):** `design/decisions/0032-home-folder-close-animation.md` — stale; decide at finalize.
 
 ## Git state
 
 ```
-On branch main (up to date with origin/main before this turn's commit)
+On branch main (up to date with origin/main before this session's commits)
+ M design/src/templates/home/home.css
+ M design/src/templates/home/home.html
  M design/src/templates/home/home.js
 ?? design/decisions/0032-home-folder-close-animation.md
 ```
 
-`/handoff commit push` commits `home.js` + this HANDOFF directly to `main` and pushes. `0032` stays untracked.
+`/handoff commit push` commits the three `home` files + this HANDOFF to `main` and pushes; `0032` stays untracked.
 
 ## Immediate next steps
 
-1. **Tucked tabs behind the active tab** (mobile open) — user wants the other tabs "tightly tucked behind the active tab… the compact cascade but even more overlap." **Key constraint:** only the frontmost (leftmost) tab weaves cleanly, so to tuck others behind the *active* (any index), either (a) reorder the SVG paint so the active fill paints last (`insertBefore(art.fills[ai], art.outline)`), or (b) render the active as idx0 and relabel it. Currently mobile uses `mobileSolo` (paints only the active) — relax that flag.
-2. **Mono `▾` dropdown** (mobile) — a down-arrow next to the tab opening a project picker (the real switcher; tucked tabs are decorative). Use `--font-mono` (Departure Mono).
-3. **De-provisionalize `home`** — settle tab geometry, real copy + screenshots (lazy mechanism wired, ADR 0031), flip `draft`→approved, write the held ADRs.
+1. **De-provisionalize `home`** — settle real copy + project names, real screenshots/prototype frames (lazy mechanism already wired, ADR 0031), flip `status: draft` → approved in `library/manifest.json`, and **write the held ADRs** (open/close animation, mobile takeover, the jump fix). Resolve `0032` (rewrite or delete).
+2. **Earlier-queued (deferred):** tucked tabs behind the active tab + a mono `▾` project-picker dropdown on mobile — the user steered away from this toward the open/close + identity polish; revisit if still wanted.
+3. **Fill `system/voice.md`** — audience + three voice adjectives still un-filled.
 
 ## Open questions / blockers
 
 - **`home` is provisional** — don't ratify look/interaction/content without the user.
-- **`0032` ADR** — keep (update) or delete? Held for now.
-- Audience + three voice adjectives (`system/voice.md`) still un-filled.
+- **`0032` ADR** — keep (rewrite) or delete? Held.
 
 ## Gotchas for the next session
 
-- **The close measures the RESTING layout by briefly flipping `data-home-state` to `resting`** (in `restingMetrics()` + `closeFolderMobile()`). If you add open-state CSS that changes the folder's intrinsic size, the measurement already accounts for it — but if you add *resting*-state CSS that does, re-check. The animated open/close fades the nav with `autoAlpha` (visibility hidden, space kept) so it's measurable; don't switch the nav fade back to `display:none`.
-- **Preview tab backgrounding freezes rAF → GSAP freezes mid-animation** (`document.hidden` pauses `requestAnimationFrame`; `gsap.ticker.frame` stops, `onComplete` never fires, `opening`/`open` stick). To verify logic anyway: override `window.matchMedia` to force `prefers-reduced-motion: reduce` → open/close run synchronously via `gsap.set` (no rAF); end-state + geometry are then measurable.
-- **`preview_resize` doesn't reliably fire a `resize` into the iframe** — dispatch `window.dispatchEvent(new Event('resize'))` after resizing to test the responsive mode-switch.
-- **Mobile vs desktop close differ:** desktop resets to idx0 at close *start*; mobile transfers the woven single-tab to idx0 + fades the cascade in. Don't unify blindly.
-- **`buildFolder()` is shared** (resting/desktop/mobile), runs every `onUpdate` frame; `mobileSolo` gates the single-tab paint; the active tab's stroke is empty when woven (its outline = `art.outline`, painted last/frontmost).
-- **Phone preview link** = the Mac's LAN IP on port 8765 (`http://192.168.68.140:8765/src/templates/home/preview.html`), same Wi-Fi only; dies if the `loomling-static` server stops. `http-server -c-1` = no cache, so phone refresh gets fresh JS.
-- **Dark mode** duplicates the dark block in `tokens.css` (`@media prefers-color-scheme` + `[data-theme="dark"]`) — edit both (ADR 0029).
+- **Open animation pattern (both `openFolder` + `openFolderMobile`):** capture `startRect` BEFORE `data-home-state="open"`, pin there, then `buildFolder()` synchronously. If you reorder or skip the sync repaint, the folder squashes flat on click. Don't pin from `mobileGeometry()/geometry()` start values — those are measured post-collapse (kept for the **targets** only).
+- **`buildFolder` TH baseline uses the ACTIVE tab in solo mode** — if you touch tab sizing, keep this or non-first projects clip short.
+- **Preview tab backgrounding freezes rAF → GSAP freezes** (`gsap.ticker.frame` stuck). Verify end-state logic by forcing `prefers-reduced-motion: reduce` (override `matchMedia`), or by `globalTimeline.pause()` + `time(t)` and **measuring** (seek does NOT repaint the SVG — paused screenshots come out blank; use `getBoundingClientRect`/`getBBox`).
+- **Preview URL drifts to `home.html`** (the bare fragment — no tokens/fonts/GSAP). Always serve **`/src/templates/home/preview.html`**.
+- **Optical alignment** on `.home__name` is `margin-left: -0.09em` (em ⇒ scales with size). The same one-liner fixes the same indent on any oversized display text (e.g. panel titles) if noticed.
+- **Mobile vs desktop differ** — mobile (`openFolderMobile`, `[data-home-view="mobile"]`) uses the solo full-screen tab + `BH` initials row; desktop (`openFolder`) spreads all tabs and keeps the full "Blake Henson" typewriter. Don't unify blindly.
+- **Dark mode** still duplicates the dark block in `tokens.css` (`@media prefers-color-scheme` + `[data-theme="dark"]`) — edit both (ADR 0029).
