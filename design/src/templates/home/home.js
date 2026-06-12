@@ -887,8 +887,14 @@
     // translates up, top + base together, so it never distorts) and SPRING back down
     // on click as they become active. Hover/lift is open-state only.
     const fast = () => sec("--motion-fast", 0.18);
+    // Tabs whose click animation is in flight. A committed click OWNS riseState[i] until it
+    // settles — hover in/out must NOT fire its own overwrite:true tween, or it would kill the
+    // click timeline mid-flight and the plunge's onComplete (→ setActive) would never run. That
+    // is the "click really fast and it doesn't navigate" bug: a quick click is enter→click→leave
+    // in one motion, and the leave aborted the commit.
+    const committing = new Set();
     tabs.forEach((tab, i) => {
-      const liftable = () => open && !reduce() && !tab.classList.contains("is-active");
+      const liftable = () => open && !reduce() && !tab.classList.contains("is-active") && !committing.has(i);
       // prefetch on intent — hovering/focusing another tab while open means a switch
       // is likely; get its media ready before the click lands
       tab.addEventListener("pointerenter", () => hydrateMedia(i));
@@ -903,17 +909,29 @@
       });
       tab.addEventListener("click", () => {
         if (!open || tab.classList.contains("is-active")) return;
-        // not lifted (touch / no hover) or reduced motion → open immediately, no spring
-        if (reduce() || riseState[i].v < 0.5) {
+        // Is a hover-lift in play? Catch it even at v≈0 — an early click can land before
+        // the rise tween's first tick, when v is still 0 but the lift IS coming. Read this
+        // BEFORE killing, since killTweensOf would erase the in-flight signal.
+        const lifting = gsap.isTweening(riseState[i]) || riseState[i].v > 0;
+        gsap.killTweensOf(riseState[i]);            // stop the hover tween so it can't re-lift the now-active tab
+        // No hover lift (touch / keyboard) or reduced motion → open immediately, no spring.
+        if (reduce() || !lifting) {
           activeSettled = true; riseState[i].v = 0; setActive(i); revealPanel(i); return;
         }
-        // From its hover-lift the tab PLUNGES down past rest ("too far"); at that LOWEST
-        // point the page commits to the new tab; then it SPRINGS back up to rest + opens.
+        // Hover user — even if they clicked before the lift finished, FIRST complete the
+        // rise to its peak, THEN run the click animation: the tab PLUNGES down past rest
+        // ("too far"); at that LOWEST point the page commits to the new tab; then it SPRINGS
+        // back up to rest + opens. An early click gets the same full motion as a late one.
         const OVER = px("--space-2", 8);            // how far past rest it plunges
-        gsap.killTweensOf(riseState[i]);
-        gsap.timeline()
-          .to(riseState[i], {
-            v: -OVER, duration: sec("--motion-fast", 0.18) * 0.75, ease: "power2.in",
+        const fastDur = sec("--motion-fast", 0.18);
+        const finishRise = fastDur * Math.max(0, RISE - riseState[i].v) / RISE;  // only the rise that's left
+        committing.add(i);                          // own riseState[i] — hover in/out can't abort this now
+        const tl = gsap.timeline({ onComplete: () => committing.delete(i) });
+        if (finishRise > 0.001) {
+          tl.to(riseState[i], { v: RISE, duration: finishRise, ease: "power2.out", onUpdate: buildFolder });
+        }
+        tl.to(riseState[i], {
+            v: -OVER, duration: fastDur * 0.75, ease: "power2.in",
             onUpdate: buildFolder,
             onComplete: () => { activeSettled = false; setActive(i); revealPanel(i); }   // ← page updates at the lowest point
           })
