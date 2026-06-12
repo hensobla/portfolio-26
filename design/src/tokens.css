@@ -119,6 +119,13 @@
      dark mode). Use --surface1 or --surface2 for hover. */
   --accent-subtle: var(--color-accent-50);
 
+  /* Text-selection highlight. Bright warm yellow — the direct complement
+     of the electric-blue accent (#2E4BFF). Mode-independent: the vivid
+     yellow + near-black text read on both the cream and dark grounds, so
+     it is defined once here and inherits into dark mode. */
+  --highlight:    #FFE600;
+  --highlight-fg: var(--color-neutral-950);
+
   /* Status semantic mappings */
   --success:    var(--color-success-500);
   --warning:    var(--color-warning-500);
@@ -426,4 +433,22 @@ img[data-loom-slot]:not([src]) {
   content: var(--image-placeholder-icon) !important;
   object-fit: scale-down !important;
   object-position: center !important;
+}
+
+/* ============================================================
+   Text-selection highlight
+   ------------------------------------------------------------
+   Bright warm yellow (--highlight), the complement of the
+   electric-blue accent. Near-black text (--highlight-fg) keeps
+   selected copy legible on the yellow in both light and dark.
+   ============================================================ */
+
+::selection {
+  background-color: var(--highlight);
+  color: var(--highlight-fg);
+}
+
+::-moz-selection {
+  background-color: var(--highlight);
+  color: var(--highlight-fg);
 }
