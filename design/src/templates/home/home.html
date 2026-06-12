@@ -2,6 +2,11 @@
   <!-- Top-left nav logo: empty in the resting view; "Blake Henson" types in during the takeover. -->
   <a class="home__logo" href="#" aria-label="Blake Henson — home"></a>
 
+  <!-- Mobile full-screen project view only: a mono close control level with the tab at
+       the folder's top-right (the top-left nav shows the name, not a Back affordance).
+       Hidden in every other state via CSS; home.js drives its fade + click. -->
+  <button class="home__close" type="button" aria-label="Close project">Close <span class="home__close-x" aria-hidden="true">&#10005;</span></button>
+
   <header class="home__identity">
     <!-- Availability badge: eyebrow above the name at every breakpoint (never collides with the folder). -->
     <p class="home__status">

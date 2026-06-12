@@ -101,7 +101,10 @@
 }
 
 .home__name {
-  margin: 0;
+  /* Optical left-alignment: the display "B" carries a big left side-bearing (~0.086em) that
+     makes the name read as indented next to the body text. Pull it back by the bearing
+     (minus the body's small bearing) in EM, so the correction scales with any font size. */
+  margin: 0 0 0 -0.09em;
   font-family: var(--font-display);
   font-size: var(--type-display-m);
   font-weight: 400;   /* lighter display weight (drift from typography.md 700–900 — see ADR/critique note) */
@@ -115,8 +118,6 @@
 
 @media (min-width: 1024px) {
   .home__name { font-size: var(--type-display-xl); }
-  /* big screens only: first name over last */
-  .home__name-first { display: block; }
 
   /* large screens only: lift the availability badge to the page's top-right corner.
      identity goes position:static so the absolute badge anchors to the root, not the
@@ -377,7 +378,8 @@
   display: none;
   height: 100%;
   overflow-y: auto;                /* case studies are taller than the folder */
-  padding: var(--space-7);
+  /* extra room up top so the intro (meta → title → lead) opens airy + editorial */
+  padding: calc(var(--space-8) + var(--space-6)) var(--space-7) var(--space-7);
   /* thin fade at the top + bottom so content never appears to touch the folder
      edges — it dissolves into the surface as it scrolls past the line */
   --panel-fade: var(--space-5);
@@ -433,7 +435,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-6);
-  margin: var(--space-6) 0 0;
+  margin: calc(var(--space-8) + var(--space-4)) 0 0;      /* airy gap below the lead, before the specs rule */
   padding-top: var(--space-5);
   border-top: 1px solid var(--border);
 }
@@ -561,9 +563,10 @@
    the case study stays legible when the folder is small. Container-driven to match
    the grid above — it tracks the folder's width, not the viewport. */
 @container panel (max-width: 767px) {
-  .home__panel { padding: var(--space-4); }   /* tighter folder-body padding on small screens */
+  /* tighter folder-body padding on small screens, but keep the airy top for the intro */
+  .home__panel { padding: calc(var(--space-8) + var(--space-4)) var(--space-4) var(--space-4); }
   .home__panel-title { font-size: var(--type-display-s); }
-  .home__specs { gap: var(--space-5); }
+  .home__specs { gap: var(--space-5); margin-top: var(--space-8); }   /* a touch tighter below the lead than wide */
 }
 
 /* ---------- MOBILE: a project grows the folder FULL-SCREEN (one tab + Back) ----------
@@ -584,11 +587,66 @@
   align-self: start;
 }
 
-/* a back chevron prefixed to the logo while open */
-[data-home-view="mobile"] .home__logo::before {
-  content: "\2039";                 /* ‹ */
-  margin-right: var(--space-2);
-  color: var(--accent);
+/* mobile full-screen view: the top-left nav is the NAME (no back chevron) — the
+   dedicated close control below handles dismissal. */
+
+/* open project: the name collapses to "BH" initials and joins the tab row (name → tab →
+   close). Pinned to the viewport like the folder + close so the three stay aligned; centered
+   on the tab (same top as the close control); left edge follows the reduced --space-4 screen
+   margin. The tab itself slides right to clear the initials (home.js initialsRowShift).
+   Resting keeps the absolute top-left --space-6 placement. */
+[data-home-view="mobile"] .home__logo {
+  position: fixed;
+  left: var(--space-4);
+  top: calc(var(--space-5) + (var(--space-6) + var(--space-4)) / 2);
+  transform: translateY(-50%);
+}
+
+/* ---------- mobile close control (above the folder's top-right corner) ---------- */
+/* Inert everywhere by default; only the mobile full-screen project view reveals it.
+   Mono caps, anchored to the same right edge as the open folder (edge = --space-4). */
+.home__close {
+  /* Pinned to the viewport, level with the solo tab:
+       top   = folder top (mobileGeometry navH = --space-5) + half the solo tab height
+               (soloTabBox = --space-6 + --space-4) → centered on the tab
+       right = the folder's own viewport inset (--space-4) */
+  position: fixed;
+  top: calc(var(--space-5) + (var(--space-6) + var(--space-4)) / 2);
+  right: var(--space-4);
+  transform: translateY(-50%);
+  z-index: 5;                  /* above the folder body + tabs */
+  /* generous touch target (≥48px each way) with the mono label pinned to the right so
+     the visible glyph keeps its inset while the hit box extends down + left */
+  box-sizing: content-box;
+  min-width: var(--space-7);
+  min-height: var(--space-7);
+  display: none;               /* shown ONLY in the mobile full-screen project view */
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3);
+  border: 0;
+  background: transparent;
+  color: var(--text3);
+  font-family: var(--font-mono);
+  font-size: var(--eyebrow-size);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;                  /* hidden by default; home.js fades it via GSAP in mobile open */
+  visibility: hidden;
+  pointer-events: none;
+  transition: color var(--motion-fast) var(--ease-standard);
+}
+[data-home-view="mobile"] .home__close { display: inline-flex; pointer-events: auto; }
+.home__close:hover { color: var(--accent-text); }
+.home__close-x { color: var(--accent); }
+.home__close:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-ring-offset);
+  border-radius: 2px;
 }
 
 /* ---------- top-left nav logo (types in during the takeover) ---------- */

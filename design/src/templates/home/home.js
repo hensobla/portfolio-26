@@ -85,6 +85,7 @@
     const list = root.querySelector(".home__list");
     const title = root.querySelector(".home__folder-title");
     const logo = root.querySelector(".home__logo");
+    const closeBtn = root.querySelector(".home__close");
     const status = root.querySelector(".home__status");
     const items = Array.prototype.slice.call(root.querySelectorAll(".home__item"));
     const tabs = Array.prototype.slice.call(root.querySelectorAll(".home__tab"));
@@ -149,13 +150,18 @@
         R: bx + t.offsetLeft + t.offsetWidth,
         top: by + t.offsetTop
       }));
-      const TH = by + tabs[0].offsetTop + tabs[0].offsetHeight;   // body-top baseline
       const ai = tabs.findIndex((t) => t.classList.contains("is-active"));
       // The active tab opens INTO the body (woven) only once settled; mid-click it
       // renders as a lifted folder like the others (so the spring is visible).
       const aOpen = ai >= 0 && activeSettled;
       // mobile full-screen renders a SINGLE tab — the active one; the others aren't drawn.
       const solo = mobileSolo;
+      // Body-top baseline. Normally the front tab (tabs[0]) sets it. But in mobile SOLO
+      // mode only the active tab is painted, and tabs[0] may still be at its SMALLER
+      // resting height — so follow the ACTIVE tab instead. Otherwise every project except
+      // the first (index 0) clips to tabs[0]'s height and renders a shorter tab.
+      const baseTab = (solo && ai >= 0) ? tabs[ai] : tabs[0];
+      const TH = by + baseTab.offsetTop + baseTab.offsetHeight;   // body-top baseline
       // slant run = half the tab's height ⇒ a CONSTANT ~26.6° angle even when the
       // compact cascade staggers tabs to different heights.
       const slant = (tp) => (TH - tp) / 2;
@@ -188,6 +194,13 @@
           strokeD = "M" + t.L + " " + TH + " L" + t.L + " " + sideTop +
                     " L" + (t.L + sl) + " " + topR + " L" + (t.R - sl) + " " + topR +
                     " L" + t.R + " " + sideTop + " L" + t.R + " " + TH;
+        } else if (topR >= TH) {
+          // Fully sunk to/below the body line — the panel is always ON TOP, so it occludes
+          // whatever is behind it: paint nothing. (The mobile-close pop-up parks the cascade
+          // tabs here, hidden behind the panel, then rises them; they only begin to draw once
+          // topR climbs back above TH, so they emerge from behind the panel edge.)
+          fillD = "";
+          strokeD = "";
         } else {
           // SINK (click plunge): the tab presses DOWN into the folder. Everything below
           // TH is hidden behind the front folder, so we CLIP at TH — the slants keep
@@ -344,6 +357,7 @@
       gsap.set(tabText, { opacity: 1 });
       if (panelEls[activeIndex]) gsap.set(panelEls[activeIndex], { autoAlpha: 1 });
       logo.textContent = "Blake Henson";
+      gsap.set(logo, { autoAlpha: 1 });   // clear any leftover mobile-initials fade on resize-up
       buildFolder();
     }
 
@@ -357,7 +371,7 @@
       root.setAttribute("data-home-view", "mobile");
       setActive(activeIndex);
       const g = mobileGeometry();
-      const st = soloTabBox(activeIndex);
+      const st = soloTabBox(activeIndex, initialsRowShift());
       const activeTab = tabs[activeIndex];
       const activeLabel = activeTab.querySelector(".home__tab-label");
       gsap.set(explorer, { position: "static" });
@@ -374,14 +388,16 @@
       if (art) tabs.forEach((_, i) => gsap.set([art.fills[i], art.strokes[i]], { clearProps: "opacity" }));
       if (activeLabel) gsap.set(activeLabel, { opacity: 1 });
       if (panelEls[activeIndex]) gsap.set(panelEls[activeIndex], { autoAlpha: 1 });
-      logo.textContent = "Back";
+      if (closeBtn) gsap.set(closeBtn, { autoAlpha: 1 });
+      logo.textContent = "BH";
+      gsap.set(logo, { autoAlpha: 1 });   // initials shown instantly (no fade in the snap path)
       buildFolder();
     }
 
     // Re-fit the pinned mobile folder to the current viewport (no setActive → keeps scroll).
     function refitMobile(activeIndex) {
       const g = mobileGeometry();
-      const st = soloTabBox(activeIndex);
+      const st = soloTabBox(activeIndex, initialsRowShift());
       gsap.set(folder, { left: g.targetLeft, top: g.targetTop, width: g.targetW, height: g.targetH });
       gsap.set(tabs[activeIndex], { left: st.left, top: st.top, width: st.width, height: st.height });
       gsap.set(tabsWrap, { height: st.tabH });
@@ -417,9 +433,19 @@
       if (open || opening) return;
       if (isMobile()) { openFolderMobile(activeIndex); return; }   // Option A drill-down
       open = true;
+      // Capture the folder's TRUE resting box (root-relative) BEFORE flipping to the open
+      // state. The open-state CSS sends the resting nav to position:absolute, which collapses
+      // the folder's height — measuring/pinning after that starts the takeover from a squashed
+      // box (the folder visibly flattens on click). Grow from the pre-collapse box instead.
+      const rbPre = root.getBoundingClientRect();
+      const fbPre = folder.getBoundingClientRect();
+      const startRect = {
+        left: fbPre.left - rbPre.left, top: fbPre.top - rbPre.top,
+        width: fbPre.width, height: fbPre.height
+      };
       root.setAttribute("data-home-state", "open");
       setActive(activeIndex);
-      const g = geometry();
+      const g = geometry();   // for the TARGETS only; its start values are now the collapsed box
 
       // Neutralize the explorer's positioning so the pinned folder anchors to the
       // ROOT (position:relative), not the explorer column — otherwise left/top
@@ -427,13 +453,17 @@
       // explorer still holds (it's a grid item).
       gsap.set(explorer, { position: "static" });
 
-      // Pin the folder out of the grid so it can be animated freely. Clear any
-      // leftover entrance transform so left/top read true.
+      // Pin the folder out of the grid so it can be animated freely, at its true resting box
+      // (captured pre-collapse) so it grows continuously from where it sat — no squash.
       gsap.set(folder, {
         position: "absolute", margin: 0, zIndex: 3,
         x: 0, y: 0, scale: 1,
-        left: g.startLeft, top: g.startTop, width: g.startW, height: g.startH
+        left: startRect.left, top: startRect.top, width: startRect.width, height: startRect.height
       });
+      // Repaint the SVG art NOW at the pinned (full resting) height. setActive() above ran
+      // buildFolder while the folder was still collapsed in-flow, so without this synchronous
+      // repaint the first painted frame can flash the squashed art before the timeline ticks.
+      buildFolder();
 
       // Open targets: each tab is only as WIDE AS ITS LABEL (+ the two slants +
       // a little breathing room), then they sit left-to-right from the folder's
@@ -484,7 +514,7 @@
       // beat so the identity is gone by the time the folder has filled the width —
       // it shouldn't still be sitting there while the folder is already full-width.
       tl.to([name, bio], { autoAlpha: 0, x: -60, duration: beat * 0.45, ease: "power2.out" }, 0)
-        .to([list, title], { autoAlpha: 0, duration: standard, ease: "power1.out" }, 0)
+        .to([list, title], { autoAlpha: 0, duration: standard * 0.5, ease: "power2.out" }, 0)
         // (2) BEAT 1 — folder stretches to full width
         .to(folder, { left: g.targetLeft, width: g.targetW, duration: beat, ease: "expo.out" }, 0);
       // (2·edit) tabs spread from the cascade to label-width, in sync with the width beat
@@ -627,11 +657,13 @@
     function unlockScroll() { document.documentElement.style.overflow = ""; }
 
     // Folder's current box + the full-viewport target, in VIEWPORT coords (position:fixed).
-    // On XS/S (mobile mode) the open folder is EDGE-TO-EDGE — no side/bottom padding —
-    // and the top keeps a (slightly roomier) nav strip so the Back button clears the tab.
+    // On XS/S (mobile mode) the open folder is EDGE-TO-EDGE — no side/bottom padding — and a
+    // small top strip. The name now rides the tab row (inside the folder), so the strip is
+    // just the folder's top margin, not a separate nav band — keep it tight (no dead space).
+    // NOTE: kept in sync with the close + logo `top` calc in home.css (navH + half tab height).
     function mobileGeometry() {
       const fb = folder.getBoundingClientRect();
-      const navH = px("--space-8", 64) + px("--space-4", 16);   // ~80: back button clears the tab
+      const navH = px("--space-5", 24);   // top margin above the open folder
       // An XS margin around the open folder (left/right/bottom) — not flush to the edge
       // (which clipped the centered 2px border), just a small breathing gap.
       const edge = px("--space-4", 16);
@@ -644,35 +676,70 @@
     }
 
     // The active tab as the SINGLE top-left tab (sized to its label + slants).
-    function soloTabBox(activeIndex) {
-      const innerPad = px("--space-2", 8);
-      const tabH = px("--space-6", 32) + px("--space-2", 8);
+    // Mobile solo runs a touch bigger than the desktop open tab (more height +
+    // breathing room around the label) — the font is unchanged; just a larger shape.
+    // leftOffset slides the tab right so the "BH" initials clear it on the open row.
+    function soloTabBox(activeIndex, leftOffset) {
+      const innerPad = px("--space-3", 12);
+      const tabH = px("--space-6", 32) + px("--space-4", 16);   // ~48 (was ~40)
       const SL = tabH / 2;
       const labelEl = tabs[activeIndex].querySelector(".home__tab-label");
       const labelW = labelEl ? labelEl.scrollWidth : 60;
-      return { left: 0, top: 0, width: labelW + 2 * innerPad + 2 * SL, height: tabH, tabH };
+      return { left: leftOffset || 0, top: 0, width: labelW + 2 * innerPad + 2 * SL, height: tabH, tabH };
+    }
+
+    // How far the solo tab slides right on the mobile open row to clear the "BH" initials
+    // (which sit at the folder's left edge): the rendered width of "BH" + a gap. Measured so
+    // it tracks the font; restores the prior logo text so the typewriter still starts clean.
+    function initialsRowShift() {
+      const prev = logo.textContent;
+      logo.textContent = "BH";
+      const w = logo.offsetWidth;
+      logo.textContent = prev;
+      return w + px("--space-4", 16);
     }
 
     function openFolderMobile(activeIndex) {
       open = true;
       mobileOpen = true;
       mobileSolo = true;
+      // Capture the folder's TRUE resting box BEFORE flipping to the open state. The open-state
+      // CSS sends the resting nav to position:absolute, which collapses the folder's height and
+      // drops its top — measuring after that pins the collapsed box and the takeover JUMPS from
+      // it. Growing from this pre-collapse box keeps the start continuous (no jump).
+      const startRect = folder.getBoundingClientRect();
       root.setAttribute("data-home-state", "open");
       root.setAttribute("data-home-view", "mobile");
+      const st = soloTabBox(activeIndex, initialsRowShift());
+      // MOBILE ONLY: open every project from the front of the lineup — but START the tab at
+      // its FINAL open x (st.left, the shifted slot) so it grows in PLACE. Earlier it started
+      // flush-left (x:0) and slid right to st.left during the open, layering a horizontal tab
+      // slide on top of the folder's own horizontal expand → read as jumpy. Start size = the
+      // compact cascade tab so it still grows from small → solo. Only the active tab is painted
+      // in solo mode, so this shows no reshuffle. Set BEFORE setActive (first frame in place).
+      gsap.set(tabs[activeIndex], {
+        left: st.left, top: 0,
+        width: tabs[0].offsetWidth, height: tabs[0].offsetHeight
+      });
       setActive(activeIndex);
       lockScroll();
 
       const g = mobileGeometry();
-      const st = soloTabBox(activeIndex);
       const activeTab = tabs[activeIndex];
       const activeLabel = activeTab.querySelector(".home__tab-label");
 
-      // pin the folder OUT of the grid, FIXED to the viewport, at its current spot
+      // pin the folder OUT of the grid, FIXED to the viewport, at its true resting box
+      // (captured pre-collapse above) so the takeover grows continuously from where it sat
       gsap.set(explorer, { position: "static" });
       gsap.set(folder, {
         position: "fixed", margin: 0, zIndex: 3, x: 0, y: 0, scale: 1,
-        left: g.startLeft, top: g.startTop, width: g.startW, height: g.startH
+        left: startRect.left, top: startRect.top, width: startRect.width, height: startRect.height
       });
+      // Repaint the SVG art NOW at the pinned (full resting) height. setActive() above ran
+      // buildFolder while the folder was still collapsed in-flow, so its art is short; without
+      // this synchronous repaint the first painted frame can flash that collapsed art (the
+      // folder briefly looks like it has no height) before the timeline's first tick fixes it.
+      buildFolder();
 
       if (reduce()) { applyMobileOpenLayout(activeIndex); return; }
 
@@ -686,15 +753,19 @@
       // identity leaves to the left (badge just fades, in place); the folder grows
       tl.to([name, bio], { autoAlpha: 0, x: -60, duration: beat * 0.45, ease: "power2.out" }, 0)
         .to(status, { autoAlpha: 0, duration: beat * 0.45, ease: "power2.out" }, 0)
-        .to([list, title], { autoAlpha: 0, duration: standard, ease: "power1.out" }, 0)
+        .to([list, title], { autoAlpha: 0, duration: standard * 0.5, ease: "power2.out" }, 0)
         .to(folder, { left: g.targetLeft, top: g.targetTop, width: g.targetW, height: g.targetH, duration: beat, ease: "expo.out" }, 0);
       // the active project's tab grows to the single top-left tab; its label fades in
       tl.to(activeTab, { left: st.left, top: st.top, width: st.width, height: st.height, duration: beat, ease: "expo.out" }, 0)
         .to(tabsWrap, { height: st.tabH, duration: beat, ease: "expo.out" }, 0);
       if (activeLabel) tl.to(activeLabel, { opacity: 1, duration: standard, ease: "power1.out" }, beat * 0.35);
-      // the case study fades in, the Back logo types in
+      // the case study fades in; the initials + close fade in together on the tab row.
+      // MOBILE: the initials do NOT type — they fade in like the close ("BH" is too short to
+      // read as a typewriter). The typewriter stays on larger breakpoints (openFolder).
+      logo.textContent = "BH";
       tl.add(() => revealPanel(activeIndex), beat * 0.6)
-        .add(typeIn(logo, "Back", standard), beat * 0.5);
+        .fromTo(logo, { autoAlpha: 0 }, { autoAlpha: 1, duration: standard, ease: "power1.out" }, beat * 0.5);
+      if (closeBtn) tl.fromTo(closeBtn, { autoAlpha: 0 }, { autoAlpha: 1, duration: standard, ease: "power1.out" }, beat * 0.5);
     }
 
     function settleMobile(activePanel) {
@@ -706,6 +777,8 @@
       gsap.set(status, { clearProps: "opacity,visibility" });
       gsap.set([list, title], { clearProps: "opacity,visibility,display" });
       gsap.set(tabText, { clearProps: "opacity" });
+      if (closeBtn) gsap.set(closeBtn, { clearProps: "opacity,visibility" });
+      gsap.set(logo, { clearProps: "opacity,visibility" });   // reset the initials' fade
       if (art) tabs.forEach((_, i) => gsap.set([art.fills[i], art.strokes[i]], { clearProps: "opacity" }));
       if (activePanel) gsap.set(activePanel, { clearProps: "opacity,visibility,transform" });
       unlockScroll();
@@ -766,11 +839,16 @@
 
       if (reduce()) { settleMobile(activePanel); return; }
 
-      // idx0 is the woven anchor (drawn via the outline, always opaque). Fade in every
-      // OTHER tab so the cascade assembles smoothly instead of popping back.
-      const fadeArt = [];
-      if (art) tabs.forEach((_, j) => { if (j !== 0) fadeArt.push(art.fills[j], art.strokes[j]); });
-      if (fadeArt.length) gsap.set(fadeArt, { opacity: 0 });
+      // idx0 is the woven anchor (drawn via the outline, always opaque). The OTHER cascade
+      // tabs POP UP from behind the folder body instead of fading in — a fade reads as
+      // see-through. They start sunk past the body line (hidden behind the panel while the
+      // folder is still tall), then rise to their cascade slots, fully opaque. riseState is
+      // the signed vertical offset buildFolder already uses for the hover-lift / click-plunge.
+      const popIdx = [];
+      tabs.forEach((_, j) => { if (j !== 0) popIdx.push(j); });
+      const soloH = solo ? solo.height : tabBoxes[0].height;   // tallest the body line gets mid-collapse
+      popIdx.forEach((j) => { riseState[j].v = tabBoxes[j].top - soloH - px("--space-1", 4); });
+      buildFolder();   // paint the hidden start frame before the timeline's first tick
 
       const fade = sec("--motion-slow", 0.5);
       const beat = sec("--motion-slower", 0.8);
@@ -778,13 +856,18 @@
       const tl = gsap.timeline({ onUpdate: buildFolder, onComplete: () => settleMobile(activePanel) });
       // case study leaves, Back un-types
       if (activePanel) tl.to(activePanel, { autoAlpha: 0, y: 12, duration: standard, ease: "power2.in" }, 0);
-      tl.add(typeOut(logo, "Back", standard), 0);
+      // MOBILE: the initials fade out fast (no un-typing), leaving with the close control
+      tl.to(logo, { autoAlpha: 0, duration: sec("--motion-fast", 0.18), ease: "power2.in" }, 0);
+      // the close control leaves fast, right as the collapse begins (no lingering fade)
+      if (closeBtn) tl.to(closeBtn, { autoAlpha: 0, duration: sec("--motion-fast", 0.18), ease: "power2.in" }, 0);
       // idx0 (the single tab) collapses to its cascade slot as the folder collapses with it
       tl.to(tabs[0], { left: tabBoxes[0].left, top: tabBoxes[0].top, width: tabBoxes[0].width, height: tabBoxes[0].height, duration: beat, ease: "expo.inOut" }, standard * 0.4);
       tl.to(folder, { left: folderBox.left, top: folderBox.top, width: folderBox.width, height: folderBox.height, duration: beat, ease: "expo.inOut" }, standard * 0.4);
       tl.to(tabsWrap, { height: wrapH, duration: beat, ease: "expo.inOut" }, standard * 0.4);
-      // the rest of the cascade fades in as the folder approaches its compact size
-      if (fadeArt.length) tl.to(fadeArt, { opacity: 1, duration: beat * 0.6, ease: "power1.out" }, standard * 0.4 + beat * 0.4);
+      // each cascade tab pops UP from behind the panel as the folder nears its compact size
+      popIdx.forEach((j) => {
+        tl.to(riseState[j], { v: 0, duration: beat * 0.55, ease: "power3.out" }, standard * 0.4 + beat * 0.5);
+      });
       // identity returns from the left as the folder settles (badge fades in, in place,
       // in its always-reserved eyebrow slot → no layout shift)
       tl.to([name, bio], { autoAlpha: 1, x: 0, duration: fade, ease: "power2.out" }, standard * 0.4 + beat * 0.55)
@@ -841,8 +924,11 @@
           });
       });
     });
-    // logo returns home — desktop collapses the folder, mobile dismisses the drill-down.
+    // logo returns home — desktop collapses the folder, mobile reverses the drill-down.
+    // On mobile the name AND the dedicated close control both run the reverse animation.
     if (logo) logo.addEventListener("click", (e) => { e.preventDefault(); (mobileOpen ? closeFolderMobile : closeFolder)(); });
+    // mobile close control (level with the tab, folder's top-right) — reverses the drill-down.
+    if (closeBtn) closeBtn.addEventListener("click", (e) => { e.preventDefault(); closeFolderMobile(); });
   }
 
   window.HomeTemplate = {
