@@ -1,88 +1,83 @@
-# Handoff — home template polish: mobile open-row identity, open-animation jump fixes, name typography
+# Handoff — text-selection highlight token + home folder tab-click race fix
 
-**Updated:** 2026-06-11
-**Branch:** `main` (this session's work commits directly to `main` + pushes, per `design/CLAUDE.md` § Session continuity and the existing git history)
-**Session length:** Long. A continuous polish pass on the `home` template's open/close takeover (desktop + mobile) plus the identity typography. Heavy back-and-forth refining one detail at a time.
-
-> ⚠️ **`home` is still `status: draft` and PROVISIONAL** — copy, names, frames are placeholder. **ADRs are HELD** per the user's standing instruction (capture once finalized, not mid-iteration). See memory `feedback_no_adrs_until_finalized`. The untracked `design/decisions/0032-home-folder-close-animation.md` is now badly stale (predates everything below) — decide at finalize: rewrite or delete.
+**Updated:** 2026-06-12
+**Branch:** main
+**Session length:** medium (one sitting)
 
 ## Current goal
 
-Make the `home` open/close takeover feel polished and correct on **all viewports**, and refine the identity block. This session was a long string of small, specific fixes the user drove one at a time (mobile open-row layout, animation jumpiness, name size/alignment). All verified in Claude Preview. The next thread is most likely **de-provisionalizing `home`** (real content, flip `draft`→approved, write the held ADRs).
+Two small, finished pieces of work on the **Loomling design workspace** (`design/`), the source of truth for the Blueprint homepage:
+
+1. Add a bright complementary-yellow **text-selection highlight** as a real token + global `::selection` rule.
+2. Fix a **tab-click race** in the open "My Projects" folder on the home template, where clicking a tab quickly (mid hover-animation) failed to start the click animation or navigate to the project.
+
+Both are complete and verified in the live Loom preview. This session also (earlier) committed a stray untracked ADR (`0032`) that was showing as a phantom diff.
 
 ## State right now
 
-All working, verified in Claude Preview (`loomling-static`, port 8765, at **`/src/templates/home/preview.html`** — NOT `home.html`). No console errors. Logic lives in `design/src/templates/home/home.js` (`wireTakeover`) + `home.css`. The open/close animations are smooth on both desktop and mobile (the collapse/"jump" is gone), and the mobile open view has a redesigned top row.
-
-- **Mobile open view top row:** `BH` initials (left) → tab (shifted right to clear them) → mono `CLOSE ✕` (right), all centered on the tab row. The folder panel itself does NOT move; only the tab is offset.
-- **Name (identity):** one line at all breakpoints (forced break removed), sizes `m / l / xl` (mobile/≥768/≥1024 = 36/48/72px), optically left-aligned via `margin-left: -0.09em`.
-- **Open animation:** grows continuously from the folder's true resting box — no collapse/squash frame — on **both** `openFolder` (desktop) and `openFolderMobile`.
+- All work **verified working** in the served Loom preview (`http://localhost:8765/src/templates/home/preview.html`).
+- Two files modified, uncommitted at session start; this `/handoff commit push` run commits + pushes them.
+- No open bugs from this session. The home tab interaction now navigates correctly under every click-timing tested.
+- `home` is still `status: draft` and provisional (placeholder copy/names/frames). **ADRs remain HELD** per the user's standing instruction — these changes are bug fixes + a minor token add anyway (design/CLAUDE.md §handoff skip list), so no ADR written.
 
 ## What was done this session
 
-- **Mobile open-row redesign** (`home.js` `openFolderMobile`/`applyMobileOpenLayout`/`closeFolderMobile`, `home.css`, `home.html`): name → `BH` initials on the tab row; new `.home__close` button; `soloTabBox(activeIndex, leftOffset)` + `initialsRowShift()` slide the tab right to clear the initials; `mobileGeometry` navH `80 → --space-5 (24)` to kill dead top space; initials **fade** (no typewriter) on mobile while desktop keeps the typewriter.
-- **`.home__close`** (`home.css` + `home.html`): viewport-`fixed`, `display:none` except `[data-home-view="mobile"]`, big touch target (`min-width/height: --space-7` + padding), GSAP fade in/out, level with the tab. Both the name (logo) and the close run the reverse animation on mobile.
-- **TH (body-top baseline) fix** (`home.js` `buildFolder`): was always `tabs[0]`; in mobile solo mode that clipped every non-first project's tab shorter (and crowded the close). Now uses the **active** tab in solo mode → all projects render uniform.
-- **"Open from the first tab's slot"** (`openFolderMobile`): every project opens from the front slot; the tab **grows in place** at its shifted open `x` (no horizontal slide — that slide was a source of jumpiness).
-- **Pop-up close tabs** (`closeFolderMobile` + `buildFolder` sink branch): cascade tabs rise from **behind** the panel instead of fading (see-through). Added a sink clip — `if (topR >= TH) { paint nothing }` — so sunk tabs are occluded by the panel, not poking through.
-- **Open-animation jump fix (the big one)** — applied to **BOTH** `openFolder` and `openFolderMobile`: (1) measure the folder's **resting box BEFORE** flipping `data-home-state="open"` (the open-state CSS sends the nav `position:absolute`, collapsing the folder); (2) pin/grow from that pre-collapse box; (3) call `buildFolder()` **synchronously after the pin** so the art doesn't flash the collapsed paint that `setActive` left.
-- **Intro spacing** (`home.css` `.home__panel` padding-top + `.home__specs` margin-top, base + `@container` narrow): airier editorial space around meta/title/lead; specs still peek below.
-- **List/title fade faster on open** (`home.js`, both open fns): `standard*0.5`, `power2.out`.
-- **Name typography** (`home.css`): removed the forced `Blake`/`Henson` stack (deleted `1024px .home__name-first { display:block }`); optical alignment `margin-left: -0.09em` (em ⇒ size-invariant; chosen via a temporary preview slider, now removed); sizes ended at `m/l/xl` (user bumped up to `l/xl/2xl` then reverted one step). `--type-display-2xl` was added then removed → `tokens.css` net-unchanged.
+- **Text-selection highlight** — `design/src/tokens.css`:
+  - Added semantic tokens `--highlight: #FFE600;` and `--highlight-fg: var(--color-neutral-950);` in the light `:root` accent block (~line 126). Mode-independent (vivid yellow + near-black text read on both cream and dark grounds), so defined once and inherits into dark mode.
+  - Added a global `::selection` + `::-moz-selection` rule at the bottom of the file (alongside the existing image-placeholder global rules) using those tokens.
+  - `#FFE600` chosen as the direct complement of the electric-blue accent `#2E4BFF`. User reviewed 4 options (`#FFE600` acid bright, `#FFE34D` softer, `#FFD60A` slightly gold, `#FFEB00` pure lemon) via a temporary tryout page and picked the original `#FFE600`.
+
+- **Home folder tab-click fix** — `design/src/templates/home/home.js`, the open-folder tab `click`/`mouseenter`/`mouseleave` handlers (~lines 886–945):
+  - **Fix 1 (early click):** the old handler had an immediate-snap branch (`riseState[i].v < 0.5`) that left the hover (`mouseenter`) tween alive — it kept running and re-lifted the now-active tab, leaving it stuck floating. Replaced with: detect a hover-lift even at `v≈0` via `gsap.isTweening(riseState[i]) || riseState[i].v > 0`, **kill the hover tween unconditionally**, then run one timeline that **finishes the remaining rise → plunges → springs** (the user's requested "complete the hover, then play the click animation"). Immediate-snap kept only for touch/keyboard/reduced-motion.
+  - **Fix 2 (quick click = enter→click→leave):** the real reported bug. The `mouseleave` that follows a fast click fired a `overwrite: true` tween on the same `riseState[i]`, **killing the in-flight click timeline before its plunge `onComplete → setActive` ran** → no navigation. Added a `committing` Set: when a click commits, the tab is added; `liftable()` (used by both hover handlers) now also checks `!committing.has(i)`, so hover in/out can't abort a committed click. Cleared on the timeline's `onComplete`.
+
+- **Phantom-diff cleanup (earlier in session):** committed + pushed the previously-untracked `design/decisions/0032-home-folder-close-animation.md` (commit `31a606f`) — it had never been `git add`ed, so it survived prior commits and showed as a persistent "diff."
 
 ## Key decisions and why
 
 | Decision | Rationale | Alternatives rejected |
 |---|---|---|
-| Grow open from the **pre-collapse** resting box + **sync repaint** | The open-state CSS collapses the folder (nav→absolute); measuring after pins the squashed box → visible jump | Measuring after the state flip (the bug) |
-| TH baseline = **active tab** in solo mode | `tabs[0]` clips non-first projects shorter in solo | Always `tabs[0]` (the bug) |
-| Tab **grows in place** (start at shifted open `x`) | An independent horizontal tab slide layered on the folder expand read as jumpy | Start at `x:0`, slide to shifted `x` |
-| Close tabs **pop up from behind** (riseState + sink-clip) | Opacity fade looked see-through | Opacity fade |
-| Optical align name via `margin-left: -0.09em` | Side-bearing is a constant fraction of em ⇒ one value works at any size | Per-size px tweaks; aligning to true margin (left name 1px proud) |
-| Commit working changes to `main` + push | `design/CLAUDE.md` protocol + git history both commit `home` work straight to `main`; user passed `commit push` | Feature branch |
+| `--highlight = #FFE600` as a token (not inline) | Tokens-only discipline (Loomling rule); complement of the blue accent; one definition inherits to dark mode | Softer `#FFE34D` / gold `#FFD60A` / lemon `#FFEB00` — user picked the bright original |
+| Detect hover-lift via `gsap.isTweening`, not a `v` threshold | A real early click can land before the rise tween's first tick (v still 0); a `v < 0.5` test misroutes a hover user into the dead-snap path | Keeping the `v < 0.5` threshold — too fragile |
+| `committing` Set guarding `liftable()` | Smallest change that makes a committed click un-abortable while preserving "commit at the plunge's lowest point" visual timing | Calling `setActive` synchronously at click time — would lose the intended commit-at-bottom timing |
 
 ## Approaches that didn't work
 
-- **Chasing the close button's position** (viewport-fixed ↔ in-folder, doubled offsets) to fix a "flush on non-first project" bug — the real cause was the **TH-from-tabs[0]** bug (tab + folder-border geometry), not the close position. Reverted the churn.
-- **Assuming the open "jump" was horizontal** — it was the **vertical** nav-absolute collapse at frame 0. Confirmed by measuring folder height: resting 365 → frame-0 128 before the fix.
+- **Verifying the race with `flush()`** (force-completing all GSAP tweens via `getChildren(...).progress(1)`) **masked the bug** — it force-finished the click timeline before the `mouseleave` overwrite could abort it, so tests falsely passed. Had to drive GSAP frame-by-frame with `gsap.updateRoot(time)` + `gsap.ticker.lagSmoothing(0)` to reproduce deterministically.
+- An early `getChildren(true, true, false)` flush silently **excluded timelines** (3rd arg = include-timelines), so the click's plunge timeline never advanced and a measurement read `8` instead of `0`. Use `getChildren(true, true, true)`.
 
 ## Files touched
 
-- **Modified:** `design/src/templates/home/home.js` — all the open/close/buildFolder logic above.
-- **Modified:** `design/src/templates/home/home.css` — `.home__close`, mobile open-row logo/tab, intro spacing, name typography + optical margin.
-- **Modified:** `design/src/templates/home/home.html` — added `.home__close` button; name spans now render inline (no forced break).
-- **Net-unchanged (added then reverted):** `design/src/tokens.css` (`--type-display-2xl`), `design/src/templates/home/preview.html` (temporary optical-alignment slider).
-- **Untracked, NOT committed (held):** `design/decisions/0032-home-folder-close-animation.md` — stale; decide at finalize.
+- **Modified:** `design/src/tokens.css` — added `--highlight` / `--highlight-fg` tokens + global `::selection` rule.
+- **Modified:** `design/src/templates/home/home.js` — open-folder tab click handler: finish-rise→plunge→spring unification + `committing` guard against hover-abort.
+- **Created (this handoff):** `HANDOFF.md` (overwrote the 2026-06-11 handoff).
+- **Committed earlier:** `design/decisions/0032-home-folder-close-animation.md` (commit `31a606f`) — note: this ADR is stale/provisional per the prior handoff; decide at `home` finalize whether to rewrite or delete.
 
 ## Git state
 
 ```
-On branch main (up to date with origin/main before this session's commits)
- M design/src/templates/home/home.css
- M design/src/templates/home/home.html
- M design/src/templates/home/home.js
-?? design/decisions/0032-home-folder-close-animation.md
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+	modified:   design/src/templates/home/home.js
+	modified:   design/src/tokens.css
+
+ design/src/templates/home/home.js | 36 +++++++++++++++++++++++++++---------
+ design/src/tokens.css             | 25 +++++++++++++++++++++++++
 ```
 
-`/handoff commit push` commits the three `home` files + this HANDOFF to `main` and pushes; `0032` stays untracked.
+(This `/handoff commit push` run commits + pushes the above, then commits this handoff.)
 
 ## Immediate next steps
 
-1. **De-provisionalize `home`** — settle real copy + project names, real screenshots/prototype frames (lazy mechanism already wired, ADR 0031), flip `status: draft` → approved in `library/manifest.json`, and **write the held ADRs** (open/close animation, mobile takeover, the jump fix). Resolve `0032` (rewrite or delete).
-2. **Earlier-queued (deferred):** tucked tabs behind the active tab + a mono `▾` project-picker dropdown on mobile — the user steered away from this toward the open/close + identity polish; revisit if still wanted.
-3. **Fill `system/voice.md`** — audience + three voice adjectives still un-filled.
-
-## Open questions / blockers
-
-- **`home` is provisional** — don't ratify look/interaction/content without the user.
-- **`0032` ADR** — keep (rewrite) or delete? Held.
+1. Nothing blocking. Continue polishing other home states, or move toward de-provisionalizing `home` (real content, flip `draft`→approved, write the held ADRs).
+2. If/when porting tokens to the live app (ADR-0027 publish bridge): carry `--highlight` / `--highlight-fg` + the `::selection` rule into `src/app/globals.css` (currently still the legacy Vignelli tokens).
+3. Optional: audit other GSAP `overwrite: true` hover/click pairs in `home.js` (open/close flows) for the same abort-race shape — not observed broken, but same pattern.
 
 ## Gotchas for the next session
 
-- **Open animation pattern (both `openFolder` + `openFolderMobile`):** capture `startRect` BEFORE `data-home-state="open"`, pin there, then `buildFolder()` synchronously. If you reorder or skip the sync repaint, the folder squashes flat on click. Don't pin from `mobileGeometry()/geometry()` start values — those are measured post-collapse (kept for the **targets** only).
-- **`buildFolder` TH baseline uses the ACTIVE tab in solo mode** — if you touch tab sizing, keep this or non-first projects clip short.
-- **Preview tab backgrounding freezes rAF → GSAP freezes** (`gsap.ticker.frame` stuck). Verify end-state logic by forcing `prefers-reduced-motion: reduce` (override `matchMedia`), or by `globalTimeline.pause()` + `time(t)` and **measuring** (seek does NOT repaint the SVG — paused screenshots come out blank; use `getBoundingClientRect`/`getBBox`).
-- **Preview URL drifts to `home.html`** (the bare fragment — no tokens/fonts/GSAP). Always serve **`/src/templates/home/preview.html`**.
-- **Optical alignment** on `.home__name` is `margin-left: -0.09em` (em ⇒ scales with size). The same one-liner fixes the same indent on any oversized display text (e.g. panel titles) if noticed.
-- **Mobile vs desktop differ** — mobile (`openFolderMobile`, `[data-home-view="mobile"]`) uses the solo full-screen tab + `BH` initials row; desktop (`openFolder`) spreads all tabs and keeps the full "Blake Henson" typewriter. Don't unify blindly.
-- **Dark mode** still duplicates the dark block in `tokens.css` (`@media prefers-color-scheme` + `[data-theme="dark"]`) — edit both (ADR 0029).
+- **Two preview servers run:** `8765` = loomling-static (the design Loom, server root is `design/`); `3000` = the gated Next.js app (redirects every route to `/enter`). The home WIP standalone preview is `http://localhost:8765/src/templates/home/preview.html` — NOT the sandbox chrome, NOT `home.html`. The preview browser occasionally drifts onto the `:3000` `/enter` gate; re-navigate explicitly with `location.assign(...)`.
+- **Background-tab rAF throttling:** the headless preview throttles `requestAnimationFrame`/timers, so GSAP timelines don't advance in real time and timing-based verification is unreliable. Drive animations deterministically with `gsap.updateRoot(absoluteSeconds)` after `gsap.ticker.lagSmoothing(0)`; or force-settle with `gsap.globalTimeline.getChildren(true,true,true).forEach(c=>c.progress(1))` — but remember `flush()` hides overwrite/abort races (see "didn't work" above).
+- **Home tab mechanics:** the folder OPENS from the resting **project list** (`.home__item`), not the tabs. Tabs only switch projects once `data-home-state="open"`. Desktop hover-lift path needs viewport ≥ `--bp-md` (768px); below that, open goes to the mobile full-screen view (no hover-lift). `riseState[i].v`: `+` = lifted up, `−` = pressed down; the SVG art (`.home__folder-art` paths) is painted by `buildFolder()`, the `.home__tab` buttons are fixed transparent click targets.
+- The `design/_highlight-tryout.html` scratch page was created and **deleted** this session — don't expect it to exist.
