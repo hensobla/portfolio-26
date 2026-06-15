@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab — Interactive Grid Background</title>
+  <link rel="stylesheet" href="src/tokens.css" />
+  <link rel="stylesheet" href="src/templates/home/home.css" />
+  <script src="src/vendor/gsap.min.js" defer></script>
+  <script src="src/templates/home/home.js" defer></script>
+  <script src="src/interactive-grid.js" defer></script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--background);
+      color: var(--text1);
+      font-family: var(--font-body);
+      overflow: hidden;
+    }
+
+    /* Floating control panel */
+    .panel {
+      position: fixed;
+      top: var(--space-4);
+      right: var(--space-4);
+      width: 320px;
+      max-height: calc(100vh - 2 * var(--space-4));
+      overflow-y: auto;
+      padding: var(--space-5);
+      background: color-mix(in srgb, var(--surface1) 92%, transparent);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      color: var(--text1);
+      z-index: 10;
+    }
+    .panel .kicker {
+      margin: 0 0 var(--space-1);
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      color: var(--eyebrow-color);
+    }
+    .panel h1 {
+      margin: 0 0 var(--space-4);
+      font-family: var(--font-display);
+      font-size: var(--type-display-s);
+      line-height: var(--line-height-display);
+      letter-spacing: var(--tracking-display);
+    }
+    .panel .row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      margin-bottom: var(--space-4);
+    }
+    .panel label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      color: var(--text2);
+    }
+    .panel label .val {
+      color: var(--text1);
+      letter-spacing: 0.04em;
+    }
+    .panel input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+    .panel .color-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .panel input[type="color"] {
+      width: 36px;
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface1);
+      padding: 0;
+      cursor: pointer;
+    }
+    .panel code {
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: 0.04em;
+      color: var(--text2);
+    }
+    .panel .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      color: var(--text2);
+    }
+    .panel .toggle-row input[type="checkbox"] {
+      accent-color: var(--accent);
+    }
+    .panel .hint {
+      margin-top: var(--space-4);
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      color: var(--text3);
+    }
+    .panel.hidden { display: none; }
+
+    .toggle-panel {
+      position: fixed;
+      top: var(--space-4);
+      right: var(--space-4);
+      z-index: 11;
+      display: none;
+      padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--border-visible);
+      background: var(--surface1);
+      color: var(--text1);
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .toggle-panel.show { display: inline-block; }
+
+    /* Radius shape: 3-up segmented control */
+    .seg {
+      display: flex;
+      border: 1px solid var(--border-visible);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .seg-btn {
+      flex: 1;
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      padding: var(--space-2) var(--space-3);
+      background: var(--surface1);
+      color: var(--text2);
+      border: 0;
+      cursor: pointer;
+      transition: background var(--motion-fast) var(--ease-standard),
+                  color var(--motion-fast) var(--ease-standard);
+    }
+    .seg-btn + .seg-btn { border-left: 1px solid var(--border-visible); }
+    .seg-btn.active { background: var(--accent); color: var(--accent-fg); }
+    .seg-btn:hover:not(.active) { background: var(--surface2); color: var(--text1); }
+
+    /* Crosshair cursor over the canvas region */
+    body { cursor: crosshair; }
+    .panel, .toggle-panel { cursor: default; }
+    .panel button { cursor: pointer; }
+
+    /* Homepage-WIP content overlay (placeholder for previewing the bg under
+       real content). Pointer-events:none so clicks/hover pass through. */
+    #home-content {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    #home-content.hidden { display: none; }
+    #home-content [data-loom-template="home"] {
+      background: transparent !important;
+      min-height: 100svh;
+    }
+    #home-content [data-loom-template="home"]::before {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="home-content" class="hidden" aria-hidden="true"></div>
+
+  <button class="toggle-panel" id="toggle-panel" type="button">Show panel</button>
+
+  <aside class="panel" id="panel">
+    <p class="kicker">// Lab</p>
+    <h1>Interactive grid</h1>
+
+    <div class="toggle-row">
+      <input type="checkbox" id="content-overlay" />
+      <label for="content-overlay" style="font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;">Show content overlay</label>
+    </div>
+
+    <div class="row">
+      <label for="ix-hover-radius">Radius size <span class="val" id="ix-hover-radius-val">160</span></label>
+      <input type="range" id="ix-hover-radius" min="20" max="600" step="5" value="160" />
+    </div>
+
+    <div class="row">
+      <label>Radius shape</label>
+      <div class="seg" role="tablist" id="shape-seg">
+        <button class="seg-btn active" type="button" data-shape="circle" role="tab" aria-selected="true">Circle</button>
+        <button class="seg-btn" type="button" data-shape="square" role="tab" aria-selected="false">Square</button>
+        <button class="seg-btn" type="button" data-shape="diamond" role="tab" aria-selected="false">Diamond</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <label for="ix-hover-color">Hover color</label>
+      <div class="color-row">
+        <input type="color" id="ix-hover-color" value="#F2EFE8" />
+        <code id="ix-hover-color-val">#F2EFE8</code>
+      </div>
+    </div>
+
+    <div class="row">
+      <label for="ix-smooth">Delay <span class="val" id="ix-smooth-val">240ms</span></label>
+      <input type="range" id="ix-smooth" min="0" max="500" step="10" value="240" />
+    </div>
+
+    <div class="row">
+      <label for="bg-color">Background</label>
+      <div class="color-row">
+        <input type="color" id="bg-color" value="#F7F4EE" />
+        <code id="bg-color-val">#F7F4EE</code>
+      </div>
+    </div>
+
+    <p class="hint">Bg lives at <code>src/interactive-grid.js</code> · Grid locked to <code>--space-6</code> · Press H to hide / show this panel</p>
+  </aside>
+
+  <script>
+    // Wait for the deferred scripts (interactive-grid.js, gsap, home.js) to
+    // execute. DOMContentLoaded fires after all `defer` scripts have run.
+    document.addEventListener('DOMContentLoaded', () => {
+      // ----- Mount the interactive grid bg with the lab's panel defaults -----
+      const grid = window.InteractiveGrid.mount({
+        hoverColor: '#F2EFE8',
+        hoverRadius: 160,
+        radiusShape: 'circle',
+        smoothTau: 240,
+        bgColor: '#F7F4EE',
+      });
+
+      // ----- Wire panel controls to grid.update() -----
+      function bindRange(id, valId, fmt, key) {
+        const el = document.getElementById(id);
+        const valEl = document.getElementById(valId);
+        el.addEventListener('input', () => {
+          const v = Number(el.value);
+          valEl.textContent = fmt ? fmt(v) : String(v);
+          grid.update({ [key]: key === 'smoothTau' ? Math.max(1, v) : v });
+        });
+      }
+      bindRange('ix-hover-radius', 'ix-hover-radius-val', null, 'hoverRadius');
+      bindRange('ix-smooth', 'ix-smooth-val', (v) => `${v}ms`, 'smoothTau');
+
+      document.getElementById('ix-hover-color').addEventListener('input', (e) => {
+        document.getElementById('ix-hover-color-val').textContent = e.target.value.toUpperCase();
+        grid.update({ hoverColor: e.target.value });
+      });
+      document.getElementById('bg-color').addEventListener('input', (e) => {
+        document.getElementById('bg-color-val').textContent = e.target.value.toUpperCase();
+        grid.update({ bgColor: e.target.value });
+      });
+
+      // Radius shape segmented control
+      function setShape(next) {
+        for (const btn of document.querySelectorAll('#shape-seg .seg-btn')) {
+          const on = btn.getAttribute('data-shape') === next;
+          btn.classList.toggle('active', on);
+          btn.setAttribute('aria-selected', on ? 'true' : 'false');
+        }
+        grid.update({ radiusShape: next });
+      }
+      for (const btn of document.querySelectorAll('#shape-seg .seg-btn')) {
+        btn.addEventListener('click', () => setShape(btn.getAttribute('data-shape')));
+      }
+
+      // ----- Panel hide/show on H -----
+      const panel = document.getElementById('panel');
+      const toggleBtn = document.getElementById('toggle-panel');
+      const setPanelHidden = (hidden) => {
+        panel.classList.toggle('hidden', hidden);
+        toggleBtn.classList.toggle('show', hidden);
+      };
+      toggleBtn.addEventListener('click', () => setPanelHidden(false));
+      window.addEventListener('keydown', (e) => {
+        if (!e.isTrusted) return;
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+        if (e.key === 'h' || e.key === 'H') setPanelHidden(!panel.classList.contains('hidden'));
+      });
+
+      // ----- Homepage-WIP content overlay (placeholder) -----
+      const homeContainer = document.getElementById('home-content');
+      const contentToggle = document.getElementById('content-overlay');
+      let homeLoaded = false;
+      let homeLoading = null;
+
+      function loadHomeContent() {
+        if (homeLoaded) return Promise.resolve();
+        if (homeLoading) return homeLoading;
+        homeLoading = fetch('src/templates/home/home.html')
+          .then((r) => r.text())
+          .then((html) => {
+            homeContainer.innerHTML = html;
+            const root = homeContainer.querySelector('[data-loom-template="home"]');
+            if (root) {
+              root.classList.add('home--standalone');
+              if (window.HomeTemplate && typeof window.HomeTemplate.init === 'function') {
+                try { window.HomeTemplate.init(root); } catch (_) {}
+              }
+            }
+            homeLoaded = true;
+          })
+          .catch((err) => { console.error('Failed to load home content', err); });
+        return homeLoading;
+      }
+
+      contentToggle.addEventListener('change', (e) => {
+        if (e.target.checked) {
+          loadHomeContent().then(() => {
+            homeContainer.classList.remove('hidden');
+            homeContainer.setAttribute('aria-hidden', 'false');
+          });
+        } else {
+          homeContainer.classList.add('hidden');
+          homeContainer.setAttribute('aria-hidden', 'true');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
