@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lab — Image Dot-Grid (archive)</title>
+  <link rel="stylesheet" href="src/tokens.css" />
+  <link rel="stylesheet" href="src/templates/home/home.css" />
+  <script src="src/vendor/gsap.min.js" defer></script>
+  <script src="src/templates/home/home.js" defer></script>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      background: var(--background);
+      color: var(--text1);
+      font-family: var(--font-body);
+      overflow: hidden;
+    }
+
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+
+    /* Floating control panel */
+    .panel {
+      position: fixed;
+      top: var(--space-4);
+      right: var(--space-4);
+      width: 320px;
+      max-height: calc(100vh - 2 * var(--space-4));
+      overflow-y: auto;
+      padding: var(--space-5);
+      background: color-mix(in srgb, var(--surface1) 92%, transparent);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      color: var(--text1);
+      z-index: 10;
+    }
+
+    .panel .kicker {
+      margin: 0 0 var(--space-1);
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      color: var(--eyebrow-color);
+    }
+
+    .panel h1 {
+      margin: 0 0 var(--space-4);
+      font-family: var(--font-display);
+      font-size: var(--type-display-s);
+      line-height: var(--line-height-display);
+      letter-spacing: var(--tracking-display);
+    }
+
+    .panel .row {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      margin-bottom: var(--space-4);
+    }
+
+    .panel label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      color: var(--text2);
+    }
+
+    .panel label .val {
+      color: var(--text1);
+      letter-spacing: 0.04em;
+    }
+
+    .panel input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    .panel .color-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .panel input[type="color"] {
+      width: 36px;
+      height: 28px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: var(--surface1);
+      padding: 0;
+      cursor: pointer;
+    }
+
+    .panel code {
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: 0.04em;
+      color: var(--text2);
+    }
+
+    .panel .img-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+
+    .panel .img-name {
+      font-family: var(--font-display);
+      font-size: var(--type-body);
+      color: var(--text1);
+    }
+
+    .panel button {
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--border-visible);
+      background: var(--surface1);
+      color: var(--text1);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background var(--motion-fast) var(--ease-standard),
+                  border-color var(--motion-fast) var(--ease-standard);
+    }
+
+    .panel button:hover {
+      background: var(--surface2);
+      border-color: var(--accent);
+    }
+
+    .panel .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      color: var(--text2);
+    }
+
+    .panel .toggle-row input[type="checkbox"] {
+      accent-color: var(--accent);
+    }
+
+    .panel .hint {
+      margin-top: var(--space-4);
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--border);
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      color: var(--text3);
+    }
+
+    .panel.hidden {
+      display: none;
+    }
+
+    .toggle-panel {
+      position: fixed;
+      top: var(--space-4);
+      right: var(--space-4);
+      z-index: 11;
+      display: none;
+      padding: var(--space-2) var(--space-4);
+      border: 1px solid var(--border-visible);
+      background: var(--surface1);
+      color: var(--text1);
+      font-family: var(--font-mono);
+      font-size: var(--eyebrow-size);
+      letter-spacing: var(--eyebrow-tracking);
+      text-transform: var(--eyebrow-transform);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .toggle-panel.show {
+      display: inline-block;
+    }
+
+    /* Homepage-WIP content overlay (placeholder for previewing the bg under
+       real content). Pointer-events:none so clicks/hover pass through to the
+       canvas and the panel; sits above the canvas (z-index 0) and below the
+       panel (z-index 10). */
+    #home-content {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+      overflow: hidden;
+      pointer-events: none;
+    }
+    #home-content.hidden { display: none; }
+
+    /* Strip the home template's own background + grid wash so the lab's
+       canvas grid + bg show through unobstructed. */
+    #home-content [data-loom-template="home"] {
+      background: transparent !important;
+      min-height: 100svh;
+    }
+    #home-content [data-loom-template="home"]::before {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+
+  <div id="home-content" class="hidden" aria-hidden="true"></div>
+
+  <button class="toggle-panel" id="toggle-panel" type="button">Show panel</button>
+
+  <aside class="panel" id="panel">
+    <p class="kicker">// Lab</p>
+    <h1>Image dot grid</h1>
+
+    <div class="toggle-row">
+      <input type="checkbox" id="content-overlay" />
+      <label for="content-overlay" style="font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;">Show content overlay</label>
+    </div>
+
+    <div class="img-row">
+      <span class="img-name" id="img-name">—</span>
+      <button id="cycle-btn" type="button">Cycle →</button>
+    </div>
+
+    <div class="toggle-row">
+      <input type="checkbox" id="auto-cycle" />
+      <label for="auto-cycle" style="font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;">Auto-cycle (4s)</label>
+    </div>
+
+    <div class="row">
+      <label for="density">Density <span class="val" id="density-val">72</span></label>
+      <input type="range" id="density" min="16" max="220" value="72" />
+    </div>
+
+    <div class="row">
+      <label for="r-light">Light radius <span class="val" id="r-light-val">1</span></label>
+      <input type="range" id="r-light" min="0" max="20" step="0.5" value="1" />
+    </div>
+
+    <div class="row">
+      <label for="r-medium">Medium radius <span class="val" id="r-medium-val">2</span></label>
+      <input type="range" id="r-medium" min="0" max="20" step="0.5" value="2" />
+    </div>
+
+    <div class="row">
+      <label for="r-heavy">Heavy radius <span class="val" id="r-heavy-val">3</span></label>
+      <input type="range" id="r-heavy" min="0" max="20" step="0.5" value="3" />
+    </div>
+
+    <div class="row">
+      <label for="dot-color">Dot color</label>
+      <div class="color-row">
+        <input type="color" id="dot-color" value="#B1B8E2" />
+        <code id="dot-color-val">#B1B8E2</code>
+      </div>
+    </div>
+
+    <div class="row">
+      <label for="bg-color">Background</label>
+      <div class="color-row">
+        <input type="color" id="bg-color" value="#F7F4EE" />
+        <code id="bg-color-val">#F7F4EE</code>
+      </div>
+    </div>
+
+    <div class="toggle-row">
+      <input type="checkbox" id="invert" />
+      <label for="invert" style="font: inherit; color: inherit; letter-spacing: inherit; text-transform: inherit;">Invert (dark = light dot)</label>
+    </div>
+
+    <div class="row">
+      <label for="tween-ms">Morph duration <span class="val" id="tween-ms-val">1400ms</span></label>
+      <input type="range" id="tween-ms" min="0" max="2000" step="50" value="1400" />
+    </div>
+
+    <p class="hint">Press H to hide / show this panel</p>
+  </aside>
+
+  <script>
+    (() => {
+      const canvas = document.getElementById('bg-canvas');
+      const ctx = canvas.getContext('2d');
+
+      // Offscreen canvas for the source "image". Dots sample brightness from here.
+      // Sized to match the viewport aspect ratio so wide/tall sources aren't squished.
+      const SAMPLE_LONG = 480;
+      const off = document.createElement('canvas');
+      off.width = SAMPLE_LONG;
+      off.height = SAMPLE_LONG;
+      const offCtx = off.getContext('2d', { willReadFrequently: true });
+
+      function resizeOffscreen(vw, vh) {
+        if (vw >= vh) {
+          off.width = SAMPLE_LONG;
+          off.height = Math.max(2, Math.round(SAMPLE_LONG * vh / vw));
+        } else {
+          off.height = SAMPLE_LONG;
+          off.width = Math.max(2, Math.round(SAMPLE_LONG * vw / vh));
+        }
+      }
+
+      // Helper: paint into a centered square within (w, h). Used by procedural
+      // images that have an inherent square composition (letterforms, portraits,
+      // logos). Raster sources do their own fit (cover) directly.
+      function inSquare(c, w, h, paint) {
+        const s = Math.min(w, h);
+        c.save();
+        c.translate((w - s) / 2, (h - s) / 2);
+        paint(c, s);
+        c.restore();
+      }
+
+      const state = {
+        density: 72,
+        radii: { light: 1, medium: 2, heavy: 3 },
+        dotColor: '#B1B8E2',
+        bgColor: '#F7F4EE',
+        invert: false,
+        tweenMs: 1400,
+        autoCycleTimer: null,
+      };
+
+      let cols = 0, rows = 0, cellSize = 0, cellCount = 0;
+      let currentRadii = new Float32Array(0);
+      let targetRadii = new Float32Array(0);
+      let tweenFromRadii = new Float32Array(0);
+      let tweenStart = 0;
+      let sampleData = null;
+
+      // ---------- Image library ----------
+      // Each entry has render(ctx, w, h, self). Procedural shapes use inSquare()
+      // to keep their composition square; raster sources do their own fit.
+      const images = [
+        {
+          name: 'Mountains',
+          async: true,
+          src: 'lab-assets/two-tone-mountains-wide.png',
+          image: null,
+          render: (c, w, h, self) => {
+            c.fillStyle = '#fff';
+            c.fillRect(0, 0, w, h);
+            if (!self.image) return;
+            const img = self.image;
+            // cover fit
+            const scale = Math.max(w / img.width, h / img.height);
+            const dw = img.width * scale;
+            const dh = img.height * scale;
+            const dx = (w - dw) / 2;
+            const dy = (h - dh) / 2;
+            c.drawImage(img, dx, dy, dw, dh);
+          },
+        },
+        {
+          name: 'Letter B',
+          render: (c, w, h) => {
+            c.fillStyle = '#fff';
+            c.fillRect(0, 0, w, h);
+            inSquare(c, w, h, (c, s) => {
+              c.fillStyle = '#000';
+              c.font = `900 ${Math.round(s * 0.86)}px 'Archivo', sans-serif`;
+              c.textBaseline = 'middle';
+              c.textAlign = 'center';
+              c.fillText('B', s / 2, s / 2 + s * 0.03);
+            });
+          },
+        },
+        {
+          name: 'Portrait',
+          render: (c, w, h) => {
+            c.fillStyle = '#fff';
+            c.fillRect(0, 0, w, h);
+            inSquare(c, w, h, (c, s) => {
+              c.fillStyle = '#000';
+              c.beginPath();
+              c.arc(s / 2, s * 0.36, s * 0.17, 0, Math.PI * 2);
+              c.fill();
+              c.beginPath();
+              c.moveTo(s * 0.16, s);
+              c.bezierCurveTo(s * 0.16, s * 0.7, s * 0.32, s * 0.6, s / 2, s * 0.6);
+              c.bezierCurveTo(s * 0.68, s * 0.6, s * 0.84, s * 0.7, s * 0.84, s);
+              c.closePath();
+              c.fill();
+            });
+          },
+        },
+        {
+          name: 'Iso Cube',
+          render: (c, w, h) => {
+            c.fillStyle = '#fff';
+            c.fillRect(0, 0, w, h);
+            inSquare(c, w, h, (c, s) => {
+              const cx = s / 2, cy = s / 2;
+              const r = s * 0.32;
+              const cos30 = Math.cos(Math.PI / 6);
+              const sin30 = Math.sin(Math.PI / 6);
+              const tx = r * cos30, ty = r * sin30;
+              const top    = [cx,       cy - r];
+              const right  = [cx + tx,  cy - ty];
+              const br     = [cx + tx,  cy + ty];
+              const bot    = [cx,       cy + r];
+              const bl     = [cx - tx,  cy + ty];
+              const left   = [cx - tx,  cy - ty];
+              const center = [cx,       cy];
+              c.strokeStyle = '#000';
+              c.lineWidth = s * 0.028;
+              c.lineCap = 'round';
+              c.lineJoin = 'round';
+              c.beginPath();
+              c.moveTo(...top); c.lineTo(...right); c.lineTo(...br);
+              c.lineTo(...bot); c.lineTo(...bl); c.lineTo(...left);
+              c.closePath();
+              c.stroke();
+              c.beginPath();
+              c.moveTo(...top); c.lineTo(...center);
+              c.moveTo(...bl);  c.lineTo(...center);
+              c.moveTo(...br);  c.lineTo(...center);
+              c.stroke();
+            });
+          },
+        },
+        {
+          name: 'Spiral',
+          render: (c, w, h) => {
+            c.fillStyle = '#fff';
+            c.fillRect(0, 0, w, h);
+            inSquare(c, w, h, (c, s) => {
+              c.strokeStyle = '#000';
+              c.lineWidth = s * 0.035;
+              c.lineCap = 'round';
+              c.beginPath();
+              const cx = s / 2, cy = s / 2;
+              const turns = 4;
+              const steps = 600;
+              for (let i = 0; i <= steps; i++) {
+                const t = i / steps;
+                const angle = t * turns * Math.PI * 2;
+                const r = t * s * 0.44;
+                const x = cx + Math.cos(angle) * r;
+                const y = cy + Math.sin(angle) * r;
+                if (i === 0) c.moveTo(x, y); else c.lineTo(x, y);
+              }
+              c.stroke();
+            });
+          },
+        },
+        {
+          name: 'Globe',
+          render: (c, w, h) => {
+            c.fillStyle = '#fff';
+            c.fillRect(0, 0, w, h);
+            inSquare(c, w, h, (c, s) => {
+              const cx = s / 2, cy = s / 2, r = s * 0.42;
+              c.fillStyle = '#000';
+              c.beginPath();
+              c.arc(cx, cy, r, 0, Math.PI * 2);
+              c.fill();
+              const grad = c.createRadialGradient(
+                cx - r * 0.35, cy - r * 0.35, r * 0.05,
+                cx, cy, r * 1.05
+              );
+              grad.addColorStop(0,    'rgba(255,255,255,0.95)');
+              grad.addColorStop(0.45, 'rgba(255,255,255,0.25)');
+              grad.addColorStop(1,    'rgba(0,0,0,0)');
+              c.fillStyle = grad;
+              c.beginPath();
+              c.arc(cx, cy, r, 0, Math.PI * 2);
+              c.fill();
+            });
+          },
+        },
+        {
+          name: 'Waves',
+          render: (c, w, h) => {
+            c.fillStyle = '#fff';
+            c.fillRect(0, 0, w, h);
+            inSquare(c, w, h, (c, s) => {
+              c.strokeStyle = '#000';
+              c.lineWidth = s * 0.032;
+              c.lineCap = 'round';
+              for (let k = 0; k < 7; k++) {
+                const yo = s * 0.12 + k * s * 0.12;
+                c.beginPath();
+                for (let x = 0; x <= s; x += 2) {
+                  const phase = k * 0.5;
+                  const y = yo + Math.sin((x / s) * Math.PI * 4 + phase) * s * 0.05;
+                  if (x === 0) c.moveTo(x, y); else c.lineTo(x, y);
+                }
+                c.stroke();
+              }
+            });
+          },
+        },
+      ];
+
+      let imageIndex = 0;
+
+      // ---------- Sampling & geometry ----------
+      function sampleImage() {
+        if (cellCount === 0) return;
+        const w = off.width, h = off.height;
+        const data = offCtx.getImageData(0, 0, w, h).data;
+        const grid = new Float32Array(cellCount);
+        const cellW = w / cols;
+        const cellH = h / rows;
+        for (let cy = 0; cy < rows; cy++) {
+          for (let cx = 0; cx < cols; cx++) {
+            const sx0 = Math.max(0, Math.floor(cx * cellW + cellW * 0.25));
+            const sx1 = Math.min(w, Math.ceil(cx * cellW + cellW * 0.75));
+            const sy0 = Math.max(0, Math.floor(cy * cellH + cellH * 0.25));
+            const sy1 = Math.min(h, Math.ceil(cy * cellH + cellH * 0.75));
+            let sum = 0, count = 0;
+            for (let y = sy0; y < sy1; y++) {
+              for (let x = sx0; x < sx1; x++) {
+                const i = (y * w + x) * 4;
+                const lum = (data[i] * 0.299 + data[i + 1] * 0.587 + data[i + 2] * 0.114) / 255;
+                sum += lum;
+                count++;
+              }
+            }
+            grid[cy * cols + cx] = count > 0 ? sum / count : 1;
+          }
+        }
+        sampleData = grid;
+      }
+
+      function brightnessToRadius(b) {
+        const { light, medium, heavy } = state.radii;
+        const x = state.invert ? 1 - b : b;
+        if (x < 1 / 3) return heavy;
+        if (x < 2 / 3) return medium;
+        return light;
+      }
+
+      function recomputeTargets() {
+        if (!sampleData || cellCount === 0) return;
+        if (targetRadii.length !== cellCount) targetRadii = new Float32Array(cellCount);
+        if (tweenFromRadii.length !== cellCount) tweenFromRadii = new Float32Array(cellCount);
+        for (let i = 0; i < cellCount; i++) {
+          tweenFromRadii[i] = currentRadii[i] || 0;
+          targetRadii[i] = brightnessToRadius(sampleData[i]);
+        }
+        tweenStart = performance.now();
+      }
+
+      function resizeGrid() {
+        const dpr = window.devicePixelRatio || 1;
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        canvas.style.width = w + 'px';
+        canvas.style.height = h + 'px';
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        resizeOffscreen(w, h);
+
+        const longer = Math.max(w, h);
+        cellSize = longer / state.density;
+        cols = Math.ceil(w / cellSize);
+        rows = Math.ceil(h / cellSize);
+        cellCount = cols * rows;
+        currentRadii = new Float32Array(cellCount);
+        drawCurrentImage();
+        sampleImage();
+        recomputeTargets();
+      }
+
+      function drawCurrentImage() {
+        const img = images[imageIndex];
+        offCtx.clearRect(0, 0, off.width, off.height);
+        img.render(offCtx, off.width, off.height, img);
+      }
+
+      function loadRaster(entry) {
+        if (entry.image || entry._loading) return entry._loading || Promise.resolve();
+        entry._loading = new Promise((resolve, reject) => {
+          const el = new Image();
+          el.onload = () => { entry.image = el; resolve(); };
+          el.onerror = (err) => { console.error('Failed to load', entry.src, err); reject(err); };
+          el.src = entry.src;
+        });
+        return entry._loading;
+      }
+
+      async function setImage(idx) {
+        imageIndex = ((idx % images.length) + images.length) % images.length;
+        const entry = images[imageIndex];
+        document.getElementById('img-name').textContent = entry.name;
+        if (entry.async && !entry.image) {
+          try { await loadRaster(entry); } catch (e) { /* swallow; render shows blank */ }
+        }
+        drawCurrentImage();
+        sampleImage();
+        recomputeTargets();
+      }
+
+      function easeInOutCubic(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+
+      function renderImage(now) {
+        const tweenMs = state.tweenMs;
+        let t = 1;
+        if (tweenMs > 0 && tweenStart > 0) {
+          t = Math.min(1, (now - tweenStart) / tweenMs);
+        }
+        const eased = easeInOutCubic(t);
+
+        ctx.fillStyle = state.bgColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = state.dotColor;
+        for (let cy = 0; cy < rows; cy++) {
+          for (let cx = 0; cx < cols; cx++) {
+            const i = cy * cols + cx;
+            const r0 = tweenFromRadii[i] || 0;
+            const r1 = targetRadii[i] || 0;
+            const r = r0 + (r1 - r0) * eased;
+            currentRadii[i] = r;
+            if (r <= 0.15) continue;
+            const x = cx * cellSize + cellSize / 2;
+            const y = cy * cellSize + cellSize / 2;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      function render(now) {
+        renderImage(now);
+        requestAnimationFrame(render);
+      }
+
+      // ---------- Wire controls ----------
+      function bindRange(id, valId, fmt, onChange) {
+        const el = document.getElementById(id);
+        const valEl = document.getElementById(valId);
+        const update = () => {
+          const v = Number(el.value);
+          valEl.textContent = fmt ? fmt(v) : String(v);
+          onChange(v);
+        };
+        el.addEventListener('input', update);
+      }
+
+      bindRange('density', 'density-val', null, (v) => {
+        state.density = v;
+        resizeGrid();
+      });
+      bindRange('r-light',  'r-light-val',  null, (v) => { state.radii.light  = v; recomputeTargets(); });
+      bindRange('r-medium', 'r-medium-val', null, (v) => { state.radii.medium = v; recomputeTargets(); });
+      bindRange('r-heavy',  'r-heavy-val',  null, (v) => { state.radii.heavy  = v; recomputeTargets(); });
+      bindRange('tween-ms', 'tween-ms-val', (v) => `${v}ms`, (v) => { state.tweenMs = v; });
+
+      document.getElementById('dot-color').addEventListener('input', (e) => {
+        state.dotColor = e.target.value;
+        document.getElementById('dot-color-val').textContent = e.target.value.toUpperCase();
+      });
+      document.getElementById('bg-color').addEventListener('input', (e) => {
+        state.bgColor = e.target.value;
+        document.getElementById('bg-color-val').textContent = e.target.value.toUpperCase();
+      });
+      document.getElementById('invert').addEventListener('change', (e) => {
+        state.invert = e.target.checked;
+        recomputeTargets();
+      });
+      document.getElementById('cycle-btn').addEventListener('click', () => {
+        setImage(imageIndex + 1);
+      });
+      document.getElementById('auto-cycle').addEventListener('change', (e) => {
+        if (state.autoCycleTimer) {
+          clearInterval(state.autoCycleTimer);
+          state.autoCycleTimer = null;
+        }
+        if (e.target.checked) {
+          state.autoCycleTimer = setInterval(() => setImage(imageIndex + 1), 4000);
+        }
+      });
+
+      // Panel hide/show on H
+      const panel = document.getElementById('panel');
+      const toggleBtn = document.getElementById('toggle-panel');
+      const setPanelHidden = (hidden) => {
+        panel.classList.toggle('hidden', hidden);
+        toggleBtn.classList.toggle('show', hidden);
+      };
+      toggleBtn.addEventListener('click', () => setPanelHidden(false));
+      window.addEventListener('keydown', (e) => {
+        if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+        if (e.key === 'h' || e.key === 'H') setPanelHidden(!panel.classList.contains('hidden'));
+      });
+
+      // ---------- Homepage-WIP content overlay (placeholder) ----------
+      // Fetched + injected on first toggle-on so the lab boots fast when the
+      // user is only there for the background.
+      const homeContainer = document.getElementById('home-content');
+      const contentToggle = document.getElementById('content-overlay');
+      let homeLoaded = false;
+      let homeLoading = null;
+
+      function loadHomeContent() {
+        if (homeLoaded) return Promise.resolve();
+        if (homeLoading) return homeLoading;
+        homeLoading = fetch('src/templates/home/home.html')
+          .then((r) => r.text())
+          .then((html) => {
+            homeContainer.innerHTML = html;
+            const root = homeContainer.querySelector('[data-loom-template="home"]');
+            if (root) {
+              root.classList.add('home--standalone');
+              if (window.HomeTemplate && typeof window.HomeTemplate.init === 'function') {
+                try { window.HomeTemplate.init(root); } catch (_) {}
+              }
+            }
+            homeLoaded = true;
+          })
+          .catch((err) => { console.error('Failed to load home content', err); });
+        return homeLoading;
+      }
+
+      contentToggle.addEventListener('change', (e) => {
+        const on = e.target.checked;
+        if (on) {
+          loadHomeContent().then(() => {
+            homeContainer.classList.remove('hidden');
+            homeContainer.setAttribute('aria-hidden', 'false');
+          });
+        } else {
+          homeContainer.classList.add('hidden');
+          homeContainer.setAttribute('aria-hidden', 'true');
+        }
+      });
+
+      window.addEventListener('resize', resizeGrid);
+
+      // ---------- Boot ----------
+      resizeGrid();
+      const fontsReady = (document.fonts && document.fonts.ready) ? document.fonts.ready : Promise.resolve();
+      fontsReady.then(() => setImage(0));
+      requestAnimationFrame(render);
+    })();
+  </script>
+</body>
+</html>
