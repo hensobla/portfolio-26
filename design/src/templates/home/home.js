@@ -48,6 +48,13 @@
   // current cursor position. Reduced-motion hides the interactive bg
   // entirely — the original ::before paper-wash stays visible as the fallback
   // because .home--bg-canvas (which kills both bg layers) is never added.
+
+  // Peak alpha for the cursor wash on the homepage. The InteractiveGrid
+  // module's own default is 1 (used by the lab); the home wants the wash
+  // to whisper, not shout. Both the initial mount AND the fade-in target
+  // read from this so they stay in sync.
+  const HOVER_PEAK = 0.4;
+
   function mountBgCanvas(root) {
     if (reduce()) return;
     if (root.dataset.bgMounted === "true") return;   // idempotent
@@ -56,7 +63,7 @@
 
     function ready() {
       if (!window.InteractiveGrid) return;
-      const grid = window.InteractiveGrid.mount();
+      const grid = window.InteractiveGrid.mount({ hoverOpacity: HOVER_PEAK });
       wireGridToHomeState(grid, root);
     }
     if (window.InteractiveGrid) { ready(); return; }
@@ -78,7 +85,7 @@
   // `lastSeen` guard discards it.
   function wireGridToHomeState(grid, root) {
     const gsap = window.gsap;
-    const op = { v: 1 };
+    const op = { v: HOVER_PEAK };
     let lastSeen = root.getAttribute("data-home-state") || "resting";
 
     function setOpacity(v) {
@@ -98,10 +105,10 @@
 
     function resumeThenFadeIn() {
       grid.resume();
-      if (!gsap) { setOpacity(1); return; }
+      if (!gsap) { setOpacity(HOVER_PEAK); return; }
       gsap.killTweensOf(op);
       gsap.fromTo(op, { v: 0 }, {
-        v: 1, duration: sec("--motion-standard", 0.3), ease: "power1.out",
+        v: HOVER_PEAK, duration: sec("--motion-standard", 0.3), ease: "power1.out",
         onUpdate: () => setOpacity(op.v),
       });
     }
