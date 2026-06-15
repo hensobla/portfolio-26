@@ -36,6 +36,13 @@
   opacity: 0.55;
 }
 
+/* Opt-in: when the InteractiveGrid canvas is mounted as the page background
+   (fixed/inset:0 behind everything), the template's own solid fill + paper-wash
+   ::before would occlude or double up the canvas. The .home--bg-canvas
+   modifier strips both so the canvas shows through. */
+[data-loom-template="home"].home--bg-canvas { background: transparent; }
+[data-loom-template="home"].home--bg-canvas::before { display: none; }
+
 /* keep all real content above the grid wash */
 .home__identity,
 .home__explorer { position: relative; z-index: 1; }

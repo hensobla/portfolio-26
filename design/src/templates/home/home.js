@@ -13,6 +13,11 @@
 (function () {
   "use strict";
 
+  // Captured at script-eval time so mountBgCanvas can later resolve its grid
+  // dependency relative to home.js's own URL — works in preview.html, the
+  // Loom sandbox iframe, and any future host without threading paths.
+  const SCRIPT_URL = (document.currentScript && document.currentScript.src) || null;
+
   function reduce() {
     return window.matchMedia &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -34,6 +39,81 @@
     const v = parseFloat(raw);
     if (isNaN(v)) return fallback;
     return raw.endsWith("rem") ? v * 16 : v;
+  }
+
+  // ---- interactive grid background ------------------------------------
+  // Mounts the canvas-rendered grid wash (src/interactive-grid.js) and binds
+  // its hover wash to the home's open/close state: on takeover the wash fades
+  // and the rAF loop pauses; on close it resumes and fades back in at the
+  // current cursor position. Reduced-motion hides the interactive bg
+  // entirely — the original ::before paper-wash stays visible as the fallback
+  // because .home--bg-canvas (which kills both bg layers) is never added.
+  function mountBgCanvas(root) {
+    if (reduce()) return;
+    if (root.dataset.bgMounted === "true") return;   // idempotent
+    root.dataset.bgMounted = "true";
+    root.classList.add("home--bg-canvas");
+
+    function ready() {
+      if (!window.InteractiveGrid) return;
+      const grid = window.InteractiveGrid.mount();
+      wireGridToHomeState(grid, root);
+    }
+    if (window.InteractiveGrid) { ready(); return; }
+
+    const s = document.createElement("script");
+    s.src = SCRIPT_URL
+      ? new URL("../../interactive-grid.js", SCRIPT_URL).href
+      : "../../interactive-grid.js";
+    s.onload = ready;
+    document.head.appendChild(s);
+  }
+
+  // home.js flips root[data-home-state] between "resting" and "open" as a
+  // project opens / closes (see the takeover / close paths below). On open
+  // we fade the wash out and pause the rAF; on close we resume + fade back
+  // in. restingMetrics() does a synchronous flip-and-restore on the same
+  // attribute mid-animation — MutationObserver callbacks are microtasks, so
+  // by the time we read the attribute the no-op cycle has settled; the
+  // `lastSeen` guard discards it.
+  function wireGridToHomeState(grid, root) {
+    const gsap = window.gsap;
+    const op = { v: 1 };
+    let lastSeen = root.getAttribute("data-home-state") || "resting";
+
+    function setOpacity(v) {
+      op.v = v;
+      grid.update({ hoverOpacity: v });
+    }
+
+    function fadeOutThenPause() {
+      if (!gsap) { setOpacity(0); grid.pause(); return; }
+      gsap.killTweensOf(op);
+      gsap.to(op, {
+        v: 0, duration: sec("--motion-fast", 0.12), ease: "power1.out",
+        onUpdate: () => setOpacity(op.v),
+        onComplete: () => grid.pause(),
+      });
+    }
+
+    function resumeThenFadeIn() {
+      grid.resume();
+      if (!gsap) { setOpacity(1); return; }
+      gsap.killTweensOf(op);
+      gsap.fromTo(op, { v: 0 }, {
+        v: 1, duration: sec("--motion-standard", 0.3), ease: "power1.out",
+        onUpdate: () => setOpacity(op.v),
+      });
+    }
+
+    const obs = new MutationObserver(() => {
+      const cur = root.getAttribute("data-home-state");
+      if (cur === lastSeen) return;
+      lastSeen = cur;
+      if (cur === "open") fadeOutThenPause();
+      else if (cur === "resting") resumeThenFadeIn();
+    });
+    obs.observe(root, { attributes: true, attributeFilter: ["data-home-state"] });
   }
 
   // ---- on-load entrance ------------------------------------------------
@@ -950,6 +1030,6 @@
   }
 
   window.HomeTemplate = {
-    init(root) { playEntrance(root); wireTakeover(root); }
+    init(root) { mountBgCanvas(root); playEntrance(root); wireTakeover(root); }
   };
 })();

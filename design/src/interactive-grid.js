@@ -20,8 +20,11 @@
        hoverRadius: 160,
        radiusShape: 'circle',     // 'circle' | 'square' | 'diamond'
        smoothTau: 240,            // ms
+       hoverOpacity: 1,           // 0..1 — multiply into the hover wash alpha
      });
      grid.update({ hoverRadius: 200 });   // tweak any field at runtime
+     grid.pause();                         // freeze rAF; cursor still tracked
+     grid.resume();                        // restart rAF, snap to current pos
      grid.destroy();                       // remove + detach
    ============================================================ */
 
@@ -67,6 +70,10 @@
       hoverRadius: opts.hoverRadius != null ? opts.hoverRadius : 160,
       radiusShape: opts.radiusShape || 'circle',
       smoothTau:   opts.smoothTau   != null ? opts.smoothTau   : 240,
+      // 0..1 multiplier on the hover wash. The host fades this 1→0 to dim
+      // the wash before a takeover, then 0→1 on close. 0 short-circuits the
+      // inner cell loop so paused frames cost only a bg + grid blit.
+      hoverOpacity: opts.hoverOpacity != null ? opts.hoverOpacity : 1,
     };
 
     // --- State --------------------------------------------------
@@ -84,6 +91,10 @@
     // --- Render loop (dirty-flag; rAF only when work to do) -----
     let rafScheduled = false;
     let dirty = false;
+    // When paused, the rAF tick early-returns and mousemove stops markDirty'ing.
+    // Position is still tracked in mouse.x/y so resume() can snap to the
+    // current cursor instead of swinging back through the pre-pause spot.
+    let paused = false;
 
     function markDirty() {
       dirty = true;
@@ -100,6 +111,7 @@
 
     function tick(now) {
       rafScheduled = false;
+      if (paused) return;
       render(now);
       if (smoothingActive() || dirty) {
         rafScheduled = true;
@@ -164,7 +176,9 @@
       ctx.fillRect(0, 0, viewW, viewH);
 
       // 2) Shaded cells inside the hover region (binary fill — no gradient).
-      if (mouse.seen) {
+      // hoverOpacity ≤ 0 short-circuits the whole block: paused or fully-faded
+      // frames cost only the bg fill + grid blit.
+      if (mouse.seen && config.hoverOpacity > 0) {
         const mx = mouse.smoothX;
         const my = mouse.smoothY;
         const r = config.hoverRadius;
@@ -176,6 +190,7 @@
         const maxCy = Math.min(rows - 1, Math.floor((my + r) / cs));
         if (maxCx >= minCx && maxCy >= minCy) {
           ctx.fillStyle = config.hoverColor;
+          ctx.globalAlpha = config.hoverOpacity;
           const r2 = r * r;
           for (let cy = minCy; cy <= maxCy; cy++) {
             for (let cx = minCx; cx <= maxCx; cx++) {
@@ -194,6 +209,7 @@
               if (inside) ctx.fillRect(cx * cs, cy * cs, cs, cs);
             }
           }
+          ctx.globalAlpha = 1;
         }
       }
 
@@ -202,6 +218,9 @@
     }
 
     // --- Listeners ----------------------------------------------
+    // Cursor position is tracked unconditionally — pause only suppresses
+    // re-render, so resume() can snap to the cursor's current spot rather than
+    // re-animating from the pre-pause location.
     const onMouseMove = (e) => {
       if (!mouse.seen) {
         mouse.smoothX = e.clientX;
@@ -210,7 +229,7 @@
       }
       mouse.x = e.clientX;
       mouse.y = e.clientY;
-      markDirty();
+      if (!paused) markDirty();
     };
     document.addEventListener('mousemove', onMouseMove);
 
@@ -237,6 +256,24 @@
         }
         markDirty();
       },
+      // Freeze the rAF loop. Cursor tracking continues so a later resume()
+      // can snap to the current position.
+      pause() {
+        paused = true;
+      },
+      // Restart the rAF loop. Snap the smoothed cursor to the current cursor
+      // so the wash doesn't swing back through the pre-pause spot; mouse.seen
+      // false (no mousemove yet) is left alone — the next move will seed it.
+      resume() {
+        if (!paused) return;
+        paused = false;
+        if (mouse.seen) {
+          mouse.smoothX = mouse.x;
+          mouse.smoothY = mouse.y;
+        }
+        markDirty();
+      },
+      get paused() { return paused; },
       destroy() {
         document.removeEventListener('mousemove', onMouseMove);
         ro.disconnect();

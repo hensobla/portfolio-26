@@ -45,6 +45,9 @@
             // auto-sizes to content, so 100svh would loop — size to content.
             if (window.self === window.top) root.classList.add("home--standalone");
             // Entrance + takeover wiring live in home.js (window.HomeTemplate).
+            // Init also mounts the interactive grid bg + binds it to the home's
+            // open/close state (reduced-motion: skipped, original ::before
+            // paper-wash remains visible).
             if (window.HomeTemplate) window.HomeTemplate.init(root);
           }
           try { parent.postMessage({ type: "loom:ready", slug: "home" }, location.origin); } catch (_) {}
