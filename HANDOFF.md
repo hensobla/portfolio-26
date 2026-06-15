@@ -1,108 +1,88 @@
-# Handoff — Interactive grid background for homepage
+# Handoff — Interactive grid bg wired into the home template
 
 **Updated:** 2026-06-14
-**Branch:** `play/interactive-bg`
-**Session length:** ~one long session (exploration → extraction)
+**Branch:** `main` (up-to-date with `origin/main`)
+**Session length:** one focused session, continuing from the prior interactive-grid-bg session
 
 ## Current goal
 
-Build a tasteful, lightweight interactive background for the homepage WIP. The session shipped a reusable module — [`design/src/interactive-grid.js`](design/src/interactive-grid.js) — that mounts a fixed-position canvas, draws a 32px grid wash aligned to `--space-6` (the same token the homepage `::before` wash already uses), and shades cells under the cursor with an eased follow. Defaults are token-driven so it Just Works on the homepage with no configuration.
-
-The next step is wiring the module into `design/src/templates/home/` and removing the static `::before` grid wash. That's intentionally a separate session — this branch is the source artifact.
+Close the loop opened in the prior handoff: take the standalone `interactive-grid.js` module (merged at `9f80af4`) and wire it into the home template so the bg appears on the home WIP by default, with the hover wash bound to the home's open/close state. Reduced-motion users get the original paper-wash fallback instead.
 
 ## State right now
 
-Everything works. The two lab files render correctly, the module loads via `<script>` and exposes `window.InteractiveGrid.mount(opts)`, and homepage integration is documented but not done.
+Done and verified in [preview.html](design/src/templates/home/preview.html) at `http://localhost:8765/src/templates/home/preview.html`.
 
-- **Interactive lab** (default): http://localhost:8765/lab-bg-dots.html — uses the module, panel tunes `radiusSize`, `radiusShape`, `hoverColor`, `delay` (smoothing tau), `bgColor`. Toggle "Show content overlay" to preview the bg under the real homepage markup (fetched + rendered with `gsap` + `home.js`).
-- **Image-mode archive**: http://localhost:8765/lab-bg-dots-image.html — earlier dot-image grid (mountains rendered as dots, density/three-radius weights, morph between images). Self-contained, no shared deps with the interactive module. Kept for future projects that want image-as-dot bgs.
-- **Module**: [`design/src/interactive-grid.js`](design/src/interactive-grid.js) — vanilla, ~252 lines, no deps. Mounts canvas, returns `{ update, destroy, config }`.
+- **Default load (no params):** `.home--bg-canvas` is applied to the root, the original `::before` paper-wash is hidden, the InteractiveGrid canvas is mounted (`position:fixed; z-index:0`), the hover wash follows the cursor.
+- **Opening a project** (`data-home-state="open"`): the hover wash fades to 0 over `--motion-fast` (~120ms), then the rAF loop pauses. Paused frames cost only the bg + grid blit (cells loop short-circuits when `hoverOpacity <= 0`).
+- **Closing a project** (`data-home-state="resting"`): the rAF loop resumes, the smoothed cursor position snaps to the current cursor (no swing through the pre-pause spot), and the wash fades back in over `--motion-standard` (~300ms).
+- **Reduced motion (`prefers-reduced-motion: reduce`):** `mountBgCanvas()` bails before adding any class or loading the script. The original `::before` paper-wash + solid `var(--background)` remain visible — the home looks exactly like it did before this feature was added.
 
-Verified:
-- Idle CPU is literal zero (rAF only fires when cursor moves or smoothing is converging — see dirty-flag pattern in `interactive-grid.js` `markDirty`/`tick`).
-- Grid cell size = `--space-6` = 32px CSS (probed empirically via 1px stroke detection).
-- No black flicker on viewport resize (paints synchronously inside `resizeGrid` instead of going through `markDirty`).
-- Shading persists when cursor leaves the viewport; eases to new position on re-entry. `mouse.seen` is sticky-true after the first mousemove.
+No console errors. The `restingMetrics()` synchronous flip-and-restore mid-takeover is correctly coalesced by the `lastSeen` guard in the observer.
 
 ## What was done this session
 
-- Created [`design/lab-bg-dots.html`](design/lab-bg-dots.html) — interactive lab. Thin shell around `interactive-grid.js`.
-- Created [`design/lab-bg-dots-image.html`](design/lab-bg-dots-image.html) — image-as-dots archive (mountains source + procedural shapes, density/light/medium/heavy radii, morph between images, color/bg pickers, invert).
-- Created [`design/src/interactive-grid.js`](design/src/interactive-grid.js) — the extracted module. Token-driven defaults (`--space-6`, `--background`, `--border`), dirty-flag rendering, ResizeObserver, eased cursor follow with sticky-on-leave behavior, offscreen grid-cache, public `update`/`destroy`/`config` API.
-- Added [`design/lab-assets/two-tone-mountains-wide.png`](design/lab-assets/two-tone-mountains-wide.png) — source image for the archive's dot rendering.
-
-Lab iterations along the way (the journey, in order):
-1. Dot-grid that samples brightness from a procedural image → renders three dot weights (light/medium/heavy).
-2. Added the user's two-tone mountains PNG; resized the offscreen sample canvas to match viewport aspect (was squishing wide images).
-3. Added a second "interactive" mode in the same lab: hover ring + click-wave on a uniform dot field. Wave used eased ring expansion + per-cell falloff blend.
-4. Switched the interactive variation to the homepage grid wash style — square grid lines on a 32px grid, **binary** cell shading (no gradient), three radius shapes (circle / square / diamond). Click ripple dropped.
-5. Added eased cursor follow with `smoothTau` ms time-constant. Snap on first move / re-entry.
-6. Tweaked defaults to reference values shared by the user (image mode density 72, interactive density 32, soft dot color `#B1B8E2`, morph 1400ms, soft hover `#F0EBE5` → later `#F2EFE8`).
-7. Locked cell size to `--space-6` (32px), dropped the density slider in interactive mode, added a hint that the grid matches the site grid.
-8. Added a "Show content overlay" toggle in the panel that fetches `home.html` + boots `HomeTemplate.init(root)` over the bg, so the user can preview the bg under real homepage chrome.
-9. Split the two modes into two files: image stuff into `lab-bg-dots-image.html`, interactive-only in `lab-bg-dots.html`. Added dirty-flag rendering and offscreen grid cache for perf.
-10. Fixed black-flicker on viewport resize by painting synchronously inside `resizeGrid` (canvas was `alpha:false`, so `canvas.width = X` cleared to opaque black until next rAF).
-11. Switched cursor-leave behavior from "shading vanishes" to "shading persists at last position, eases to new spot on re-entry" — sticky `mouse.seen` instead of toggling `inside`.
-12. Extracted everything generic into `design/src/interactive-grid.js`. Lab now mounts the module and forwards panel changes through `grid.update(patch)`.
+- **[design/src/interactive-grid.js](design/src/interactive-grid.js)** — added `hoverOpacity` config (default 1) multiplied into `globalAlpha` around the cells loop, with a `<=0` short-circuit. Added `pause()` / `resume()` — paused state stops the rAF tick but mousemove still tracks the cursor, so `resume()` can snap the smoothed position to the current spot. Exposed a `paused` getter.
+- **[design/src/templates/home/home.css](design/src/templates/home/home.css)** — added `.home--bg-canvas` modifier: nullifies the solid `background` and `display:none`s the `::before` paper-wash. The home root keeps `position: relative; z-index` semantics so `.home__identity` / `.home__explorer` (already `z-index: 1`) stay above the canvas at `z-index: 0`.
+- **[design/src/templates/home/home.js](design/src/templates/home/home.js)** — added `mountBgCanvas(root)` and `wireGridToHomeState(grid, root)`. `init()` now calls `mountBgCanvas` first. Captures `document.currentScript.src` at module-eval time into `SCRIPT_URL` so the dynamic-load path resolves relative to home.js's own URL (portable across preview.html, sandbox iframes, future consumers).
+- **[design/src/templates/home/preview.html](design/src/templates/home/preview.html)** — removed the temporary `?bg=canvas` opt-in (and the `mountInteractiveGridBg` / `wireGridToHomeState` helpers I'd put there). The bg is now default-on via `HomeTemplate.init`.
 
 ## Key decisions and why
 
 | Decision | Rationale | Alternatives rejected |
 |---|---|---|
-| Bg is an extractable module (`src/interactive-grid.js`), not a vendored copy inside the homepage template | Lets the homepage import it via plain `<script>` and pass overrides; future projects can pull the same module; lab + homepage share one source of truth | Inlining the canvas code into `home.js` (would couple bg to template, harder to reuse); class-based wrapper (overkill for a 250-line module) |
-| Grid cell size locked to `--space-6` (32px) | Same token the homepage `::before` wash already uses; ensures pixel-perfect alignment between the lab bg, the homepage grid wash, and any content laid out on that rhythm | A density slider (was in the lab earlier; dropped once the user asked for grid alignment); reading from a custom token (no need — `--space-6` already conveys this meaning) |
-| Binary cell shading (no gradient falloff at the radius edge) | User explicitly asked for "choose cells to shade entirely; don't use a gradient." Reads cleanly as a Blueprint-style halftone, not as a glow | Smoothstep blend toward edge (earlier wave version had this — abandoned with the "binary" pivot) |
-| Cursor-leave behavior: shading persists at last position, eases to new spot on re-entry. `mouse.seen` flips true on first mousemove and stays true | Felt unphysical to have the panel "vanish" when cursor crosses into the panel chrome or off-screen; persistence + eased re-entry gives the bg a sense of inertia | Snap on re-entry (was in earlier version); shading invisible while `!inside` (the first iteration) |
-| Dirty-flag rAF loop, not continuous | Lab + homepage will have this bg sitting passively most of the time. 60Hz idle redraw is wasteful and battery-unfriendly. Zero CPU when idle, verified empirically (0 rAFs in 1s of no input). | Continuous rAF (works but burns cycles); IntersectionObserver-gated rendering (more complex than needed) |
-| Paint synchronously inside `resizeGrid()` after canvas reset, in addition to scheduling rAF | `canvas.width = X` + `getContext('2d', {alpha:false})` clears the backing store to opaque black; without a sync paint, there's one frame of black during resize drag | Skip `alpha:false` (worse compositing perf); skip canvas resize on every event and rely on stretching (introduces blur during drag) |
-| Image-mode kept in a separate archive file rather than deleted | User explicitly wanted to "file it away" for other projects; image-as-dots is a distinct primitive that doesn't belong in the interactive bg artifact | Delete it (loses the work); merge both into one file (conflates two unrelated bg concepts) |
-| Lab file (`lab-bg-dots.html`) loads `gsap.min.js` + `home.js` for the content overlay preview | The content overlay's purpose is showing the bg under the REAL homepage chrome; without `home.js` + GSAP, the folder art doesn't paint and the visual is misleading | Lazy-loading these only when overlay is enabled (more complex; deferred scripts already cost ~0 if the overlay never fires) |
+| Mount the bg from `home.js`, not from each consumer | The bg is part of the home's behavior, not the preview's. Anywhere the home template is rendered (preview, sandbox iframe, future Next port) should get the bg automatically. | Keep mounting in `preview.html` — would have meant every future consumer re-implements the wiring. |
+| `MutationObserver` on `data-home-state` rather than per-callsite event hooks | `home.js` flips the attribute at 7+ call sites (open paths + close paths + transient `restingMetrics` flips). One observer covers them all. | Instrument every `setAttribute("data-home-state", …)` call with explicit `bgOpen()` / `bgClose()` hooks — invasive, easy to miss new sites. |
+| `lastSeen` guard discards same-value writes | `restingMetrics()` does a synchronous `open → resting → open` flip-and-restore mid-animation for measurement. MutationObserver callbacks are microtasks, so by callback time the attribute has its final value; comparing to `lastSeen` collapses the no-op. | Time-debounce or rAF-debounce — flakier and slower. |
+| Mousemove keeps tracking while paused | So `resume()` can snap the smoothed cursor to the **current** position. If we gated mousemove too, the wash would swing back through the pre-pause spot on un-pause. | Pause mousemove entirely — visually wrong on close. |
+| Reduced-motion bails *before* applying `.home--bg-canvas` | Falling back to the original `::before` paper-wash means reduced-motion users see the home as it was before this feature, no flat empty bg. | Apply the modifier + skip only the canvas — would have left the home with a flat solid bg and nothing else. |
+| Resolve `interactive-grid.js` path against `SCRIPT_URL` (home.js's own URL) | `document.currentScript` captured at module-eval gives a portable base URL; works no matter where home.js is loaded from. | Hardcode `../../interactive-grid.js` — breaks if home.js is ever loaded from a different document URL. |
 
 ## Files touched
 
-- **Created:** `design/lab-bg-dots.html` — interactive grid lab; thin wrapper around `src/interactive-grid.js`. 347 lines.
-- **Created:** `design/lab-bg-dots-image.html` — image-as-dots archive (mountains + 5 procedural shapes, density/light/medium/heavy radii, color pickers, invert, morph between images). 768 lines. Self-contained, no `interactive-grid.js` dependency.
-- **Created:** `design/src/interactive-grid.js` — the extractable bg module. Vanilla, ~252 lines. `window.InteractiveGrid.mount(opts) → { update, destroy, config }`. Token-driven defaults from `--space-6` / `--background` / `--border`.
-- **Created:** `design/lab-assets/two-tone-mountains-wide.png` — source image for `lab-bg-dots-image.html`. ~2.7 MB.
-- **Referenced (not modified):** `design/src/templates/home/home.css` — its `::before` grid wash on `[data-loom-template="home"]` (lines ~23–37) is the alignment target the module matches. The homepage integration will delete this rule once it adopts the canvas.
-- **Referenced (not modified):** `design/src/tokens.css` — `--space-6`, `--background`, `--border` are the tokens the module reads at mount time.
-- **Referenced (not modified):** `design/src/templates/home/home.js`, `design/src/vendor/gsap.min.js` — loaded by `lab-bg-dots.html` for the "Show content overlay" preview; not consumed by the interactive bg itself.
+- **Modified:** [design/src/interactive-grid.js](design/src/interactive-grid.js) — `hoverOpacity` config, `pause()` / `resume()`, alpha gating in render, mousemove tracking unconditional.
+- **Modified:** [design/src/templates/home/home.css](design/src/templates/home/home.css) — `.home--bg-canvas` modifier (transparent bg + `::before` `display:none`).
+- **Modified:** [design/src/templates/home/home.js](design/src/templates/home/home.js) — `SCRIPT_URL` capture, `mountBgCanvas()`, `wireGridToHomeState()`, `init()` calls `mountBgCanvas` first.
+- **Modified:** [design/src/templates/home/preview.html](design/src/templates/home/preview.html) — removed the `?bg=canvas` opt-in helpers; preview is back to vanilla (just renders the template).
+- **Referenced (not modified):** [design/HANDOFF.md](design/HANDOFF.md) — older Loomling-side handoff; the home WIP itself hasn't changed structure since.
 
-## Git state (at handoff time)
+## Git state
 
 ```
-On branch play/interactive-bg
-Untracked files:
-  (use "git add <file>..." to include in what will be committed)
-	design/lab-assets/
-	design/lab-bg-dots-image.html
-	design/lab-bg-dots.html
-	design/src/interactive-grid.js
+On branch main
+Your branch is up to date with 'origin/main'.
 
-nothing added to commit but untracked files present (use "git add" to track)
+Changes not staged for commit:
+	modified:   design/src/interactive-grid.js
+	modified:   design/src/templates/home/home.css
+	modified:   design/src/templates/home/home.js
+	modified:   design/src/templates/home/preview.html
 ```
 
-The `/handoff commit push merge` invocation stages, commits, pushes, and merges to `main` after this file is written.
+```
+ design/src/interactive-grid.js         | 41 ++++++++++++++++-
+ design/src/templates/home/home.css     |  7 +++
+ design/src/templates/home/home.js      | 82 +++++++++++++++++++++++++++++++++-
+ design/src/templates/home/preview.html |  3 ++
+ 4 files changed, 130 insertions(+), 3 deletions(-)
+```
+
+After this handoff, the user is committing + pushing (per their explicit request this session).
 
 ## Immediate next steps
 
-1. **Wire `InteractiveGrid` into the homepage template.** Add `<script src="../../interactive-grid.js" defer></script>` to `design/src/templates/home/preview.html`; call `window.InteractiveGrid.mount({ container: root })` inside `home.js`' `init()`; remove the `::before` rule from `home.css`. The mounted canvas defaults to `z-index: 0`; `.home__identity` / `.home__explorer` already sit at `z-index: 1`, so no further CSS changes needed.
-2. **Decide whether the hover-color override sticks.** `#F2EFE8` is the current default in the module; visually it's a very-pale warm gray, almost invisible against `--background` `#F7F4EE`. The user picked this on purpose for a quiet, technical-drawing-on-paper feel. If it reads as "the bg is broken" once mounted on the homepage, bump the contrast slightly (try `#EDE7DD` or similar warm gray).
-3. **Test the bg on the homepage's open-folder state**, where the right side fills with project panels. The dim shading should slide under the folder art without fighting it. If it does fight: lower hover-color contrast further or drop `hoverRadius` to ~120.
-4. **Then consider an ADR**: this is a meaningful architectural addition (a canvas-backed bg module that the homepage adopts). Pattern is similar to ADR 0027 (Loomling overriding the app). Write `design/decisions/0033-interactive-grid-bg.md` covering: chose extractable module over inlining, locked to `--space-6` for grid alignment, dirty-flag rAF for idle-zero CPU, sticky cursor-leave behavior.
+1. **Smoke-test in the Loom sandbox.** Only verified in standalone preview.html. Open the home via the Loom library viewer (`/library/`) and confirm the bg renders inside the iframe context — sandbox.html sizes the iframe to content, and the canvas is `position: fixed; inset: 0` (full viewport). May behave unexpectedly inside an auto-sizing iframe.
+2. **Real interaction pass.** Click a project tab in the standalone preview and confirm the fade-out + pause feels right against the actual GSAP takeover timing. The 120ms fade was a token-scale guess (`--motion-fast`); the user may want the fade to track the takeover's lead-in more tightly.
+3. **Carry over to the Next port.** When the home is ported per [ADR 0027](design/decisions/0027-stack-adoption-loomling-overrides-app.md), bring `interactive-grid.js` + the `.home--bg-canvas` CSS rules + `mountBgCanvas`/`wireGridToHomeState` into the React component. The MutationObserver pattern still works there.
 
 ## Open questions / blockers
 
-- The hover color `#F2EFE8` is a personal-taste call. It's barely visible — that may be exactly right, or it may not survive contact with real content. The homepage integration session will be the judge.
-- No decision yet on whether the homepage uses `position: fixed` (current module default — bg stays put, content scrolls) or `position: absolute` inside the template (bg scrolls with content). The homepage hits `min-height: 100svh`; if content rarely scrolls past one viewport, this doesn't matter. If it does, `fixed` will feel more like a backdrop.
-- The lab's "Show content overlay" toggle loads the home template via `fetch`. That works locally because everything's served from `design/` by the `loomling-static` server, but a future port to the Next.js app side would need a different path. Not blocking this branch.
+- None. The user asked for this and approved each step ("love it"); nothing waiting on a decision.
 
 ## Gotchas for the next session
 
-- **Headless preview rAF pauses.** When verifying via the Claude Preview MCP, `requestAnimationFrame` callbacks can be paused while the tab isn't being interacted with. If you mount the module and the canvas appears blank, dispatch a `mousemove` on `document` to wake the loop. (The lab does this implicitly via the panel controls.)
-- **Don't trust pre-screenshot panel state.** The Preview MCP's screenshot tool sometimes fires synthetic key events that toggle the H-key panel-hide handler. The lab's keydown handler now guards on `e.isTrusted` for that reason. If you add new keyboard handlers in future, do the same.
-- **`canvas.getContext('2d', { alpha: false })` clears to opaque black on `canvas.width =` assignment.** The module already paints synchronously after a resize to mask this; keep that ordering if you refactor.
-- **Module assumes one mount per page.** It attaches a `document.addEventListener('mousemove', ...)` and a `ResizeObserver` on `documentElement`. Calling `mount()` twice gives you two listeners + two canvases. If the homepage ever wants multiple grids, the module's listener attachment needs to scope to the container.
-- **`readSpaceToken` works by appending a probe `<div>` to the container.** If you mount inside a container that's `display: none` at mount time, `offsetWidth` returns 0 and the module falls back to `32`. Mount AFTER the container is visible.
-- **Image archive lab is self-contained.** Don't try to share code between `lab-bg-dots-image.html` and `lab-bg-dots.html` — they're different bg concepts, and the archive's whole purpose is being a copy-paste-able reference for future image-as-dots projects.
-- **The grid wash's color comes from `--border`.** If you ever override `--border` for accessibility (e.g., higher-contrast borders), the grid lines will get louder too. That's probably desirable, but worth knowing.
+- **Init order matters.** `mountBgCanvas` runs FIRST in `init()`; if it ever throws, `playEntrance` + `wireTakeover` won't run. Currently it's no-throw on normal paths (script load failures degrade gracefully — no canvas appears, original CSS bg shows).
+- **Don't refactor the `lastSeen` guard away.** It's specifically there to absorb `restingMetrics()`'s sync flip-and-restore noise. Without it, the bg would fade out + back in every time `restingMetrics()` runs mid-animation.
+- **`prefers-reduced-motion` is read once at init.** Toggling the pref mid-session won't tear down or mount the bg; needs a reload.
+- **Cursor position is tracked even while paused** (line ~135 of `interactive-grid.js`). If you ever change `onMouseMove` to skip when paused, `resume()` will snap to a stale cursor and the wash will reappear in the wrong spot.
+- **`SCRIPT_URL` is captured at module-eval time** via `document.currentScript`. Changing how home.js is loaded (e.g., via `import()` or `eval`) breaks that — fall back to the literal `../../interactive-grid.js` is hardcoded as a safety net but it assumes preview.html-relative paths.
+- **The interactive-grid module is `alpha: false`** (opaque canvas, set in `getContext`). The bg is always the full `bgColor` rectangle even when paused — never transparent. Good for perf, but means the canvas WILL occlude anything behind it; the home's `.home--bg-canvas` modifier handles this by going transparent itself.
