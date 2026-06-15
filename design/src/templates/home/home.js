@@ -23,6 +23,26 @@
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
 
+  // Peak alpha for the cursor wash, per mode. Light mode runs at the full
+  // --surface1 lift (delta of ~6/channel against the cream bg — already
+  // tasteful); dark mode dials down to 0.4 because the surface1↔background
+  // delta is ~13/channel and full strength reads as more presence than the
+  // home wants.
+  const HOVER_PEAK_LIGHT = 1.0;
+  const HOVER_PEAK_DARK  = 0.4;
+
+  function isDarkTheme() {
+    const explicit = document.documentElement.getAttribute("data-theme");
+    if (explicit === "dark") return true;
+    if (explicit === "light") return false;
+    return !!(window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches);
+  }
+
+  function currentHoverPeak() {
+    return isDarkTheme() ? HOVER_PEAK_DARK : HOVER_PEAK_LIGHT;
+  }
+
   // Read a --motion-* duration token (ms/s) as seconds.
   function sec(name, fallback) {
     const raw = getComputedStyle(document.documentElement)
@@ -49,12 +69,6 @@
   // entirely — the original ::before paper-wash stays visible as the fallback
   // because .home--bg-canvas (which kills both bg layers) is never added.
 
-  // Peak alpha for the cursor wash on the homepage. The InteractiveGrid
-  // module's own default is 1 (used by the lab); the home wants the wash
-  // to whisper, not shout. Both the initial mount AND the fade-in target
-  // read from this so they stay in sync.
-  const HOVER_PEAK = 0.4;
-
   function mountBgCanvas(root) {
     if (reduce()) return;
     if (root.dataset.bgMounted === "true") return;   // idempotent
@@ -63,7 +77,7 @@
 
     function ready() {
       if (!window.InteractiveGrid) return;
-      const grid = window.InteractiveGrid.mount({ hoverOpacity: HOVER_PEAK });
+      const grid = window.InteractiveGrid.mount({ hoverOpacity: currentHoverPeak() });
       wireGridToHomeState(grid, root);
     }
     if (window.InteractiveGrid) { ready(); return; }
@@ -85,7 +99,7 @@
   // `lastSeen` guard discards it.
   function wireGridToHomeState(grid, root) {
     const gsap = window.gsap;
-    const op = { v: HOVER_PEAK };
+    const op = { v: currentHoverPeak() };
     let lastSeen = root.getAttribute("data-home-state") || "resting";
 
     function setOpacity(v) {
@@ -105,12 +119,37 @@
 
     function resumeThenFadeIn() {
       grid.resume();
-      if (!gsap) { setOpacity(HOVER_PEAK); return; }
+      const peak = currentHoverPeak();
+      if (!gsap) { setOpacity(peak); return; }
       gsap.killTweensOf(op);
       gsap.fromTo(op, { v: 0 }, {
-        v: HOVER_PEAK, duration: sec("--motion-standard", 0.3), ease: "power1.out",
+        v: peak, duration: sec("--motion-standard", 0.3), ease: "power1.out",
         onUpdate: () => setOpacity(op.v),
       });
+    }
+
+    // Theme flips while the wash is visible (resting): retarget the peak so
+    // the wash matches the new mode's intent. While open/paused the wash
+    // is at 0 and the next fade-in will read the right peak — no-op here.
+    // A quick tween (rather than a hard set) keeps mid-cycle flips smooth.
+    function onThemeChange() {
+      if (lastSeen !== "resting") return;
+      const peak = currentHoverPeak();
+      if (!gsap) { setOpacity(peak); return; }
+      gsap.killTweensOf(op);
+      gsap.to(op, {
+        v: peak, duration: sec("--motion-fast", 0.12), ease: "power1.out",
+        onUpdate: () => setOpacity(op.v),
+      });
+    }
+    const themeObs = new MutationObserver(onThemeChange);
+    themeObs.observe(document.documentElement, {
+      attributes: true, attributeFilter: ["data-theme"],
+    });
+    const colorMql = window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)");
+    if (colorMql && colorMql.addEventListener) {
+      colorMql.addEventListener("change", onThemeChange);
     }
 
     const obs = new MutationObserver(() => {
