@@ -7,10 +7,16 @@
    dirty-flag rAF loop that sleeps to 0 CPU when idle.
 
    Defaults read straight from the Blueprint tokens, so the grid
-   matches the rest of the site without configuration:
-     - cellSize  ← var(--space-6)        (32px = site grid)
-     - bgColor   ← var(--background)
-     - lineColor ← var(--border)
+   matches the rest of the site without configuration AND auto-flips
+   when the theme changes (data-theme attribute or OS preference):
+     - cellSize   ← var(--space-6)        (32px = site grid)
+     - bgColor    ← var(--background)
+     - lineColor  ← var(--border)
+     - hoverColor ← var(--surface1)       (raised; lighter than bg
+                                           in both light + dark)
+   Token-derived fields re-resolve on theme change; explicit values
+   passed via opts stay locked (the lab's panel uses explicit hexes
+   so its UI controls aren't fighting an auto-refresh).
 
    Usage:
      const grid = InteractiveGrid.mount();
@@ -62,11 +68,30 @@
     const gridCtx = gridCache.getContext('2d');
 
     // --- Config (token-driven defaults; everything overridable) -
+    // Resolvers for the token-driven defaults — also re-called on theme
+    // changes so the bg flips automatically with light/dark.
+    function autoBg()    { return resolveToken('--background', container, '#F7F4EE'); }
+    function autoLine()  { return resolveToken('--border',     container, 'rgba(0, 0, 0, 0.15)'); }
+    function autoHover() { return resolveToken('--surface1',   container, '#F2EFE8'); }
+
+    // Track which color fields were derived from tokens (vs. explicit opts).
+    // Only token-derived fields re-resolve when the theme flips; explicit
+    // hexes from the host (e.g. the lab's panel) stay locked.
+    const tokenDerived = {
+      bgColor:    opts.bgColor    == null,
+      lineColor:  opts.lineColor  == null,
+      hoverColor: opts.hoverColor == null,
+    };
+
     const config = {
       cellSize:   opts.cellSize   != null ? opts.cellSize   : readSpaceToken('--space-6', container),
-      bgColor:    opts.bgColor    || resolveToken('--background', container, '#F7F4EE'),
-      lineColor:  opts.lineColor  || resolveToken('--border', container, 'rgba(0, 0, 0, 0.15)'),
-      hoverColor: opts.hoverColor || '#F2EFE8',
+      bgColor:    tokenDerived.bgColor    ? autoBg()    : opts.bgColor,
+      lineColor:  tokenDerived.lineColor  ? autoLine()  : opts.lineColor,
+      // --surface1 is the canonical hover surface per system/color.md — it's
+      // slightly LIGHTER than --background in both modes (cream-raised on
+      // light, charcoal-raised on dark), so the wash reads as "cells lift
+      // toward the cursor" in either theme.
+      hoverColor: tokenDerived.hoverColor ? autoHover() : opts.hoverColor,
       hoverRadius: opts.hoverRadius != null ? opts.hoverRadius : 160,
       radiusShape: opts.radiusShape || 'circle',
       smoothTau:   opts.smoothTau   != null ? opts.smoothTau   : 240,
@@ -240,6 +265,31 @@
     });
     ro.observe(document.documentElement);
 
+    // --- Theme responsiveness ---------------------------------------
+    // Re-resolve any token-derived colors when the theme flips — both the
+    // Loom's explicit toggle (sets <html data-theme="dark">) and OS-level
+    // preference changes (the @media block in tokens.css). Explicit colors
+    // passed via opts stay locked.
+    function refreshTokens() {
+      const patch = {};
+      if (tokenDerived.bgColor)    patch.bgColor    = autoBg();
+      if (tokenDerived.lineColor)  patch.lineColor  = autoLine();
+      if (tokenDerived.hoverColor) patch.hoverColor = autoHover();
+      if (!Object.keys(patch).length) return;
+      Object.assign(config, patch);
+      if ('lineColor' in patch) paintGridCache();
+      markDirty();
+    }
+    const themeObserver = new MutationObserver(refreshTokens);
+    themeObserver.observe(document.documentElement, {
+      attributes: true, attributeFilter: ['data-theme'],
+    });
+    const colorSchemeMql = window.matchMedia &&
+      window.matchMedia('(prefers-color-scheme: dark)');
+    if (colorSchemeMql && colorSchemeMql.addEventListener) {
+      colorSchemeMql.addEventListener('change', refreshTokens);
+    }
+
     // --- Boot ---------------------------------------------------
     resizeGrid();
 
@@ -277,6 +327,10 @@
       destroy() {
         document.removeEventListener('mousemove', onMouseMove);
         ro.disconnect();
+        themeObserver.disconnect();
+        if (colorSchemeMql && colorSchemeMql.removeEventListener) {
+          colorSchemeMql.removeEventListener('change', refreshTokens);
+        }
         if (resizeRaf) cancelAnimationFrame(resizeRaf);
         canvas.remove();
       },
