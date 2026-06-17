@@ -84,7 +84,7 @@
         // the smoothing means rotation lags on curves (not rigid) and the
         // blob eases back to a circle when the cursor stops (not snaps).
         // Tuning this in-branch; commit to taste.
-        stretchFactor: 0.4,
+        stretchFactor: 0.2,
         velocityTau: 240,
       });
       wireGridToHomeState(grid, root);
