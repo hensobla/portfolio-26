@@ -107,8 +107,10 @@
       // so area is roughly preserved. The blob stays centered on the cursor —
       // no trail — so it reads as a compact deforming blob, not a worm.
       stretchFactor: opts.stretchFactor != null ? opts.stretchFactor : 0,
-      // Pixels of velocity-proxy magnitude at which the stretch caps out.
-      stretchSpeedScale: opts.stretchSpeedScale != null ? opts.stretchSpeedScale : 200,
+      // Cursor speed (pixels / second) at which the stretch caps out. Below
+      // this the stretch ramps linearly with speed; above it the stretch
+      // pins at (1 + stretchFactor)×.
+      stretchSpeedScale: opts.stretchSpeedScale != null ? opts.stretchSpeedScale : 1500,
       // Inertia on the stretch DIRECTION. 0 = direction snaps to the
       // instantaneous velocity vector (rigid rotation — felt unnatural on
       // curves). > 0 = the velocity vector is exponentially smoothed over
@@ -142,6 +144,10 @@
     const mouse = {
       x: -9999, y: -9999,
       smoothX: -9999, smoothY: -9999,
+      // lastRenderX/Y let render() compute per-frame cursor displacement
+      // — drops to 0 the frame after the cursor stops, which is the step
+      // change the spring needs in order to bounce.
+      lastRenderX: -9999, lastRenderY: -9999,
       vx: 0, vy: 0,
       stretchCurrent: 1, stretchVel: 0,
       lastCos: 1, lastSin: 0,
@@ -282,14 +288,18 @@
         let cosA = mouse.lastCos;
         let sinA = mouse.lastSin;
         if (useStretch) {
-          // Magnitude target tracks RAW delta (raw - smoothed cursor) so it
-          // drops fast on a cursor stop and gives the spring a real step
-          // change to bounce off of. Direction uses the smoothed velocity
-          // vector so it still has rotational inertia on curves.
-          const rawDx = mouse.x - mouse.smoothX;
-          const rawDy = mouse.y - mouse.smoothY;
-          const rawSpeed = Math.hypot(rawDx, rawDy);
-          const t = Math.min(rawSpeed / config.stretchSpeedScale, 1);
+          // Magnitude target tracks the per-frame cursor displacement (in
+          // px/sec), NOT the smoothed velocity proxy. The frame velocity
+          // drops to 0 the very next render after the cursor stops, which
+          // gives the spring a real step change to bounce off — the
+          // smoothing-based proxy decayed over ~smoothTau and the spring
+          // just tracked it, never overshooting visibly.
+          const frameDx = mouse.x - mouse.lastRenderX;
+          const frameDy = mouse.y - mouse.lastRenderY;
+          mouse.lastRenderX = mouse.x;
+          mouse.lastRenderY = mouse.y;
+          const framePxPerSec = Math.hypot(frameDx, frameDy) * 1000 / Math.max(1, dt);
+          const t = Math.min(framePxPerSec / config.stretchSpeedScale, 1);
           const targetStretch = 1 + t * config.stretchFactor;
 
           // Update the persisted orientation only when the smoothed velocity
@@ -382,6 +392,8 @@
       if (!mouse.seen) {
         mouse.smoothX = e.clientX;
         mouse.smoothY = e.clientY;
+        mouse.lastRenderX = e.clientX;
+        mouse.lastRenderY = e.clientY;
         mouse.vx = 0;
         mouse.vy = 0;
         mouse.stretchCurrent = 1;
