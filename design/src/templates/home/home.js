@@ -90,7 +90,7 @@
         stretchFactor: 0.2,
         velocityTau: 240,
         springPeriod: 280,
-        springDamping: 0.2,
+        springDamping: 0.3,
       });
       wireGridToHomeState(grid, root);
     }
