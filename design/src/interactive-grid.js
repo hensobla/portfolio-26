@@ -27,6 +27,7 @@
        radiusShape: 'circle',     // 'circle' | 'square' | 'diamond'
        smoothTau: 240,            // ms
        hoverOpacity: 1,           // 0..1 — multiply into the hover wash alpha
+       tailTau: 0,                // ms; > 0 = capsule trail (head→tail blob)
      });
      grid.update({ hoverRadius: 200 });   // tweak any field at runtime
      grid.pause();                         // freeze rAF; cursor still tracked
@@ -99,27 +100,27 @@
       // the wash before a takeover, then 0→1 on close. 0 short-circuits the
       // inner cell loop so paused frames cost only a bg + grid blit.
       hoverOpacity: opts.hoverOpacity != null ? opts.hoverOpacity : 1,
-      // Velocity-driven stretch (circle shape only). 0 = no stretch (circle
-      // stays a circle, identical to the original behavior). At speed cap the
-      // ellipse's major axis grows by (1 + stretchFactor)×, minor axis shrinks
-      // by 1/sqrt(1 + stretchFactor)× (area ≈ preserved). The velocity proxy
-      // is (raw - smooth) — already encoded in the existing smoothing, so no
-      // separate velocity tracker is needed.
-      stretchFactor: opts.stretchFactor != null ? opts.stretchFactor : 0,
-      // Pixels of (raw - smooth) delta at which the stretch caps out. Higher
-      // = stretch ramps in more gradually; lower = pop sooner. With the
-      // default smoothTau (240ms), brisk cursor moves produce a delta in the
-      // 150-300 range.
-      stretchSpeedScale: opts.stretchSpeedScale != null ? opts.stretchSpeedScale : 200,
+      // Capsule trail (circle shape only). 0 = no trail, the wash stays a
+      // circle (original behavior). > 0 renders the wash as a capsule from a
+      // fast-follow "head" point at (smoothX, smoothY) — the standard cursor
+      // smoothing, tau = smoothTau — to a slow-follow "tail" point with this
+      // tau. On a curve, head and tail trace different parts of the path so
+      // the capsule naturally bends along it and its rotation lags the
+      // instantaneous velocity — feels like a dragged blob with inertia
+      // instead of a rigid ellipse aimed at the velocity vector.
+      tailTau: opts.tailTau != null ? opts.tailTau : 0,
     };
 
     // --- State --------------------------------------------------
     // mouse.seen flips true on the first mousemove and stays true so the
     // shading persists when the cursor leaves the viewport (it stops at its
     // last position and eases to the new spot on re-entry).
+    // tailX/Y is a second smoothed position with tau = config.tailTau (when
+    // > 0); it lags smoothX/Y and forms the trailing endpoint of the capsule.
     const mouse = {
       x: -9999, y: -9999,
       smoothX: -9999, smoothY: -9999,
+      tailX: -9999, tailY: -9999,
       seen: false,
     };
     let cols = 0, rows = 0, viewW = 0, viewH = 0;
@@ -142,8 +143,16 @@
     }
 
     function smoothingActive() {
-      return Math.abs(mouse.smoothX - mouse.x) > 0.5
-          || Math.abs(mouse.smoothY - mouse.y) > 0.5;
+      if (Math.abs(mouse.smoothX - mouse.x) > 0.5) return true;
+      if (Math.abs(mouse.smoothY - mouse.y) > 0.5) return true;
+      // Keep the rAF loop running until the tail has also caught up; otherwise
+      // the capsule would freeze mid-collapse when smooth reaches raw but
+      // tail hasn't yet caught up to smooth.
+      if (config.tailTau > 0) {
+        if (Math.abs(mouse.tailX - mouse.smoothX) > 0.5) return true;
+        if (Math.abs(mouse.tailY - mouse.smoothY) > 0.5) return true;
+      }
+      return false;
     }
 
     function tick(now) {
@@ -200,12 +209,23 @@
     }
 
     function render(now) {
-      // Exponential follow on the cursor.
+      // Exponential follow on the cursor. Head follows raw with smoothTau;
+      // when tailTau > 0, the tail follows head with that slower tau so the
+      // segment from (smoothX, smoothY) → (tailX, tailY) traces the cursor's
+      // recent path.
       const dt = lastFrame ? Math.min(50, now - lastFrame) : 16;
       lastFrame = now;
       const alpha = 1 - Math.exp(-dt / Math.max(1, config.smoothTau));
       mouse.smoothX += (mouse.x - mouse.smoothX) * alpha;
       mouse.smoothY += (mouse.y - mouse.smoothY) * alpha;
+      if (config.tailTau > 0) {
+        const tAlpha = 1 - Math.exp(-dt / Math.max(1, config.tailTau));
+        mouse.tailX += (mouse.smoothX - mouse.tailX) * tAlpha;
+        mouse.tailY += (mouse.smoothY - mouse.tailY) * tAlpha;
+      } else {
+        mouse.tailX = mouse.smoothX;
+        mouse.tailY = mouse.smoothY;
+      }
       dirty = false;
 
       // 1) Background.
@@ -216,66 +236,64 @@
       // hoverOpacity ≤ 0 short-circuits the whole block: paused or fully-faded
       // frames cost only the bg fill + grid blit.
       if (mouse.seen && config.hoverOpacity > 0) {
-        const mx = mouse.smoothX;
-        const my = mouse.smoothY;
+        const hx = mouse.smoothX;
+        const hy = mouse.smoothY;
+        const tx = mouse.tailX;
+        const ty = mouse.tailY;
         const r = config.hoverRadius;
+        const r2 = r * r;
         const shape = config.radiusShape;
         const cs = config.cellSize;
 
-        // Velocity-driven stretch (circle shape only — squares/diamonds are
-        // technical shapes that lose their character when warped). The
-        // velocity proxy is (raw - smooth): at rest it's 0 and the ellipse
-        // degenerates back to a circle; in motion it encodes both speed and
-        // direction so the wash elongates along the cursor's vector.
-        let stretch = 1, squash = 1, cosA = 1, sinA = 0;
-        const useStretch = shape === 'circle' && config.stretchFactor > 0;
-        if (useStretch) {
-          const vx = mouse.x - mouse.smoothX;
-          const vy = mouse.y - mouse.smoothY;
-          const speed = Math.hypot(vx, vy);
-          if (speed > 0.5) {
-            const t = Math.min(speed / config.stretchSpeedScale, 1);
-            stretch = 1 + t * config.stretchFactor;
-            squash  = 1 / Math.sqrt(stretch);   // area ≈ preserved
-            const inv = 1 / speed;
-            cosA = vx * inv;
-            sinA = vy * inv;
-          }
-        }
+        // Capsule mode = circle shape AND tailTau > 0. Squares/diamonds keep
+        // their technical inside-checks; when tailTau == 0, head and tail
+        // are pinned together and the capsule collapses to the original circle.
+        const useCapsule = shape === 'circle' && config.tailTau > 0;
 
-        // AABB extends to the worst-case ellipse reach; per-cell inside
-        // check is the early-out. Wasted iteration on the corners of the
-        // expanded box is acceptable.
-        const reach = r * Math.max(stretch, 1);
-        const minCx = Math.max(0, Math.floor((mx - reach) / cs));
-        const maxCx = Math.min(cols - 1, Math.floor((mx + reach) / cs));
-        const minCy = Math.max(0, Math.floor((my - reach) / cs));
-        const maxCy = Math.min(rows - 1, Math.floor((my + reach) / cs));
+        // Segment vector (head → tail). At rest this is zero and the capsule
+        // degenerates to a single circle centered at head.
+        const segX = tx - hx;
+        const segY = ty - hy;
+        const segLenSq = segX * segX + segY * segY;
+
+        // AABB = union of two r-radius circles at head and tail.
+        const minX = Math.min(hx, tx) - r;
+        const maxX = Math.max(hx, tx) + r;
+        const minY = Math.min(hy, ty) - r;
+        const maxY = Math.max(hy, ty) + r;
+        const minCx = Math.max(0, Math.floor(minX / cs));
+        const maxCx = Math.min(cols - 1, Math.floor(maxX / cs));
+        const minCy = Math.max(0, Math.floor(minY / cs));
+        const maxCy = Math.min(rows - 1, Math.floor(maxY / cs));
         if (maxCx >= minCx && maxCy >= minCy) {
           ctx.fillStyle = config.hoverColor;
           ctx.globalAlpha = config.hoverOpacity;
-          const r2 = r * r;
-          const rMajor2 = (r * stretch) * (r * stretch);
-          const rMinor2 = (r * squash)  * (r * squash);
           for (let cy = minCy; cy <= maxCy; cy++) {
             for (let cx = minCx; cx <= maxCx; cx++) {
               const ccx = cx * cs + cs / 2;
               const ccy = cy * cs + cs / 2;
-              const dx = ccx - mx;
-              const dy = ccy - my;
+              const dx = ccx - hx;
+              const dy = ccy - hy;
               let inside;
               if (shape === 'square') {
                 inside = Math.max(Math.abs(dx), Math.abs(dy)) <= r;
               } else if (shape === 'diamond') {
                 inside = Math.abs(dx) + Math.abs(dy) <= r;
-              } else if (useStretch) {
-                // Rotate (dx, dy) into velocity-aligned local space, then
-                // ellipse inside check: (lx² / rMajor²) + (ly² / rMinor²) ≤ 1.
-                const lx = dx * cosA + dy * sinA;
-                const ly = -dx * sinA + dy * cosA;
-                inside = (lx * lx) / rMajor2 + (ly * ly) / rMinor2 <= 1;
+              } else if (useCapsule && segLenSq > 0.25) {
+                // Capsule inside-check: distance from cell center to the
+                // segment from (hx, hy) → (tx, ty) ≤ r. Project the cell's
+                // offset-from-head onto the segment, clamp t to [0, 1] so the
+                // projection lives within the segment, then measure the
+                // perpendicular distance to the closest point on the segment.
+                let t = (dx * segX + dy * segY) / segLenSq;
+                if (t < 0) t = 0; else if (t > 1) t = 1;
+                const px = t * segX;
+                const py = t * segY;
+                const ex = dx - px;
+                const ey = dy - py;
+                inside = ex * ex + ey * ey <= r2;
               } else {
-                inside = (dx * dx + dy * dy) <= r2;
+                inside = dx * dx + dy * dy <= r2;
               }
               if (inside) ctx.fillRect(cx * cs, cy * cs, cs, cs);
             }
@@ -296,6 +314,11 @@
       if (!mouse.seen) {
         mouse.smoothX = e.clientX;
         mouse.smoothY = e.clientY;
+        // Snap the tail to the same point on first move so the capsule starts
+        // as a single circle and grows naturally from there rather than
+        // sweeping in from offscreen (-9999, -9999).
+        mouse.tailX = e.clientX;
+        mouse.tailY = e.clientY;
         mouse.seen = true;
       }
       mouse.x = e.clientX;

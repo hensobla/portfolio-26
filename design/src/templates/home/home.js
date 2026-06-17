@@ -79,10 +79,12 @@
       if (!window.InteractiveGrid) return;
       const grid = window.InteractiveGrid.mount({
         hoverOpacity: currentHoverPeak(),
-        // Velocity-driven stretch — the wash elongates along the cursor's
-        // motion vector and degenerates back to a circle at rest. Tuning this
-        // in-branch; commit to taste.
-        stretchFactor: 0.6,
+        // Capsule trail — the wash extends from a fast-follow head near the
+        // cursor to a slow-follow tail (this tau). On curves the head and
+        // tail trace different parts of the path so the capsule naturally
+        // bends along it; rotation lags the velocity vector instead of
+        // snapping to it. Tuning this in-branch; commit to taste.
+        tailTau: 480,
       });
       wireGridToHomeState(grid, root);
     }
