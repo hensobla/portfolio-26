@@ -99,6 +99,18 @@
       // the wash before a takeover, then 0→1 on close. 0 short-circuits the
       // inner cell loop so paused frames cost only a bg + grid blit.
       hoverOpacity: opts.hoverOpacity != null ? opts.hoverOpacity : 1,
+      // Velocity-driven stretch (circle shape only). 0 = no stretch (circle
+      // stays a circle, identical to the original behavior). At speed cap the
+      // ellipse's major axis grows by (1 + stretchFactor)×, minor axis shrinks
+      // by 1/sqrt(1 + stretchFactor)× (area ≈ preserved). The velocity proxy
+      // is (raw - smooth) — already encoded in the existing smoothing, so no
+      // separate velocity tracker is needed.
+      stretchFactor: opts.stretchFactor != null ? opts.stretchFactor : 0,
+      // Pixels of (raw - smooth) delta at which the stretch caps out. Higher
+      // = stretch ramps in more gradually; lower = pop sooner. With the
+      // default smoothTau (240ms), brisk cursor moves produce a delta in the
+      // 150-300 range.
+      stretchSpeedScale: opts.stretchSpeedScale != null ? opts.stretchSpeedScale : 200,
     };
 
     // --- State --------------------------------------------------
@@ -209,14 +221,42 @@
         const r = config.hoverRadius;
         const shape = config.radiusShape;
         const cs = config.cellSize;
-        const minCx = Math.max(0, Math.floor((mx - r) / cs));
-        const maxCx = Math.min(cols - 1, Math.floor((mx + r) / cs));
-        const minCy = Math.max(0, Math.floor((my - r) / cs));
-        const maxCy = Math.min(rows - 1, Math.floor((my + r) / cs));
+
+        // Velocity-driven stretch (circle shape only — squares/diamonds are
+        // technical shapes that lose their character when warped). The
+        // velocity proxy is (raw - smooth): at rest it's 0 and the ellipse
+        // degenerates back to a circle; in motion it encodes both speed and
+        // direction so the wash elongates along the cursor's vector.
+        let stretch = 1, squash = 1, cosA = 1, sinA = 0;
+        const useStretch = shape === 'circle' && config.stretchFactor > 0;
+        if (useStretch) {
+          const vx = mouse.x - mouse.smoothX;
+          const vy = mouse.y - mouse.smoothY;
+          const speed = Math.hypot(vx, vy);
+          if (speed > 0.5) {
+            const t = Math.min(speed / config.stretchSpeedScale, 1);
+            stretch = 1 + t * config.stretchFactor;
+            squash  = 1 / Math.sqrt(stretch);   // area ≈ preserved
+            const inv = 1 / speed;
+            cosA = vx * inv;
+            sinA = vy * inv;
+          }
+        }
+
+        // AABB extends to the worst-case ellipse reach; per-cell inside
+        // check is the early-out. Wasted iteration on the corners of the
+        // expanded box is acceptable.
+        const reach = r * Math.max(stretch, 1);
+        const minCx = Math.max(0, Math.floor((mx - reach) / cs));
+        const maxCx = Math.min(cols - 1, Math.floor((mx + reach) / cs));
+        const minCy = Math.max(0, Math.floor((my - reach) / cs));
+        const maxCy = Math.min(rows - 1, Math.floor((my + reach) / cs));
         if (maxCx >= minCx && maxCy >= minCy) {
           ctx.fillStyle = config.hoverColor;
           ctx.globalAlpha = config.hoverOpacity;
           const r2 = r * r;
+          const rMajor2 = (r * stretch) * (r * stretch);
+          const rMinor2 = (r * squash)  * (r * squash);
           for (let cy = minCy; cy <= maxCy; cy++) {
             for (let cx = minCx; cx <= maxCx; cx++) {
               const ccx = cx * cs + cs / 2;
@@ -228,6 +268,12 @@
                 inside = Math.max(Math.abs(dx), Math.abs(dy)) <= r;
               } else if (shape === 'diamond') {
                 inside = Math.abs(dx) + Math.abs(dy) <= r;
+              } else if (useStretch) {
+                // Rotate (dx, dy) into velocity-aligned local space, then
+                // ellipse inside check: (lx² / rMajor²) + (ly² / rMinor²) ≤ 1.
+                const lx = dx * cosA + dy * sinA;
+                const ly = -dx * sinA + dy * cosA;
+                inside = (lx * lx) / rMajor2 + (ly * ly) / rMinor2 <= 1;
               } else {
                 inside = (dx * dx + dy * dy) <= r2;
               }

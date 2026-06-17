@@ -77,7 +77,13 @@
 
     function ready() {
       if (!window.InteractiveGrid) return;
-      const grid = window.InteractiveGrid.mount({ hoverOpacity: currentHoverPeak() });
+      const grid = window.InteractiveGrid.mount({
+        hoverOpacity: currentHoverPeak(),
+        // Velocity-driven stretch — the wash elongates along the cursor's
+        // motion vector and degenerates back to a circle at rest. Tuning this
+        // in-branch; commit to taste.
+        stretchFactor: 0.6,
+      });
       wireGridToHomeState(grid, root);
     }
     if (window.InteractiveGrid) { ready(); return; }
