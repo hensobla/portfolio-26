@@ -79,12 +79,13 @@
       if (!window.InteractiveGrid) return;
       const grid = window.InteractiveGrid.mount({
         hoverOpacity: currentHoverPeak(),
-        // Capsule trail — the wash extends from a fast-follow head near the
-        // cursor to a slow-follow tail (this tau). On curves the head and
-        // tail trace different parts of the path so the capsule naturally
-        // bends along it; rotation lags the velocity vector instead of
-        // snapping to it. Tuning this in-branch; commit to taste.
-        tailTau: 480,
+        // Compact deforming blob — ellipse stays centered on the cursor and
+        // stretches modestly along the smoothed velocity vector. Inertia in
+        // the smoothing means rotation lags on curves (not rigid) and the
+        // blob eases back to a circle when the cursor stops (not snaps).
+        // Tuning this in-branch; commit to taste.
+        stretchFactor: 0.4,
+        velocityTau: 240,
       });
       wireGridToHomeState(grid, root);
     }
