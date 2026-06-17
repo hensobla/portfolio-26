@@ -83,9 +83,14 @@
         // stretches modestly along the smoothed velocity vector. Inertia in
         // the smoothing means rotation lags on curves (not rigid) and the
         // blob eases back to a circle when the cursor stops (not snaps).
-        // Tuning this in-branch; commit to taste.
+        // The damped-spring (springPeriod + springDamping) adds a subtle
+        // bounce: the stretch overshoots its target on starts AND undershoots
+        // past 1 on stops, briefly squashing the blob perpendicular to the
+        // last velocity before settling. Tuning this in-branch; commit to taste.
         stretchFactor: 0.2,
         velocityTau: 240,
+        springPeriod: 280,
+        springDamping: 0.4,
       });
       wireGridToHomeState(grid, root);
     }

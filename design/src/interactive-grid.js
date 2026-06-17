@@ -113,9 +113,19 @@
       // instantaneous velocity vector (rigid rotation — felt unnatural on
       // curves). > 0 = the velocity vector is exponentially smoothed over
       // this tau, so the ellipse's major axis lags actual cursor direction
-      // through curves and reversals. Magnitude is also smoothed, so the
-      // ellipse shrinks gradually back to a circle when the cursor stops.
+      // through curves and reversals.
       velocityTau: opts.velocityTau != null ? opts.velocityTau : 0,
+      // Damped-spring bounce on the stretch MAGNITUDE. 0 = no spring (the
+      // stretch tracks its target directly via velocityTau-smoothed
+      // velocity). > 0 = the stretch follows a 2nd-order damped oscillator
+      // toward its target, so it overshoots and bounces. springPeriod is
+      // the natural oscillation period in ms; springDamping is the damping
+      // ratio (0 = no damping / oscillates forever, 1 = critical / fastest
+      // settle, no overshoot). Values around 0.5-0.7 give a subtle bounce.
+      // When motion stops, the wash overshoots its rest size (squashing
+      // perpendicular to the last velocity), then bounces back to a circle.
+      springPeriod:  opts.springPeriod  != null ? opts.springPeriod  : 0,
+      springDamping: opts.springDamping != null ? opts.springDamping : 0.7,
     };
 
     // --- State --------------------------------------------------
@@ -123,12 +133,18 @@
     // shading persists when the cursor leaves the viewport (it stops at its
     // last position and eases to the new spot on re-entry).
     // vx/vy is the smoothed velocity vector — direction and magnitude both
-    // lag the instantaneous (raw - smooth) delta by velocityTau, so rotation
-    // has inertia and the blob eases back to a circle when the cursor stops.
+    // lag the instantaneous (raw - smooth) delta by velocityTau.
+    // stretchCurrent/stretchVel are the spring state for the stretch
+    // magnitude (used when springPeriod > 0); lastCos/lastSin remember the
+    // last meaningful velocity direction so the spring's squash overshoot
+    // is oriented correctly even after the cursor has stopped (when speed
+    // → 0 there's no direction to compute).
     const mouse = {
       x: -9999, y: -9999,
       smoothX: -9999, smoothY: -9999,
       vx: 0, vy: 0,
+      stretchCurrent: 1, stretchVel: 0,
+      lastCos: 1, lastSin: 0,
       seen: false,
     };
     let cols = 0, rows = 0, viewW = 0, viewH = 0;
@@ -158,6 +174,11 @@
       // cursor stops but before the ellipse has shrunk back to a circle.
       if (config.velocityTau > 0 &&
           (Math.abs(mouse.vx) > 0.5 || Math.abs(mouse.vy) > 0.5)) return true;
+      // Keep the loop alive while the spring is still oscillating, so the
+      // bounce plays out after the velocity-smoothing has converged.
+      if (config.springPeriod > 0 &&
+          (Math.abs(mouse.stretchCurrent - 1) > 0.005 ||
+           Math.abs(mouse.stretchVel) > 0.05)) return true;
       return false;
     }
 
@@ -255,24 +276,64 @@
 
         // Ellipse deformation (circle shape only). The blob stays centered
         // on the cursor; the smoothed velocity vector (mouse.vx, mouse.vy)
-        // sets BOTH the orientation and the magnitude of stretch. Inertia
-        // lives in the velocity smoothing — direction lags on curves and
-        // magnitude decays gradually when the cursor stops.
-        let stretch = 1, squash = 1, cosA = 1, sinA = 0;
+        // sets BOTH the target stretch magnitude AND its orientation.
         const useStretch = shape === 'circle' && config.stretchFactor > 0;
+        let stretch = 1, squash = 1;
+        let cosA = mouse.lastCos;
+        let sinA = mouse.lastSin;
         if (useStretch) {
-          const speed = Math.hypot(mouse.vx, mouse.vy);
-          if (speed > 0.5) {
-            const t = Math.min(speed / config.stretchSpeedScale, 1);
-            stretch = 1 + t * config.stretchFactor;
-            squash  = 1 / Math.sqrt(stretch);   // area ≈ preserved
-            const inv = 1 / speed;
-            cosA = mouse.vx * inv;
-            sinA = mouse.vy * inv;
+          // Magnitude target tracks RAW delta (raw - smoothed cursor) so it
+          // drops fast on a cursor stop and gives the spring a real step
+          // change to bounce off of. Direction uses the smoothed velocity
+          // vector so it still has rotational inertia on curves.
+          const rawDx = mouse.x - mouse.smoothX;
+          const rawDy = mouse.y - mouse.smoothY;
+          const rawSpeed = Math.hypot(rawDx, rawDy);
+          const t = Math.min(rawSpeed / config.stretchSpeedScale, 1);
+          const targetStretch = 1 + t * config.stretchFactor;
+
+          // Update the persisted orientation only when the smoothed velocity
+          // is meaningful; below the threshold the last known direction is
+          // kept so the spring's post-stop overshoot squashes along the
+          // right axis instead of randomly drifting.
+          const smoothSpeed = Math.hypot(mouse.vx, mouse.vy);
+          if (smoothSpeed > 0.5) {
+            const inv = 1 / smoothSpeed;
+            mouse.lastCos = mouse.vx * inv;
+            mouse.lastSin = mouse.vy * inv;
+            cosA = mouse.lastCos;
+            sinA = mouse.lastSin;
           }
+
+          if (config.springPeriod > 0) {
+            // Damped harmonic oscillator on the stretch magnitude:
+            //   x'' + 2ζω·x' + ω²·(x − target) = 0
+            // ω = 2π / springPeriod (rad/s), ζ = springDamping.
+            // ω·dt < 1 with the existing dt cap (50ms) and a springPeriod
+            // ≥ ~100ms, so explicit Euler stays stable.
+            const dts = dt / 1000;
+            const omega = (2 * Math.PI) / (config.springPeriod / 1000);
+            const zeta = config.springDamping;
+            const accel = -2 * zeta * omega * mouse.stretchVel
+                          - omega * omega * (mouse.stretchCurrent - targetStretch);
+            mouse.stretchVel += accel * dts;
+            mouse.stretchCurrent += mouse.stretchVel * dts;
+            // Guard against numerical runaway: clamp to a sane stretch range.
+            if (mouse.stretchCurrent < 0.5) mouse.stretchCurrent = 0.5;
+            else if (mouse.stretchCurrent > 2.0) mouse.stretchCurrent = 2.0;
+          } else {
+            mouse.stretchCurrent = targetStretch;
+            mouse.stretchVel = 0;
+          }
+
+          stretch = mouse.stretchCurrent;
+          squash  = 1 / Math.sqrt(stretch);   // area ≈ preserved
         }
 
-        const reach = r * Math.max(stretch, 1);
+        // AABB has to cover both the elongation peak and the spring's
+        // perpendicular squash (when stretch < 1 the minor axis grows
+        // past r), so include both extents in the reach.
+        const reach = r * Math.max(stretch, 1 / Math.sqrt(Math.max(stretch, 0.01)), 1);
         const minCx = Math.max(0, Math.floor((mx - reach) / cs));
         const maxCx = Math.min(cols - 1, Math.floor((mx + reach) / cs));
         const minCy = Math.max(0, Math.floor((my - reach) / cs));
@@ -323,6 +384,8 @@
         mouse.smoothY = e.clientY;
         mouse.vx = 0;
         mouse.vy = 0;
+        mouse.stretchCurrent = 1;
+        mouse.stretchVel = 0;
         mouse.seen = true;
       }
       mouse.x = e.clientX;
