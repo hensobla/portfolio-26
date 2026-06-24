@@ -77,7 +77,35 @@
 
     function ready() {
       if (!window.InteractiveGrid) return;
-      const grid = window.InteractiveGrid.mount({ hoverOpacity: currentHoverPeak() });
+      const grid = window.InteractiveGrid.mount({
+        hoverOpacity: currentHoverPeak(),
+        // Compact deforming blob — ellipse stays centered on the cursor and
+        // stretches modestly along the smoothed velocity vector. Inertia in
+        // the smoothing means rotation lags on curves (not rigid) and the
+        // blob eases back to a circle when the cursor stops (not snaps).
+        // The damped-spring (springPeriod + springDamping) adds a subtle
+        // bounce: the stretch overshoots its target on starts AND undershoots
+        // past 1 on stops, briefly squashing the blob perpendicular to the
+        // last velocity before settling. Tuning this in-branch; commit to taste.
+        stretchFactor: 0.2,
+        velocityTau: 240,
+        springPeriod: 280,
+        springDamping: 0.3,
+        // Star morph (hover the name's text). Cycles through three shapes
+        // — square (4-gon, m=2), triangle (3-gon, m=2), 5-pointed star
+        // (n=5, m=4 via armLength=2/3) — with a smoothstep crossfade. Size
+        // stays at the original locked-in 2.5× hoverRadius scale; rotation
+        // continues during cycles.
+        starShapeCycle: [
+          { points: 4, armLength: 0 },     // square
+          { points: 3, armLength: 0 },     // triangle
+          { points: 5, armLength: 2 / 3 }, // 5-pointed star
+        ],
+        starShapeHold: 5000,               // ms each shape stays
+        starShapeTransition: 1200,         // ms morph from one to the next
+        starRadiusScale: 2.5,
+        starSpinRate: 0.15,
+      });
       wireGridToHomeState(grid, root);
     }
     if (window.InteractiveGrid) { ready(); return; }
@@ -152,14 +180,152 @@
       colorMql.addEventListener("change", onThemeChange);
     }
 
+    // Hovering the folder magnetizes the wash to it: the cursor's effective
+    // target gets pulled toward the folder's center (cursor offset compressed
+    // to ~20% of its real value), so the blob lives in a small zone around
+    // the folder and giggles with every cursor twitch. All the bouncy
+    // physics — smoothing, velocity stretch, spring overshoot — apply to the
+    // pulled target, so the engulfed rect breathes the same way the loose
+    // circle does. Cursor leaving the folder releases the magnet and the
+    // wash flies back out to the cursor naturally.
+    const folderEl = root.querySelector(".home__folder");
+    const baseRadius = grid.config.hoverRadius;
+    // Tween targets: per-axis half-extents only. Corner radius is NOT
+    // tweened — it's applied instantly in engulfStart so the rect reads as
+    // a fully-formed rounded shape from frame 1 (instead of starting sharp
+    // and "loading the corners a moment later"). The rect also pulses
+    // inside the grid via stretchCurrent.
+    const rad = { x: baseRadius, y: baseRadius };
+    let engulfing = false;
+
+    function setRadii() {
+      grid.update({ hoverRadius: rad.x, hoverRadiusY: rad.y });
+    }
+
+    // engulf-time tunables — locked in via the dev panel (since removed).
+    const engulfState = { margin: 1.35, corner: 150 };
+
+    function engulfTarget() {
+      const fb = folderEl.getBoundingClientRect();
+      const cx = fb.left + fb.width / 2;
+      const cy = fb.top + fb.height / 2;
+      return {
+        cx, cy,
+        rx: (fb.width / 2) * engulfState.margin,
+        ry: (fb.height / 2) * engulfState.margin,
+      };
+    }
+
+    function engulfStart() {
+      if (engulfing || lastSeen !== "resting") return;
+      engulfing = true;
+      const t = engulfTarget();
+      grid.update({
+        magnetX: t.cx, magnetY: t.cy,
+        // pull=0.8 → cursor offset from folder center is compressed to
+        // 20% in the wash. With the folder ~400×360, that's a ±40px
+        // wander zone — the blob clearly sticks to the folder but
+        // jitters/bounces in response to every cursor move.
+        magnetPull: 0.8,
+        radiusShape: "square",
+        // Force the star off and snap the morph spring to 0 below — if the
+        // user crossed straight from the name hover to the folder, the
+        // morph would still be mid-decay and the per-cell lerp branch (which
+        // uses a sharp-square distance, no corner) would override the
+        // corner-aware square fast path for several hundred ms.
+        shape: "blob",
+        // Corner snaps to its target instantly, not tweened — the rect
+        // reads as fully rounded from frame 1 even while the SIZE is still
+        // growing. With baseRadius=160 and corner=150, that frame is a
+        // mostly-pillowy small rect; as it grows into the engulf
+        // rectangle, the corners stay 150 (visually de-emphasize).
+        cornerRadius: engulfState.corner,
+      });
+      grid.snapMorph();
+      if (!gsap) {
+        rad.x = t.rx; rad.y = t.ry;
+        setRadii(); return;
+      }
+      gsap.killTweensOf(rad);
+      gsap.to(rad, {
+        x: t.rx, y: t.ry,
+        duration: sec("--motion-standard", 0.3), ease: "power2.out",
+        onUpdate: setRadii,
+      });
+    }
+
+    function engulfEnd() {
+      if (!engulfing) return;
+      engulfing = false;
+      grid.update({
+        magnetX: null, magnetY: null, magnetPull: 0,
+        radiusShape: "circle",
+        // Corner cleared instantly — symmetric with engulfStart and
+        // irrelevant once shape is circle anyway.
+        cornerRadius: 0,
+      });
+      if (!gsap) {
+        rad.x = baseRadius; rad.y = baseRadius;
+        setRadii(); return;
+      }
+      gsap.killTweensOf(rad);
+      gsap.to(rad, {
+        x: baseRadius, y: baseRadius,
+        duration: sec("--motion-standard", 0.3), ease: "power2.out",
+        onUpdate: setRadii,
+      });
+    }
+
+    if (folderEl) {
+      folderEl.addEventListener("mouseenter", engulfStart);
+      folderEl.addEventListener("mouseleave", engulfEnd);
+    }
+
     const obs = new MutationObserver(() => {
       const cur = root.getAttribute("data-home-state");
       if (cur === lastSeen) return;
       lastSeen = cur;
-      if (cur === "open") fadeOutThenPause();
-      else if (cur === "resting") resumeThenFadeIn();
+      if (cur === "open") {
+        // Clicking a project commits the takeover with the cursor still
+        // inside the folder — no natural mouseleave fires. Reset engulf
+        // explicitly so the wash isn't pinned to the old anchor when the
+        // home returns to resting later.
+        engulfEnd();
+        fadeOutThenPause();
+      } else if (cur === "resting") resumeThenFadeIn();
     });
     obs.observe(root, { attributes: true, attributeFilter: ["data-home-state"] });
+
+    // Hovering the name's actual text morphs the blob → a rotating star.
+    // The heading element fills the whole row, so a plain mouseenter would
+    // fire star anywhere on that row — we hit-test against the text's
+    // getClientRects() instead so only the glyphs trigger it.
+    // Disabled for now via NAME_STAR_ENABLED — flip back to true to
+    // re-engage. Code kept intact so the morph (and its cycle config in
+    // mountBgCanvas opts above) is one toggle away.
+    const NAME_STAR_ENABLED = false;
+    const nameEl = root.querySelector(".home__name");
+    if (NAME_STAR_ENABLED && nameEl) {
+      let starHovered = false;
+      const overText = (e) => {
+        const range = document.createRange();
+        range.selectNodeContents(nameEl);
+        const rects = range.getClientRects();
+        const x = e.clientX, y = e.clientY;
+        for (let i = 0; i < rects.length; i++) {
+          const r = rects[i];
+          if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return true;
+        }
+        return false;
+      };
+      const setStar = (on) => {
+        if (on === starHovered) return;
+        starHovered = on;
+        grid.update({ shape: on ? "star" : "blob" });
+      };
+      nameEl.addEventListener("mousemove", (e) => setStar(overText(e)));
+      nameEl.addEventListener("mouseleave", () => setStar(false));
+    }
   }
 
   // ---- on-load entrance ------------------------------------------------
