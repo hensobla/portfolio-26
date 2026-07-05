@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stat row — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="stat-row.css">
+  <script src="../../loader.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+  </style>
+</head>
+<body>
+  <div id="preview-frame"></div>
+  <script>
+    (function () {
+      const FULL_CELLS = [
+        { value: "3M",    unit: "Ownership records",       context: "" },
+        { value: "+38%",  unit: "Claim throughput",         context: "vs. baseline before ledger" },
+        { value: "3",     unit: "Weeks to first pilot",     context: "" },
+        { value: "4:1",   unit: "Support-load reduction",   context: "" }
+      ];
+
+      const STATES = {
+        default:    { cells: FULL_CELLS, state: null       },
+        "three-up": { cells: FULL_CELLS, state: "three-up" },
+        "two-up":   { cells: FULL_CELLS, state: "two-up"   }
+      };
+
+      const params    = new URLSearchParams(location.search);
+      const stateId   = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+
+      let overrides = {};
+
+      function render() {
+        const stateAttr = baseState.state ? ` data-state="${escapeAttr(baseState.state)}"` : "";
+        const cells = baseState.cells.map((c, i) => {
+          const n = i + 1;
+          const value   = overrides[`stat-${n}-value`]   ?? c.value;
+          const unit    = overrides[`stat-${n}-unit`]    ?? c.unit;
+          const context = overrides[`stat-${n}-context`] ?? c.context;
+          return `<div class="stats__cell" data-stat="${n}">` +
+                   `<div class="stats__value" data-loom-slot="stat-${n}-value">${escapeText(value)}</div>` +
+                   `<div class="stats__unit"  data-loom-slot="stat-${n}-unit">${escapeText(unit)}</div>` +
+                   `<div class="stats__ctx"   data-loom-slot="stat-${n}-context">${escapeText(context)}</div>` +
+                 `</div>`;
+        }).join("");
+
+        document.getElementById("preview-frame").innerHTML =
+          `<section data-loom-module="stat-row" aria-label="Impact"${stateAttr}>` +
+            `<div class="stats__wrap">` +
+              `<div class="stats__grid">${cells}</div>` +
+            `</div>` +
+          `</section>`;
+      }
+
+      function escapeAttr(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+      }
+      function escapeText(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+      }
+
+      window.addEventListener("message", (e) => {
+        if (e.origin !== location.origin) return;
+        if (!e.data || e.data.type !== "loom:content") return;
+        const v = e.data.values || {};
+        overrides = {};
+        for (let n = 1; n <= 4; n++) {
+          [`stat-${n}-value`, `stat-${n}-unit`, `stat-${n}-context`].forEach((k) => {
+            if (k in v) overrides[k] = v[k];
+          });
+        }
+        render();
+      });
+
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "stat-row" }, location.origin); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

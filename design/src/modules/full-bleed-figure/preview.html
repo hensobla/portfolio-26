@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Full-bleed figure — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="full-bleed-figure.css">
+  <script src="../../loader.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+  </style>
+</head>
+<body>
+  <div id="preview-frame"></div>
+  <script>
+    (function () {
+      const STATES = {
+        default:      { image: "", label: "FIG. 01", caption: "Claim flow — end to end, from title upload to signed transfer",   state: null          },
+        "no-caption": { image: "", label: "",         caption: "",                                                                  state: "no-caption" },
+        "no-image":   { image: "", label: "FIG. 01", caption: "Placeholder wash — the frame reads as a blueprint grid on its own", state: null          }
+      };
+
+      const params    = new URLSearchParams(location.search);
+      const stateId   = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+
+      let overrides = {};
+
+      function render() {
+        const props = { ...baseState, ...overrides };
+        const stateAttr = props.state ? ` data-state="${escapeAttr(props.state)}"` : "";
+        const src = props.image ? ` src="${escapeAttr(props.image)}"` : ' src=""';
+
+        document.getElementById("preview-frame").innerHTML =
+          `<figure data-loom-module="full-bleed-figure"${stateAttr}>` +
+            `<div class="figure__wrap">` +
+              `<div class="figure__frame">` +
+                `<img class="figure__image" data-loom-slot="image" alt=""${src}>` +
+              `</div>` +
+              `<figcaption class="figure__caption">` +
+                `<span class="figure__label" data-loom-slot="label">${escapeText(props.label || "")}</span>` +
+                `<span class="figure__text"  data-loom-slot="caption">${escapeText(props.caption || "")}</span>` +
+              `</figcaption>` +
+            `</figure>`;
+      }
+
+      function escapeAttr(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+      }
+      function escapeText(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+      }
+
+      window.addEventListener("message", (e) => {
+        if (e.origin !== location.origin) return;
+        if (!e.data || e.data.type !== "loom:content") return;
+        const v = e.data.values || {};
+        overrides = {};
+        if ("image"   in v) overrides.image   = v.image;
+        if ("label"   in v) overrides.label   = v.label;
+        if ("caption" in v) overrides.caption = v.caption;
+        render();
+      });
+
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "full-bleed-figure" }, location.origin); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

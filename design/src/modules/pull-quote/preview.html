@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pull quote — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="pull-quote.css">
+  <script src="../../loader.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+  </style>
+</head>
+<body>
+  <div id="preview-frame"></div>
+  <script>
+    (function () {
+      const STATES = {
+        default:          { quote: "Ownership isn't a state — it's a chain. Every previous owner is still on the hook for the history the current one inherits.", attribution: "Elise Kim",       role: "Design lead, Ledger",         state: null              },
+        "no-attribution": { quote: "Ownership isn't a state — it's a chain. Every previous owner is still on the hook for the history the current one inherits.", attribution: "",                role: "",                            state: "no-attribution" },
+        "long-quote":     { quote: "The moment the ledger stopped being a feature and started being the product was the first pilot call where a dealership manager asked whether it could replace the title check they were already paying a third party for. They weren't asking about features. They were asking about trust — and trust was the whole thing.", attribution: "Blake Henson", role: "Reflecting on the Ledger pilot", state: null }
+      };
+
+      const params    = new URLSearchParams(location.search);
+      const stateId   = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+
+      let overrides = {};
+
+      function render() {
+        const props = { ...baseState, ...overrides };
+        const stateAttr = props.state ? ` data-state="${escapeAttr(props.state)}"` : "";
+
+        document.getElementById("preview-frame").innerHTML =
+          `<figure data-loom-module="pull-quote"${stateAttr}>` +
+            `<div class="quote__wrap">` +
+              `<blockquote class="quote__body" data-loom-slot="quote">${escapeText(props.quote || "")}</blockquote>` +
+              `<figcaption class="quote__cite">` +
+                `<span class="quote__mark" aria-hidden="true">—</span>` +
+                `<span class="quote__author" data-loom-slot="attribution">${escapeText(props.attribution || "")}</span>` +
+                `<span class="quote__role"   data-loom-slot="role">${escapeText(props.role || "")}</span>` +
+              `</figcaption>` +
+            `</div>` +
+          `</figure>`;
+      }
+
+      function escapeAttr(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+      }
+      function escapeText(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+      }
+
+      window.addEventListener("message", (e) => {
+        if (e.origin !== location.origin) return;
+        if (!e.data || e.data.type !== "loom:content") return;
+        const v = e.data.values || {};
+        overrides = {};
+        if ("quote"       in v) overrides.quote       = v.quote;
+        if ("attribution" in v) overrides.attribution = v.attribution;
+        if ("role"        in v) overrides.role        = v.role;
+        render();
+      });
+
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "pull-quote" }, location.origin); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

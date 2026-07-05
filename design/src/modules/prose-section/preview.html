@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prose section — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="prose-section.css">
+  <script src="../../loader.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+  </style>
+</head>
+<body>
+  <div id="preview-frame"></div>
+  <script>
+    (function () {
+      const LONG = [
+        "The team's early user research surfaced a single shared complaint: nobody trusts the previous owner. Not because they were lying, but because there was no shared record to trust.",
+        "Every used car carries a paper trail — service records, accident reports, title transfers — and almost none of it survives the sale. Buyers inherit the asset without the history, and sellers walk away with the story.",
+        "We spent six weeks in interviews before writing a single spec. The pattern was consistent across dealerships, private sellers, and buyers: the missing piece wasn't a document, it was a chain of custody.",
+        "Chain of custody has a specific technical meaning in evidence handling. We borrowed it, then adapted it: each event in a vehicle's life is signed by the party who witnessed it, and the whole chain is verifiable end-to-end.",
+        "The prototype went out to three dealerships in April. Within a week, one of them was asking whether the ledger could replace the title check they were paying a third party for.",
+        "That was the moment the ledger stopped being a feature and started being the product."
+      ].join("\n\n");
+
+      const STATES = {
+        default:        { eyebrow: "01 · Problem", title: "A hidden ledger of ownership", body: "Every used car carries a paper trail — service records, accident reports, title transfers — and almost none of it survives the sale. Buyers inherit the asset without the history, and sellers walk away with the story.\n\nThe team's early user research surfaced a single shared complaint: nobody trusts the previous owner. Not because they were lying, but because there was no shared record to trust. We wanted to build one.", state: null },
+        "no-title":     { eyebrow: "01 · Problem", title: "",                                body: "Every used car carries a paper trail — service records, accident reports, title transfers — and almost none of it survives the sale. Buyers inherit the asset without the history, and sellers walk away with the story.\n\nThe team's early user research surfaced a single shared complaint: nobody trusts the previous owner. Not because they were lying, but because there was no shared record to trust. We wanted to build one.", state: "no-title" },
+        "long-content": { eyebrow: "02 · Research", title: "Six weeks in the field",         body: LONG, state: null }
+      };
+
+      const params  = new URLSearchParams(location.search);
+      const stateId = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+
+      let overrides = {};
+      let headingLevel = 2;
+
+      function render() {
+        const props = { ...baseState, ...overrides };
+        const stateAttr = props.state ? ` data-state="${escapeAttr(props.state)}"` : "";
+        const level = Math.min(6, Math.max(1, headingLevel));
+        const htag  = "h" + level;
+        const paragraphs = String(props.body || "")
+          .split(/\n{2,}/)
+          .map((p) => p.trim())
+          .filter(Boolean)
+          .map((p) => `<p>${escapeText(p)}</p>`)
+          .join("");
+
+        document.getElementById("preview-frame").innerHTML =
+          `<section data-loom-module="prose-section"${stateAttr}>` +
+            `<div class="prose__inner">` +
+              `<p class="prose__eyebrow" data-loom-slot="eyebrow">${escapeText(props.eyebrow || "")}</p>` +
+              `<${htag} class="prose__title" data-loom-slot="title">${escapeText(props.title || "")}</${htag}>` +
+              `<div class="prose__body" data-loom-slot="body">${paragraphs}</div>` +
+            `</div>` +
+          `</section>`;
+      }
+
+      function escapeAttr(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+      }
+      function escapeText(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+      }
+
+      window.addEventListener("message", (e) => {
+        if (e.origin !== location.origin) return;
+        if (!e.data || e.data.type !== "loom:content") return;
+        const v = e.data.values || {};
+        overrides = {};
+        if ("eyebrow" in v) overrides.eyebrow = v.eyebrow;
+        if ("title"   in v) overrides.title   = v.title;
+        if ("body"    in v) overrides.body    = v.body;
+        if (typeof v._heading_level === "number") headingLevel = v._heading_level;
+        if (typeof v["_heading-level"] === "number") headingLevel = v["_heading-level"];
+        render();
+      });
+
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "prose-section" }, location.origin); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+/* Case-study spec sheet — native <dl>/<dt>/<dd> in a two-column row-band
+   layout (mono label / body value). Fixed slot count of 6 pairs; rows with
+   both slots empty collapse. Tokens-only. */
+[data-loom-module="spec-sheet"] {
+  background: var(--background);
+  color: var(--text1);
+  padding-block: var(--space-7);
+}
+
+[data-loom-module="spec-sheet"] .specs__wrap {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--grid-margin);
+}
+
+[data-loom-module="spec-sheet"] .specs__title {
+  font-family: var(--font-display);
+  font-size: var(--type-display-s);
+  font-weight: 600;
+  line-height: var(--line-height-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--text1);
+  margin: 0 0 var(--space-5);
+}
+
+[data-loom-module="spec-sheet"] .specs__list {
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+}
+
+[data-loom-module="spec-sheet"] .specs__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2);
+  padding-block: var(--space-4);
+  border-top: 1px solid var(--border);
+  align-items: baseline;
+}
+
+@media (min-width: 480px) {
+  [data-loom-module="spec-sheet"] .specs__row {
+    grid-template-columns: minmax(10rem, 1fr) 2fr;
+    gap: var(--space-4);
+  }
+}
+
+[data-loom-module="spec-sheet"] .specs__row:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+/* Collapse a row when both slots are empty. :has() works in every
+   modern engine; older browsers just see an empty row (safe fallback). */
+[data-loom-module="spec-sheet"] .specs__row:has(.specs__label:empty):has(.specs__value:empty) {
+  display: none;
+}
+
+[data-loom-module="spec-sheet"] .specs__label {
+  font-family: var(--eyebrow-family);
+  font-size: var(--eyebrow-size);
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
+  color: var(--text3);
+  margin: 0;
+}
+
+[data-loom-module="spec-sheet"] .specs__value {
+  font-family: var(--font-body);
+  font-size: var(--type-body);
+  line-height: var(--line-height-body);
+  color: var(--text1);
+  margin: 0;
+}
+
+[data-loom-module="spec-sheet"][data-state="no-title"] .specs__title,
+[data-loom-module="spec-sheet"][data-state="minimal"] .specs__title {
+  display: none;
+}

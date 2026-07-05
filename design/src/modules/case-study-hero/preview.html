@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Case-study hero — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="case-study-hero.css">
+  <script src="../../loader.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+  </style>
+</head>
+<body>
+  <div id="preview-frame"></div>
+  <script>
+    (function () {
+      const STATES = {
+        default:      { meta: "Lead product designer · 2025", title: "Ledger",                                        lead: "A tamper-evident record of vehicle ownership, transferable between owners over the life of the asset. Built with a two-person design team over eight months.", chips: "Fintech\nWeb\niOS",                              state: null        },
+        "no-chips":   { meta: "Lead product designer · 2025", title: "Ledger",                                        lead: "A tamper-evident record of vehicle ownership, transferable between owners over the life of the asset. Built with a two-person design team over eight months.", chips: "",                                              state: "no-chips" },
+        "long-title": { meta: "Design lead · 2024 — 2025",    title: "A shared record of everything a vehicle has been through", lead: "Working with legal, engineering, and three dealership partners to prototype a chain-of-custody model that survives the sale.",                              chips: "Fintech\nWeb\niOS\nDesign systems\nResearch", state: null        }
+      };
+
+      const params    = new URLSearchParams(location.search);
+      const stateId   = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+
+      let overrides = {};
+      let headingLevel = 1;
+
+      function render() {
+        const props = { ...baseState, ...overrides };
+        const stateAttr = props.state ? ` data-state="${escapeAttr(props.state)}"` : "";
+        const level = Math.min(6, Math.max(1, headingLevel));
+        const htag  = "h" + level;
+        const chipItems = String(props.chips || "")
+          .split(/\r?\n/)
+          .map((c) => c.trim())
+          .filter(Boolean)
+          .map((c) => `<li class="cs-hero__chip">${escapeText(c)}</li>`)
+          .join("");
+
+        document.getElementById("preview-frame").innerHTML =
+          `<section data-loom-module="case-study-hero"${stateAttr}>` +
+            `<div class="cs-hero__inner">` +
+              `<p class="cs-hero__meta" data-loom-slot="meta">${escapeText(props.meta || "")}</p>` +
+              `<${htag} class="cs-hero__title" data-loom-slot="title">${escapeText(props.title || "")}</${htag}>` +
+              `<p class="cs-hero__lead" data-loom-slot="lead">${escapeText(props.lead || "")}</p>` +
+              `<ul class="cs-hero__chips" data-loom-slot="chips">${chipItems}</ul>` +
+            `</div>` +
+          `</section>`;
+      }
+
+      function escapeAttr(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+      }
+      function escapeText(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+      }
+
+      window.addEventListener("message", (e) => {
+        if (e.origin !== location.origin) return;
+        if (!e.data || e.data.type !== "loom:content") return;
+        const v = e.data.values || {};
+        overrides = {};
+        if ("meta"  in v) overrides.meta  = v.meta;
+        if ("title" in v) overrides.title = v.title;
+        if ("lead"  in v) overrides.lead  = v.lead;
+        if ("chips" in v) overrides.chips = v.chips;
+        if (typeof v["_heading-level"] === "number") headingLevel = v["_heading-level"];
+        render();
+      });
+
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "case-study-hero" }, location.origin); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

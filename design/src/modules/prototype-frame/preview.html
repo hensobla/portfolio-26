@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prototype frame — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="prototype-frame.css">
+  <script src="../../loader.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+  </style>
+</head>
+<body>
+  <div id="preview-frame"></div>
+  <script>
+    (function () {
+      const DEMO_URL = "data:text/html;charset=utf-8,%3Cstyle%3Ehtml%2Cbody%7Bmargin%3A0%3Bpadding%3A0%3Bheight%3A100%25%3Bfont-family%3Asystem-ui%3Bdisplay%3Agrid%3Bplace-items%3Acenter%3Bbackground%3A%230a1450%3Bcolor%3A%23f7f4ee%7D%3C%2Fstyle%3E%3Cdiv%20style%3D%22text-align%3Acenter%22%3E%3Cdiv%20style%3D%22font-family%3Amonospace%3Bletter-spacing%3A.16em%3Bfont-size%3A11px%3Bopacity%3A.6%22%3EPROTOTYPE%20LOADED%3C%2Fdiv%3E%3Cdiv%20style%3D%22font-size%3A32px%3Bmargin-top%3A12px%22%3EOwnership%20transfer%3C%2Fdiv%3E%3C%2Fdiv%3E";
+
+      const STATES = {
+        default:     { poster: "", label: "FIG. 05", caption: "Ownership transfer — interactive walkthrough", embedUrl: DEMO_URL, embedKind: "iframe", state: null,        loaded: false },
+        loaded:      { poster: "", label: "FIG. 05", caption: "Ownership transfer — interactive walkthrough", embedUrl: DEMO_URL, embedKind: "iframe", state: null,        loaded: true  },
+        "no-poster": { poster: "", label: "FIG. 05", caption: "Ownership transfer — interactive walkthrough", embedUrl: DEMO_URL, embedKind: "iframe", state: "no-poster", loaded: false }
+      };
+
+      const params    = new URLSearchParams(location.search);
+      const stateId   = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+
+      let overrides = {};
+
+      function render() {
+        const props = { ...baseState, ...overrides };
+        const stateAttr = props.state ? ` data-state="${escapeAttr(props.state)}"` : "";
+        const src = props.poster ? ` src="${escapeAttr(props.poster)}"` : ' src=""';
+        const embedAttrs = ` data-embed-url="${escapeAttr(props.embedUrl || "")}" data-embed-kind="${escapeAttr(props.embedKind || "iframe")}"`;
+
+        document.getElementById("preview-frame").innerHTML =
+          `<figure data-loom-module="prototype-frame"${stateAttr}${embedAttrs}>` +
+            `<div class="proto__wrap">` +
+              `<div class="proto__frame" data-loaded="false">` +
+                `<img class="proto__poster" data-loom-slot="poster" alt=""${src}>` +
+                `<button class="proto__play" type="button" aria-label="Load prototype">` +
+                  `<span class="proto__play-disc" aria-hidden="true"></span>` +
+                  `<span class="proto__play-label">Load prototype</span>` +
+                `</button>` +
+                `<div class="proto__embed" hidden></div>` +
+              `</div>` +
+              `<figcaption class="proto__caption">` +
+                `<span class="proto__label" data-loom-slot="label">${escapeText(props.label || "")}</span>` +
+                `<span class="proto__text"  data-loom-slot="caption">${escapeText(props.caption || "")}</span>` +
+              `</figcaption>` +
+            `</div>` +
+          `</figure>`;
+
+        if (props.loaded) {
+          const tryLoad = (n) => {
+            const root = document.querySelector('[data-loom-module="prototype-frame"]');
+            if (root && window.LoomPrototypeFrame) return window.LoomPrototypeFrame.load(root);
+            if (n < 50) setTimeout(() => tryLoad(n + 1), 20);
+          };
+          tryLoad(0);
+        }
+      }
+
+      function escapeAttr(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+      }
+      function escapeText(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+      }
+
+      window.addEventListener("message", (e) => {
+        if (e.origin !== location.origin) return;
+        if (!e.data || e.data.type !== "loom:content") return;
+        const v = e.data.values || {};
+        overrides = {};
+        if ("poster"     in v) overrides.poster     = v.poster;
+        if ("label"      in v) overrides.label      = v.label;
+        if ("caption"    in v) overrides.caption    = v.caption;
+        if ("embed-url"  in v) overrides.embedUrl   = v["embed-url"];
+        if ("embed-kind" in v) overrides.embedKind  = v["embed-kind"];
+        render();
+      });
+
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "prototype-frame" }, location.origin); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>
