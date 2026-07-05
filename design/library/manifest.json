@@ -867,6 +867,222 @@
       ],
       "addedAt": "2026-06-05",
       "notes": "Portfolio homepage — incremental build to the Figma 'June 2026' wireframe (BLOCK A, file fqfwIkPzFHLw4FcEePUeiW, nodes 2021:3 resting / 2021:78 open; refs in .figma-ref/, gitignored). Piece 1 = resting state: name top-left, bio bottom-left, tabbed 'My Projects' FOLDER on the right (manila-tab metaphor, line-work on cream). Intentionally a HAND-WRITTEN template (not the composed/iframed pattern) because the planned takeover animation must move name + folder within one DOM. Vanilla; no stack triggered. Next: folder polish/tab-slant + open state (folder grows, name→nav-logo, P1–P4 tabs spread, title + body + 2×2 image grid), then the takeover animation (new motion category, drift-C). GSAP adopted (ADR 0028); first GSAP motion wired into preview.html as a tokens-driven, reduced-motion-guarded entrance timeline (status→name→bio→folder) — the takeover animation will build on this. TAKEOVER v1 BUILT (2026-06-05, drift-C, motion.md 'State transitions'): click a project → identity fades left, folder pins out of grid + stretches to full width (tabs spread via flex:1, labels fade in), then grows to full height (two-beat expo.out→power3.inOut), name types into a top-left nav-logo. Logic in src/templates/home/home.js (HomeTemplate.init), loaded by preview.html. TABS — ART-LAYER REWRITE (2026-06-06, 4th iteration; supersedes the brief single-global-outline version). All folder visuals are painted by home.js buildFolder() into ONE SVG (.home__folder-art) as ORDERED fill+stroke <path>s, so overlapping tabs occlude correctly AND every corner is a real miter join. Paint order back-to-front: body fill (.home__art-body, --surface1) → each tab as a SEPARATE fill (.home__art-fill) then stroke (.home__art-stroke), appended in REVERSE index order (fill-before-stroke per tab) so the leftmost/front tab paints LAST and its fill masks the tab behind it (this is what makes the overlapping cascade occlude cleanly) → the woven body-perimeter + active-tab outline (.home__art-outline) on top. The fill is a closed trapezoid whose bottom extends 2px BELOW the baseline (EXT=2) so a front tab fully buries the slant TIPS of the one behind it (a fill ending exactly on the baseline left ~1px of the back tab's 2px slant-end stroke peeking through — the 'partial border' bug, fixed 2026-06-06). The stroke is OPEN — slant/top/slant only, NO foot — because the tab's bottom edge comes from the woven body-top line, not a per-tab foot. The active tab's fill gets .is-active (--background) and draws NO stroke — its outline is welded into the woven perimeter where its slants meet the body, so it opens into the body with no seam (the corner that used to notch). Geometry from offset* (transform-immune); SVG has NO viewBox (1 unit = 1px) so stroke-width 2 is always exactly 2px. buildFolder runs on init (ResizeObserver + rAF), every takeover frame (timeline onUpdate), on setActive, and in the reduced-motion branch. The tab <button>s are now TRANSPARENT — just labels (z-index 3, above the art z-1 + body z-2) + click targets; no fills/strokes in HTML. Slant = --space-4 (16px) over tab height --space-6 (32px) = constant 26.6°. WHY this lineage: (1) single stretched SVG per tab → uneven stroke; (2) flex caps + CSS rail/body borders → corner NOTCHES where SVG met CSS at non-90°; (3) single global outline path → clean joints BUT couldn't occlude overlapping tabs, so resting had to go non-overlapping; (4 = current) ordered fill+stroke art layer → overlapping manila cascade is BACK (compact: each tab steps right by --space-6, leftmost/front on top) with clean occlusion AND clean joints. COMPACT (2026-06-06 pass): the manila cascade overlaps (each tab steps right by --space-7, still < tab width so they overlap) and staggers vertically — bottoms stay on the body line, TOPS step so each tab sits slightly LOWER than the one to its left (HIGH on the left → LOW on the right; primary/active tab is the tallest). Slant angle stays constant because home.js derives each tab's slant run from its own height (slant=(TH-top)/2). The active tab's fill matches the body (--surface1) in BOTH states — no tint anywhere; it's distinguished by opening in + the accent label. OPEN (2026-06-06 pass): tabs are sized to their LABEL (tabW = label.scrollWidth + 2·--space-2 + 2·slant) and laid left-to-right from the folder's left edge (no full-width spread); they're a touch BIGGER than compact (height ~40 = --space-6 + --space-2; slant = height/2 so width calc uses tabH/2, not a fixed --space-4). Label stays at --eyebrow-size (11px — Departure Mono's crisp size). Label is centered + clears the caps; the 01/02/03 numbers are hidden (.home__tab-num display:none, kept in markup). The 'nav' band (availability badge + typed-in Blake Henson logo) reserves --space-8 above the folder (geometry navH) so the expanded folder doesn't butt up against it (~48px above the nav, ~44px below to the folder). HOVER-LIFT (2026-06-06): in the OPEN folder, hovering an inactive tab LIFTS its tab ~6px (--space-1·1.5) via per-tab riseState[i].v. To sell the FOLDER illusion (not a floating trapezoid), the tab (flat top + slants) translates up UNDISTORTED while straight VERTICAL sides grow below it down to the body line (TH) — so a raised tab reads as the top of a folder whose body continues DOWN BEHIND the open folder, with the front folder's woven top edge (drawn last) crossing in front of the verticals. home.js buildFolder draws each inactive tab as: vertical side → slant → flat top → slant → vertical side, OPEN at the bottom (TH); at rest (rise=0) the verticals are zero-length so it's the plain trapezoid on the line. Slant angle is constant (from resting height) — no distortion. Tween: power2.out over --motion-fast on mouseenter/leave. On CLICK (2-phase GSAP timeline): (1) the clicked tab PLUNGES from its hover-lift DOWN past rest to -OVER (--space-2 below the line, power2.in) — it 'presses into' the folder slot, CLIPPED at the body line (negative-rise branch in buildFolder: no points below TH, the base narrows inward by |r|/2 as it sinks, slant angle constant). At that LOWEST point the page COMMITS to the new tab (setActive + activeSettled=false). (2) It SPRINGS back up to rest (-OVER→0, back.out(1.7), --motion-standard), then on settle snaps fully OPEN (activeSettled=true → woven weaves over it). Throughout the plunge+spring (activeSettled=false) the woven outline leaves a flat GAP under the active tab (the perimeter is drawn as one OPEN subpath from the opening's right edge around to its left, gap = the tab's base which narrows by |r|/2 when sunk) so the newly-selected tab has NO bottom border — it reads as opening into the body the whole time, while the other tabs keep theirs. So the old page shows during the plunge and swaps at the bottom of the bounce. A non-lifted click (touch / no hover, riseState<0.5) or reduced-motion opens immediately, no spring. Lift is open-state + non-active only. default active = tab 1. Still PROVISIONAL (stagger, spread, sizes, hidden numbers are all my calls / 'for now'; not ratified). Availability badge STAYS as nav (top-right) alongside the typed-in logo — only name+bio fade out. Open-state folder BODY is still empty (placeholder); content (title + 2×2 image grid) + reverse/close + mobile takeover are the next pieces. Logo click = reload stub. OPEN-FOLDER CONTENT (2026-06-07): the open body now holds one case-study PANEL per project (.home__panels > .home__panel[data-index], in home.html), placeholder for now. Projects renamed P1–P4 → Ledger / Crate / Atlas / Manifold (tab labels + resting list + panels all in sync). Each panel: mono meta line (accent figure number · role · year), display title, lead, a dimensioned spec row (Role/Team/Timeline/Surface dl), 2 body paragraphs (max --measure), a 2×2 grid of placeholder 'shots' (.home__shot-frame — 4:3, faint blueprint grid wash, FIG. NN corner label, caption), and a 16:9 prototype frame (.home__proto-frame — accent border, blue play disc, mono caption). The folder BODY now stacks the resting index (.home__folder-nav = title + list, fades out on takeover) and .home__panels (position:absolute, inset:0, hidden until [data-home-state=open]); each panel scrolls internally (overflow-y:auto, height:100%). home.js: setActive(i) now also toggles .home__panel.is-active + the hidden attribute + resets scrollTop (panels auto-scrolled because tabindex=0 made them the active scroll container); revealPanel(i) fades the active panel in (autoAlpha+y, --motion-standard, reduced-motion no-op) — scheduled at beat·1.1 of the open timeline and called on every tab-switch (immediate + plunge-commit paths). All tokens-only; verified light + dark, no console errors. PANEL REFINEMENTS (2026-06-07): (a) thin top+bottom FADE on .home__panel via a mask-image linear-gradient (--panel-fade = --space-5) so content dissolves at the folder edges instead of hard-clipping as it scrolls. (b) Open folder is now RESPONSIVE AFTER EXPANSION — home.js fitOpenFolder() + a rAF-throttled window resize listener re-fit the pinned folder to the current viewport (the open layout pins fixed px via geometry(); an `opening` flag guards against fighting the open timeline). (c) The tab strip grows to the open tab height on open (gsap.set tabsWrap height = tabH) so the folder body begins exactly at the woven folder-top line — fixes content clipping into the tabs. (d) Availability badge pins top-right in the open state at ALL widths ([data-home-state=open] .home__status absolute + .home__identity static) so it stops colliding with the typed-in logo below 1024px. (e) Shot grid now follows system/space.md's responsive COLUMN COUNTS (4/8/12) but driven by the PANEL's width via CSS @container (container: panel/inline-size on .home__panels), re-mapping --panel-cols/--panel-gap from the system --grid-cols-*/--grid-gap-* tokens at the same 480/768/1024 breakpoints; each .home__shot spans the tracks (span 4→1-up, span 4 in 8-col→2-up, span 3 in 12-col→4-up) so tiles tile cleanly with no orphans. Narrow-panel padding/title also moved to @container. PERF SCAFFOLDING for heavy per-project content (2026-06-07): each panel's heavy media (.home__panel-grid + .home__proto) now lives in an inert <template class=\"home__panel-media\">; home.js hydrateMedia(i) clones it into the panel on INTENT — activation (setActive) OR pointerenter/focus on the project's tab or resting list item (prefetch-on-hover). <template> content never loads/renders until cloned, so unopened projects cost nothing and a hover starts the fetch before the click. Verified: 0 live grids at rest (all 4 templated), hover hydrates only that project, others stay inert. preview.html adds preconnect to fonts.googleapis/gstatic to parallelize the serialized @import font chain (preview-only; Next port self-hosts via next/font). When the FIG frames become real images use <img loading=\"lazy\" decoding=\"async\" width height>; prototypes should be click-to-load (preload=none). content-visibility:auto on shots considered but deferred (foot-gun with the internal scroll + mask). STILL placeholder content + provisional. ADRs due at /handoff (container-query panel grid + template-deferred media are both reusable patterns). FOLDER CLOSE — reverse takeover (2026-06-07, ADR 0032): the typed-in 'Blake Henson' logo (was a location.reload() stub) now CLOSES the folder back to the resting cascade. home.js closeFolder() runs a reverse of the open timeline: case study fades out + logo UN-types (typeOut, the reverse of typeIn — text deletes back to empty) + tab labels drop → BEAT 1 folder collapses height (power3.inOut) → BEAT 2 width shrinks + tabs gather back into the manila cascade (expo.inOut) + strip height returns → identity (name+bio) returns from the left. Three decisions worth knowing: (1) close measures the RESTING target geometry at CLOSE-time via restingMetrics() — it briefly clears the open inline pin off the folder/explorer/tabs/strip, reads the reflowed layout (folder box rel. to root, each tab's offset* box, strip height), then restores the saved cssText verbatim; synchronous (one reflow, no paint between, nothing flashes). This is correct at the CURRENT viewport, which the open-time geometry() snapshot is NOT after a resize-while-open (fitOpenFolder re-fits the open box, so the open-time resting numbers go stale). (2) the open→resting data-home-state flip is DEFERRED to the end and masked by a short crossfade on the availability badge (fade out → flip → fade in) because the badge repositions corner→eyebrow at narrow widths — the reposition happens while it's invisible so it reads as a fade, not a snap. (3) settleResting() (the shared end-state of both the animated and reduced-motion close) clears ALL open-state inline styles via gsap clearProps on the folder/explorer/strip/tabs/identity/folder-nav/labels/status/active panel so the resting CSS fully RE-OWNS layout (rather than animating values back to a number, which would leave inline residue that fights CSS on the next resize), then flips the state attr, clears the logo, resets open/opening flags, rebuilds the art. Reduced motion skips the timeline and settles directly. (4) the woven/FRONT tab is reset to the first project for the collapse — closeFolder() toggles is-active to tab index 0 before the timeline so buildFolder weaves the LEFTMOST tab the whole way down, and settleResting's setActive(0) reconciles the panels (aria/hidden/scroll) after. This re-stacks the cascade LEFT-TOP → RIGHT-BOTTOM (leftmost on top, stepping down-and-right) instead of leaving the last-opened tab woven in front; consequence — closing always returns to the first project (Ledger), matching the resting design's canonical look (the takeover does not remember which project you were viewing). All tokens-only, reduced-motion guarded."
+    },
+    {
+      "name": "Prose section",
+      "slug": "prose-section",
+      "category": "modules",
+      "status": "draft",
+      "filePath": "src/modules/prose-section/prose-section.html",
+      "previewPath": "src/modules/prose-section/preview.html",
+      "states": [
+        { "id": "default",      "label": "Default"      },
+        { "id": "no-title",     "label": "No title"     },
+        { "id": "long-content", "label": "Long content" }
+      ],
+      "tags": ["case-study", "text", "prose"],
+      "slots": [
+        { "id": "eyebrow", "type": "text", "label": "Eyebrow", "default": "01 · Problem",                 "hint": "Mono section label; rendered uppercase. Keep short." },
+        { "id": "title",   "type": "text", "label": "Title",   "default": "A hidden ledger of ownership", "hint": "Optional heading. Empty to hide." },
+        { "id": "body",    "type": "text", "label": "Body",    "default": "Every used car carries a paper trail — service records, accident reports, title transfers — and almost none of it survives the sale.\n\nThe team's early user research surfaced a single shared complaint: nobody trusts the previous owner.", "hint": "Blank lines split into <p> paragraphs." }
+      ],
+      "headings": [
+        { "slot": "title", "role": "primary" }
+      ],
+      "addedAt": "2026-07-04",
+      "description": "Case-study prose section — mono eyebrow, optional heading, body paragraphs at the 62ch measure.",
+      "notes": ""
+    },
+    {
+      "name": "Case-study hero",
+      "slug": "case-study-hero",
+      "category": "modules",
+      "status": "draft",
+      "filePath": "src/modules/case-study-hero/case-study-hero.html",
+      "previewPath": "src/modules/case-study-hero/preview.html",
+      "states": [
+        { "id": "default",    "label": "Default"    },
+        { "id": "no-chips",   "label": "No chips"   },
+        { "id": "long-title", "label": "Long title" }
+      ],
+      "tags": ["case-study", "hero", "text"],
+      "slots": [
+        { "id": "meta",  "type": "text", "label": "Meta line",              "default": "Lead product designer · 2025", "hint": "Mono, accent-tinted — role · year, or client · year." },
+        { "id": "title", "type": "text", "label": "Title",                  "default": "Ledger",                        "hint": "Primary heading. Display type." },
+        { "id": "lead",  "type": "text", "label": "Lead paragraph",         "default": "A tamper-evident record of vehicle ownership, transferable between owners over the life of the asset.", "hint": "One paragraph. Measure-constrained." },
+        { "id": "chips", "type": "text", "label": "Chips (one per line)",   "default": "Fintech\nWeb\niOS",             "hint": "Category / surface / tech chips. One per line. Empty for none." }
+      ],
+      "headings": [
+        { "slot": "title", "role": "primary" }
+      ],
+      "addedAt": "2026-07-04",
+      "description": "Case-study opener — meta line, display title, lead paragraph, optional chip row.",
+      "notes": ""
+    },
+    {
+      "name": "Full-bleed figure",
+      "slug": "full-bleed-figure",
+      "category": "modules",
+      "status": "draft",
+      "filePath": "src/modules/full-bleed-figure/full-bleed-figure.html",
+      "previewPath": "src/modules/full-bleed-figure/preview.html",
+      "states": [
+        { "id": "default",    "label": "Default"                   },
+        { "id": "no-caption", "label": "No caption"                },
+        { "id": "no-image",   "label": "No image (placeholder wash)" }
+      ],
+      "tags": ["case-study", "media", "figure"],
+      "slots": [
+        { "id": "image",   "type": "image", "label": "Image",      "hint": "4:3 shot. Empty renders the blueprint-grid placeholder." },
+        { "id": "label",   "type": "text",  "label": "FIG. label", "default": "FIG. 01", "hint": "Mono figure number, e.g. FIG. 01." },
+        { "id": "caption", "type": "text",  "label": "Caption",    "default": "Claim flow — end to end, from title upload to signed transfer" }
+      ],
+      "addedAt": "2026-07-04",
+      "description": "Case-study full-bleed shot — 4:3 image + mono FIG. NN caption. Blueprint-wash placeholder when empty.",
+      "notes": ""
+    },
+    {
+      "name": "Figure grid",
+      "slug": "figure-grid",
+      "category": "modules",
+      "status": "draft",
+      "filePath": "src/modules/figure-grid/figure-grid.html",
+      "previewPath": "src/modules/figure-grid/preview.html",
+      "states": [
+        { "id": "default",   "label": "2×2"      },
+        { "id": "three-up",  "label": "3-up"     },
+        { "id": "no-images", "label": "No images" }
+      ],
+      "tags": ["case-study", "media", "grid"],
+      "slots": [
+        { "id": "fig-1-image",   "type": "image", "label": "Figure 1 image",   "hint": "4:3. Empty renders the blueprint-grid placeholder." },
+        { "id": "fig-1-label",   "type": "text",  "label": "Figure 1 label",   "default": "FIG. 01" },
+        { "id": "fig-1-caption", "type": "text",  "label": "Figure 1 caption", "default": "Claim flow" },
+        { "id": "fig-2-image",   "type": "image", "label": "Figure 2 image"   },
+        { "id": "fig-2-label",   "type": "text",  "label": "Figure 2 label",   "default": "FIG. 02" },
+        { "id": "fig-2-caption", "type": "text",  "label": "Figure 2 caption", "default": "Ownership timeline" },
+        { "id": "fig-3-image",   "type": "image", "label": "Figure 3 image"   },
+        { "id": "fig-3-label",   "type": "text",  "label": "Figure 3 label",   "default": "FIG. 03" },
+        { "id": "fig-3-caption", "type": "text",  "label": "Figure 3 caption", "default": "Transfer sheet" },
+        { "id": "fig-4-image",   "type": "image", "label": "Figure 4 image",   "hint": "Hidden in the three-up state." },
+        { "id": "fig-4-label",   "type": "text",  "label": "Figure 4 label",   "default": "FIG. 04" },
+        { "id": "fig-4-caption", "type": "text",  "label": "Figure 4 caption", "default": "Service record" }
+      ],
+      "addedAt": "2026-07-04",
+      "description": "Case-study figure mosaic — 2×2 or 3-up. Per-figure FIG. NN labels and captions.",
+      "notes": ""
+    },
+    {
+      "name": "Spec sheet",
+      "slug": "spec-sheet",
+      "category": "modules",
+      "status": "draft",
+      "filePath": "src/modules/spec-sheet/spec-sheet.html",
+      "previewPath": "src/modules/spec-sheet/preview.html",
+      "states": [
+        { "id": "default", "label": "Default (4 rows)" },
+        { "id": "minimal", "label": "Minimal (3 rows)" },
+        { "id": "full",    "label": "Full (6 rows)"    }
+      ],
+      "tags": ["case-study", "data", "specs"],
+      "slots": [
+        { "id": "title",        "type": "text", "label": "Title",       "default": "Specifications", "hint": "Optional heading. Empty to hide." },
+        { "id": "spec-1-label", "type": "text", "label": "Row 1 label", "default": "Role" },
+        { "id": "spec-1-value", "type": "text", "label": "Row 1 value", "default": "Lead product designer" },
+        { "id": "spec-2-label", "type": "text", "label": "Row 2 label", "default": "Team" },
+        { "id": "spec-2-value", "type": "text", "label": "Row 2 value", "default": "2 designers, 4 engineers" },
+        { "id": "spec-3-label", "type": "text", "label": "Row 3 label", "default": "Timeline" },
+        { "id": "spec-3-value", "type": "text", "label": "Row 3 value", "default": "Sep 2024 — Apr 2025" },
+        { "id": "spec-4-label", "type": "text", "label": "Row 4 label", "default": "Platform" },
+        { "id": "spec-4-value", "type": "text", "label": "Row 4 value", "default": "Web · iOS" },
+        { "id": "spec-5-label", "type": "text", "label": "Row 5 label", "hint": "Leave empty to hide this row." },
+        { "id": "spec-5-value", "type": "text", "label": "Row 5 value", "hint": "Leave empty to hide this row." },
+        { "id": "spec-6-label", "type": "text", "label": "Row 6 label", "hint": "Leave empty to hide this row." },
+        { "id": "spec-6-value", "type": "text", "label": "Row 6 value", "hint": "Leave empty to hide this row." }
+      ],
+      "headings": [
+        { "slot": "title", "role": "primary" }
+      ],
+      "addedAt": "2026-07-04",
+      "description": "Case-study specifications — key/value definition list. Up to 6 fixed rows; empty rows hide.",
+      "notes": ""
+    },
+    {
+      "name": "Stat row",
+      "slug": "stat-row",
+      "category": "modules",
+      "status": "draft",
+      "filePath": "src/modules/stat-row/stat-row.html",
+      "previewPath": "src/modules/stat-row/preview.html",
+      "states": [
+        { "id": "default",  "label": "4-up (default)" },
+        { "id": "three-up", "label": "3-up"           },
+        { "id": "two-up",   "label": "2-up"           }
+      ],
+      "tags": ["case-study", "data", "stats"],
+      "slots": [
+        { "id": "stat-1-value",   "type": "text", "label": "Stat 1 value",   "default": "3M" },
+        { "id": "stat-1-unit",    "type": "text", "label": "Stat 1 unit",    "default": "Ownership records" },
+        { "id": "stat-1-context", "type": "text", "label": "Stat 1 context", "hint": "Optional line under the label." },
+        { "id": "stat-2-value",   "type": "text", "label": "Stat 2 value",   "default": "+38%" },
+        { "id": "stat-2-unit",    "type": "text", "label": "Stat 2 unit",    "default": "Claim throughput" },
+        { "id": "stat-2-context", "type": "text", "label": "Stat 2 context", "hint": "Optional line under the label." },
+        { "id": "stat-3-value",   "type": "text", "label": "Stat 3 value",   "default": "3" },
+        { "id": "stat-3-unit",    "type": "text", "label": "Stat 3 unit",    "default": "Weeks to first pilot" },
+        { "id": "stat-3-context", "type": "text", "label": "Stat 3 context", "hint": "Optional line under the label." },
+        { "id": "stat-4-value",   "type": "text", "label": "Stat 4 value",   "default": "4:1" },
+        { "id": "stat-4-unit",    "type": "text", "label": "Stat 4 unit",    "default": "Support-load reduction" },
+        { "id": "stat-4-context", "type": "text", "label": "Stat 4 context", "hint": "Optional line under the label." }
+      ],
+      "addedAt": "2026-07-04",
+      "description": "Case-study impact row — up to 4 display values with mono unit labels and optional context.",
+      "notes": ""
+    },
+    {
+      "name": "Pull quote",
+      "slug": "pull-quote",
+      "category": "modules",
+      "status": "draft",
+      "filePath": "src/modules/pull-quote/pull-quote.html",
+      "previewPath": "src/modules/pull-quote/preview.html",
+      "states": [
+        { "id": "default",         "label": "Default"         },
+        { "id": "no-attribution",  "label": "No attribution"  },
+        { "id": "long-quote",      "label": "Long quote"      }
+      ],
+      "tags": ["case-study", "text", "quote"],
+      "slots": [
+        { "id": "quote",       "type": "text", "label": "Quote",       "default": "Ownership isn't a state — it's a chain. Every previous owner is still on the hook for the history the current one inherits.", "hint": "The quote itself. Quote marks are added by the module." },
+        { "id": "attribution", "type": "text", "label": "Attribution", "default": "Elise Kim",           "hint": "Speaker's name." },
+        { "id": "role",        "type": "text", "label": "Role",        "default": "Design lead, Ledger", "hint": "Optional title / context after the name." }
+      ],
+      "addedAt": "2026-07-04",
+      "description": "Case-study pull quote — semantic blockquote + attribution. Display type with accent quote marks.",
+      "notes": ""
+    },
+    {
+      "name": "Prototype frame",
+      "slug": "prototype-frame",
+      "category": "modules",
+      "status": "draft",
+      "filePath": "src/modules/prototype-frame/prototype-frame.html",
+      "previewPath": "src/modules/prototype-frame/preview.html",
+      "states": [
+        { "id": "default",   "label": "Default (poster)" },
+        { "id": "loaded",    "label": "Loaded"           },
+        { "id": "no-poster", "label": "No poster"        }
+      ],
+      "tags": ["case-study", "media", "prototype"],
+      "slots": [
+        { "id": "poster",     "type": "image", "label": "Poster",     "hint": "16:9 still. Shown before the prototype loads." },
+        { "id": "label",      "type": "text",  "label": "FIG. label", "default": "FIG. 05", "hint": "Mono figure number." },
+        { "id": "caption",    "type": "text",  "label": "Caption",    "default": "Ownership transfer — interactive walkthrough" },
+        { "id": "embed-url",  "type": "text",  "label": "Embed URL",  "hint": "Loom / Figma / mp4 URL. Loaded on click." },
+        { "id": "embed-kind", "type": "text",  "label": "Embed kind", "default": "iframe", "hint": "\"iframe\" (default) or \"video\"." }
+      ],
+      "addedAt": "2026-07-04",
+      "description": "Case-study prototype embed — click-to-load iframe or video with poster + play affordance.",
+      "notes": ""
     }
   ]
 }

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Figure grid — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="figure-grid.css">
+  <script src="../../loader.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+  </style>
+</head>
+<body>
+  <div id="preview-frame"></div>
+  <script>
+    (function () {
+      const DEFAULT_FIGS = [
+        { image: "", label: "FIG. 01", caption: "Claim flow" },
+        { image: "", label: "FIG. 02", caption: "Ownership timeline" },
+        { image: "", label: "FIG. 03", caption: "Transfer sheet" },
+        { image: "", label: "FIG. 04", caption: "Service record" }
+      ];
+
+      const STATES = {
+        default:     { figs: DEFAULT_FIGS, state: null         },
+        "three-up":  { figs: DEFAULT_FIGS, state: "three-up"   },
+        "no-images": { figs: DEFAULT_FIGS.map((f) => ({ ...f, image: "" })), state: null }
+      };
+
+      const params    = new URLSearchParams(location.search);
+      const stateId   = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+
+      let overrides = {};
+
+      function render() {
+        const stateAttr = baseState.state ? ` data-state="${escapeAttr(baseState.state)}"` : "";
+        const figs = baseState.figs.map((f, i) => {
+          const n = i + 1;
+          const image   = overrides[`fig-${n}-image`]   ?? f.image;
+          const label   = overrides[`fig-${n}-label`]   ?? f.label;
+          const caption = overrides[`fig-${n}-caption`] ?? f.caption;
+          const src = image ? ` src="${escapeAttr(image)}"` : ' src=""';
+          return `<figure class="fig-grid__cell" data-figure="${n}">` +
+                   `<div class="fig-grid__frame">` +
+                     `<img class="fig-grid__image" data-loom-slot="fig-${n}-image" alt=""${src}>` +
+                   `</div>` +
+                   `<figcaption class="fig-grid__caption">` +
+                     `<span class="fig-grid__label" data-loom-slot="fig-${n}-label">${escapeText(label)}</span>` +
+                     `<span class="fig-grid__text"  data-loom-slot="fig-${n}-caption">${escapeText(caption)}</span>` +
+                   `</figcaption>` +
+                 `</figure>`;
+        }).join("");
+
+        document.getElementById("preview-frame").innerHTML =
+          `<section data-loom-module="figure-grid" aria-label="Figures"${stateAttr}>` +
+            `<div class="fig-grid__wrap">` +
+              `<div class="fig-grid__grid">${figs}</div>` +
+            `</div>` +
+          `</section>`;
+      }
+
+      function escapeAttr(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+      }
+      function escapeText(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+      }
+
+      window.addEventListener("message", (e) => {
+        if (e.origin !== location.origin) return;
+        if (!e.data || e.data.type !== "loom:content") return;
+        const v = e.data.values || {};
+        overrides = {};
+        for (let n = 1; n <= 4; n++) {
+          [`fig-${n}-image`, `fig-${n}-label`, `fig-${n}-caption`].forEach((k) => {
+            if (k in v) overrides[k] = v[k];
+          });
+        }
+        render();
+      });
+
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "figure-grid" }, location.origin); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>

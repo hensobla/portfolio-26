@@ -1,0 +1,100 @@
+/* Case-study opener. Meta line (mono, accent-tinted) → display title
+   (primary heading) → lead paragraph (measure-constrained) → optional
+   chip row. Section-sized, slot-friendly, tokens-only. */
+[data-loom-module="case-study-hero"] {
+  background: var(--background);
+  color: var(--text1);
+}
+
+[data-loom-module="case-study-hero"] .cs-hero__inner {
+  display: grid;
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
+  gap: var(--grid-gap);
+  padding-block: var(--space-9) var(--space-8);
+  padding-inline: var(--grid-margin);
+  max-width: var(--container-max);
+  margin-inline: auto;
+}
+
+[data-loom-module="case-study-hero"] .cs-hero__meta,
+[data-loom-module="case-study-hero"] .cs-hero__title,
+[data-loom-module="case-study-hero"] .cs-hero__lead,
+[data-loom-module="case-study-hero"] .cs-hero__chips {
+  grid-column: 1 / -1;
+}
+
+@media (min-width: 768px) {
+  [data-loom-module="case-study-hero"] .cs-hero__lead,
+  [data-loom-module="case-study-hero"] .cs-hero__chips {
+    grid-column: 1 / span 6;
+    max-width: var(--measure);
+  }
+}
+
+@media (min-width: 1024px) {
+  [data-loom-module="case-study-hero"] .cs-hero__lead,
+  [data-loom-module="case-study-hero"] .cs-hero__chips {
+    grid-column: 1 / span 8;
+  }
+}
+
+[data-loom-module="case-study-hero"] .cs-hero__meta {
+  font-family: var(--eyebrow-family);
+  font-size: var(--eyebrow-size);
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
+  color: var(--accent-text);
+  margin: 0 0 var(--space-5);
+}
+
+[data-loom-module="case-study-hero"] .cs-hero__title {
+  font-family: var(--font-display);
+  font-size: var(--type-display-l);
+  font-weight: 700;
+  line-height: var(--line-height-display);
+  letter-spacing: var(--tracking-display);
+  color: var(--text1);
+  margin: 0 0 var(--space-6);
+  text-wrap: balance;
+}
+
+@media (min-width: 768px) {
+  [data-loom-module="case-study-hero"] .cs-hero__title {
+    font-size: var(--type-display-xl);
+  }
+}
+
+[data-loom-module="case-study-hero"] .cs-hero__lead {
+  font-family: var(--font-body);
+  font-size: var(--type-body-l);
+  line-height: var(--line-height-body);
+  color: var(--text2);
+  margin: 0 0 var(--space-6);
+}
+
+[data-loom-module="case-study-hero"] .cs-hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+[data-loom-module="case-study-hero"] .cs-hero__chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--border-visible);
+  border-radius: 999px;
+  font-family: var(--eyebrow-family);
+  font-size: var(--eyebrow-size);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
+  color: var(--text2);
+}
+
+[data-loom-module="case-study-hero"][data-state="no-chips"] .cs-hero__chips {
+  display: none;
+}

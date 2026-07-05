@@ -1,0 +1,95 @@
+/* Case-study media mosaic — 2x2 (default) or 3-up (data-state="three-up",
+   hides fig-4). Container-query driven so it responds to panel width,
+   not viewport width — which matters when this module later composes
+   into a home-template panel that's narrower than the viewport. */
+[data-loom-module="figure-grid"] {
+  background: var(--background);
+  color: var(--text1);
+  padding-block: var(--space-6);
+}
+
+[data-loom-module="figure-grid"] .fig-grid__wrap {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--grid-margin);
+  container-type: inline-size;
+}
+
+[data-loom-module="figure-grid"] .fig-grid__grid {
+  display: grid;
+  gap: var(--grid-gap);
+  row-gap: var(--space-6);
+  grid-template-columns: 1fr;
+}
+
+@container (min-width: 480px) {
+  [data-loom-module="figure-grid"] .fig-grid__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Three-up: single-column at narrow widths, 3 tracks at container ≥ 768px.
+   Fig 4 hides regardless of width. */
+[data-loom-module="figure-grid"][data-state="three-up"] .fig-grid__grid {
+  grid-template-columns: 1fr;
+}
+
+@container (min-width: 768px) {
+  [data-loom-module="figure-grid"][data-state="three-up"] .fig-grid__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+[data-loom-module="figure-grid"][data-state="three-up"] .fig-grid__cell[data-figure="4"] {
+  display: none;
+}
+
+[data-loom-module="figure-grid"] .fig-grid__cell {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Same 4:3 blueprint wash as full-bleed-figure — repeated pattern. */
+[data-loom-module="figure-grid"] .fig-grid__frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--border-visible);
+  background-color: var(--surface1);
+  background-image:
+    repeating-linear-gradient(0deg,  transparent 0 calc(var(--space-5) - 1px), var(--border) calc(var(--space-5) - 1px) var(--space-5)),
+    repeating-linear-gradient(90deg, transparent 0 calc(var(--space-5) - 1px), var(--border) calc(var(--space-5) - 1px) var(--space-5));
+  overflow: hidden;
+}
+
+[data-loom-module="figure-grid"] .fig-grid__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+[data-loom-module="figure-grid"] .fig-grid__caption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+[data-loom-module="figure-grid"] .fig-grid__label {
+  font-family: var(--eyebrow-family);
+  font-size: var(--eyebrow-size);
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
+  color: var(--accent-text);
+}
+
+[data-loom-module="figure-grid"] .fig-grid__text {
+  font-family: var(--font-body);
+  font-size: var(--type-body-s);
+  color: var(--text2);
+}

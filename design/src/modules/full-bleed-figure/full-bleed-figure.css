@@ -1,0 +1,66 @@
+/* Case-study media module — one edge-to-edge image with a mono FIG. NN
+   label and body caption. When the image slot is empty, the frame shows
+   a blueprint-grid wash (technical-drawing feel). Tokens-only. */
+[data-loom-module="full-bleed-figure"] {
+  background: var(--background);
+  color: var(--text1);
+  margin: 0;
+  padding-block: var(--space-6);
+}
+
+[data-loom-module="full-bleed-figure"] .figure__wrap {
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: var(--grid-margin);
+}
+
+/* 4:3 frame with a subtle blueprint-grid wash. The grid ticks are
+   token-spaced so the pattern scales with the space scale — no bespoke
+   pixel values. When the img has a real src it covers the wash. */
+[data-loom-module="full-bleed-figure"] .figure__frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border: 1px solid var(--border-visible);
+  background-color: var(--surface1);
+  background-image:
+    repeating-linear-gradient(0deg,  transparent 0 calc(var(--space-6) - 1px), var(--border) calc(var(--space-6) - 1px) var(--space-6)),
+    repeating-linear-gradient(90deg, transparent 0 calc(var(--space-6) - 1px), var(--border) calc(var(--space-6) - 1px) var(--space-6));
+  overflow: hidden;
+}
+
+[data-loom-module="full-bleed-figure"] .figure__image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+[data-loom-module="full-bleed-figure"] .figure__caption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  align-items: baseline;
+  margin-top: var(--space-3);
+}
+
+[data-loom-module="full-bleed-figure"] .figure__label {
+  font-family: var(--eyebrow-family);
+  font-size: var(--eyebrow-size);
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-tracking);
+  text-transform: var(--eyebrow-transform);
+  color: var(--accent-text);
+}
+
+[data-loom-module="full-bleed-figure"] .figure__text {
+  font-family: var(--font-body);
+  font-size: var(--type-body-s);
+  line-height: var(--line-height-body);
+  color: var(--text2);
+}
+
+[data-loom-module="full-bleed-figure"][data-state="no-caption"] .figure__caption {
+  display: none;
+}

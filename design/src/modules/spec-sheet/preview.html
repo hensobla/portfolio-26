@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Spec sheet — preview</title>
+  <link rel="stylesheet" href="../../../src/tokens.css">
+  <link rel="stylesheet" href="spec-sheet.css">
+  <script src="../../loader.js" defer></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--background); color: var(--text1); font-family: var(--font-body); }
+  </style>
+</head>
+<body>
+  <div id="preview-frame"></div>
+  <script>
+    (function () {
+      const FULL_ROWS = [
+        { label: "Role",     value: "Lead product designer"    },
+        { label: "Team",     value: "2 designers, 4 engineers" },
+        { label: "Timeline", value: "Sep 2024 — Apr 2025"      },
+        { label: "Platform", value: "Web · iOS"                },
+        { label: "Partners", value: "Kloud, Meridian, Corvus"  },
+        { label: "Shipped",  value: "May 2025"                 }
+      ];
+
+      const MINIMAL_ROWS = FULL_ROWS.slice(0, 3).concat([
+        { label: "", value: "" },
+        { label: "", value: "" },
+        { label: "", value: "" }
+      ]);
+
+      const DEFAULT_ROWS = FULL_ROWS.slice(0, 4).concat([
+        { label: "", value: "" },
+        { label: "", value: "" }
+      ]);
+
+      const STATES = {
+        default: { title: "Specifications", rows: DEFAULT_ROWS, state: null      },
+        minimal: { title: "Specifications", rows: MINIMAL_ROWS, state: "minimal" },
+        full:    { title: "Specifications", rows: FULL_ROWS,    state: null      }
+      };
+
+      const params    = new URLSearchParams(location.search);
+      const stateId   = params.get("state") || "default";
+      const baseState = STATES[stateId] || STATES.default;
+
+      let overrides = {};
+      let headingLevel = 2;
+
+      function render() {
+        const stateAttr = baseState.state ? ` data-state="${escapeAttr(baseState.state)}"` : "";
+        const title = overrides.title ?? baseState.title;
+        const level = Math.min(6, Math.max(1, headingLevel));
+        const htag  = "h" + level;
+
+        const rows = baseState.rows.map((r, i) => {
+          const n = i + 1;
+          const label = overrides[`spec-${n}-label`] ?? r.label;
+          const value = overrides[`spec-${n}-value`] ?? r.value;
+          return `<div class="specs__row" data-row="${n}">` +
+                   `<dt class="specs__label" data-loom-slot="spec-${n}-label">${escapeText(label)}</dt>` +
+                   `<dd class="specs__value" data-loom-slot="spec-${n}-value">${escapeText(value)}</dd>` +
+                 `</div>`;
+        }).join("");
+
+        document.getElementById("preview-frame").innerHTML =
+          `<section data-loom-module="spec-sheet"${stateAttr}>` +
+            `<div class="specs__wrap">` +
+              `<${htag} class="specs__title" data-loom-slot="title">${escapeText(title || "")}</${htag}>` +
+              `<dl class="specs__list">${rows}</dl>` +
+            `</div>` +
+          `</section>`;
+      }
+
+      function escapeAttr(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+      }
+      function escapeText(s) {
+        return String(s).replace(/[&<>]/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+      }
+
+      window.addEventListener("message", (e) => {
+        if (e.origin !== location.origin) return;
+        if (!e.data || e.data.type !== "loom:content") return;
+        const v = e.data.values || {};
+        overrides = {};
+        if ("title" in v) overrides.title = v.title;
+        for (let n = 1; n <= 6; n++) {
+          [`spec-${n}-label`, `spec-${n}-value`].forEach((k) => {
+            if (k in v) overrides[k] = v[k];
+          });
+        }
+        if (typeof v["_heading-level"] === "number") headingLevel = v["_heading-level"];
+        render();
+      });
+
+      render();
+      try { parent.postMessage({ type: "loom:ready", slug: "spec-sheet" }, location.origin); } catch (_) {}
+    })();
+  </script>
+</body>
+</html>
